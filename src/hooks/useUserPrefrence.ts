@@ -1,0 +1,47 @@
+import { useQuery } from "@tanstack/react-query";
+import apiClient from "../service/api-client";
+
+export interface UserPreferences {
+  interestedIn: string;
+  ageRange: number[];
+  distance: number;
+  goal: {
+    primary: string;
+    secondary: string;
+    tertiary: string;
+  };
+  interests: string[];
+  relationshipType: string;
+  languages: string[];
+  zodiacPreference: string[];
+  institutions: string[];
+  personalityTypePreference: string[];
+  dietPreference: string[];
+  heightRange: number[];
+  religionPreference: string[];
+  drinkingPreference: string[];
+  smokingPreference: string[];
+  petPreference: string[];
+}
+
+const fetchUserPrefrence = async (userId: string) => {
+  const { data } = await apiClient.get(`/profile/${userId}/preferences`);
+  return data as any;
+};
+
+export const useUserPrefrence = (userId: string) => {
+  const {
+    data: userPrefrence,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["user-profile", userId],
+    queryFn: () => fetchUserPrefrence(userId),
+  });
+
+  return {
+    userPrefrence,
+    isLoading,
+    error,
+  };
+};
