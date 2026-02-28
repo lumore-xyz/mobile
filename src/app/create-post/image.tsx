@@ -1,13 +1,14 @@
 import VisibilityToggle from "@/src/components/VisibilityToggle";
 import { TextAreaInput } from "@/src/components/ui/TextInput";
-import { useNsfw } from "@/src/hooks/useNsfw";
 import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
+import { useNsfw } from "@/src/hooks/useNsfw";
 import { createImagePost } from "@/src/libs/apis";
 import { queryClient } from "@/src/service/query-client";
 import { getUser } from "@/src/service/storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
+import SubPageBack from "../../components/headers/SubPageBack";
 
 const CreateImagePost = () => {
   const { pickImageAsync, selectedImage } = useMediaPermisions();
@@ -52,7 +53,8 @@ const CreateImagePost = () => {
 
   return (
     <View className="flex-1 bg-ui-light p-4">
-      <Text className="text-2xl font-semibold">Image post</Text>
+      <SubPageBack title="Image post" />
+      {/* <Text className="text-2xl font-semibold">Image post</Text> */}
       <Text className="text-xs text-ui-shade mt-1">
         Share a photo with a short caption.
       </Text>
@@ -103,7 +105,9 @@ const CreateImagePost = () => {
         />
       </View>
 
-      {error ? <Text className="text-red-500 text-sm mt-2">{error}</Text> : null}
+      {error ? (
+        <Text className="text-red-500 text-sm mt-2">{error}</Text>
+      ) : null}
 
       <Pressable
         onPress={handleSubmit}

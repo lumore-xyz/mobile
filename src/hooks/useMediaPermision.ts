@@ -66,8 +66,8 @@ export const useMediaPermisions = () => {
           await onPicked(selectedAsset);
         }
       }
-    } catch (error) {
-      console.log(error);
+    } catch {
+      // Keep silent here; caller/UI decides whether to surface errors.
     }
   };
 

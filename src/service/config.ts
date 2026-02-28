@@ -26,3 +26,6 @@ export const GOOGLE_WEB_CLIENT_ID =
 
 export const ADMOB_INTERSTITIAL_UNIT_ID = envAdmobInterstitialUnitId || null;
 export const ADMOB_REWARDED_UNIT_ID = envAdmobRewardedUnitId || null;
+
+export const ONESIGNAL_APP_ID =
+  process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID?.trim() || null;

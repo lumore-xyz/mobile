@@ -1,35 +1,17 @@
-const isSocketDebugEnabled = () => {
-  const envFlag = process.env.EXPO_PUBLIC_SOCKET_DEBUG === "true";
-  const devFlag = typeof __DEV__ !== "undefined" ? __DEV__ : false;
-  return envFlag || devFlag;
-};
+export const socketDebug = (
+  _scope: string,
+  _step: string,
+  _details?: unknown,
+) => {};
 
-const formatPrefix = (scope: string, step: string) =>
-  `[SocketDebug][${scope}] ${step}`;
+export const socketWarn = (
+  _scope: string,
+  _step: string,
+  _details?: unknown,
+) => {};
 
-export const socketDebug = (scope: string, step: string, details?: unknown) => {
-  if (!isSocketDebugEnabled()) return;
-  if (details === undefined) {
-    console.log(formatPrefix(scope, step));
-    return;
-  }
-  console.log(formatPrefix(scope, step), details);
-};
-
-export const socketWarn = (scope: string, step: string, details?: unknown) => {
-  if (!isSocketDebugEnabled()) return;
-  if (details === undefined) {
-    console.warn(formatPrefix(scope, step));
-    return;
-  }
-  console.warn(formatPrefix(scope, step), details);
-};
-
-export const socketError = (scope: string, step: string, details?: unknown) => {
-  if (!isSocketDebugEnabled()) return;
-  if (details === undefined) {
-    console.error(formatPrefix(scope, step));
-    return;
-  }
-  console.error(formatPrefix(scope, step), details);
-};
+export const socketError = (
+  _scope: string,
+  _step: string,
+  _details?: unknown,
+) => {};

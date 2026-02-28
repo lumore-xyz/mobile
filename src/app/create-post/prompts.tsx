@@ -18,6 +18,8 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import SubPageBack from "../../components/headers/SubPageBack";
+import MobileNav from "../../components/MobileNav";
 
 const FALLBACK_CATEGORIES = [
   { _id: "deep" },
@@ -42,45 +44,48 @@ const CreatePromptPost = () => {
     : FALLBACK_CATEGORIES;
 
   return (
-    <View className="flex-1 bg-ui-light">
-      <View className="p-4 pb-2">
-        <Text className="text-2xl font-semibold">Prompt post</Text>
-        <Text className="text-xs text-ui-shade mt-1">
-          Pick a prompt and add your answer.
-        </Text>
-      </View>
-      <View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="px-4"
-          contentContainerClassName="items-start"
-        >
-          <View className="flex-row gap-2 py-2 pr-8 items-center">
-            {categories.map((cat) => (
-              <Pressable
-                key={cat._id}
-                onPress={() => setActive(cat._id)}
-                className={`self-start px-4 py-2 rounded-full border ${
-                  active === cat._id
-                    ? "bg-ui-highlight border-ui-highlight"
-                    : "bg-white border-ui-shade/20"
-                }`}
-              >
-                <Text
-                  className={` capitalize ${
-                    active === cat._id ? "text-white" : "text-ui-shade"
+    <View className="bg-ui-light h-full">
+      <SubPageBack title="Prompt post" />
+      <View className="p-4 flex-1 h-full">
+        <View className="pb-2">
+          {/* <Text className="text-2xl font-semibold">Prompt post</Text> */}
+          <Text className="text-xs text-ui-shade mt-1">
+            Pick a prompt and add your answer.
+          </Text>
+        </View>
+        <View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className=""
+            contentContainerClassName="items-start"
+          >
+            <View className="flex-row gap-2 py-2 items-center">
+              {categories.map((cat) => (
+                <Pressable
+                  key={cat._id}
+                  onPress={() => setActive(cat._id)}
+                  className={`self-start px-4 py-2 rounded-full border ${
+                    active === cat._id
+                      ? "bg-ui-highlight border-ui-highlight"
+                      : "bg-white border-ui-shade/20"
                   }`}
                 >
-                  {cat._id}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
+                  <Text
+                    className={` capitalize ${
+                      active === cat._id ? "text-white" : "text-ui-shade"
+                    }`}
+                  >
+                    {cat._id}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
 
-      <PromptList category={active} />
+        <PromptList category={active} />
+      </View>
     </View>
   );
 };
@@ -143,7 +148,7 @@ const PromptList = ({ category }: { category: string }) => {
 
   return (
     <>
-      <ScrollView className="flex-1 px-4">
+      <ScrollView className="flex-1">
         <View className="pb-8">
           {promptsData.map((prompt) => (
             <Pressable

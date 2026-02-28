@@ -309,6 +309,11 @@ export const claimDailyCredits = async () => {
   const response = await apiClient.post(`/credits/daily-claim`);
   return response.data;
 };
+
+export const claimRewardedAdCredit = async (payload: { claimId: string }) => {
+  const response = await apiClient.post(`/credits/rewarded-ad-claim`, payload);
+  return response.data;
+};
 /* -------------------------------------------------------------------------- */
 /*                                 Referral                                   */
 /* -------------------------------------------------------------------------- */

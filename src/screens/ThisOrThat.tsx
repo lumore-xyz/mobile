@@ -1,14 +1,11 @@
-import SubPageBack from "../components/headers/SubPageBack";
-import Button from "../components/ui/Button";
-import {
-  fetchThisOrThatQuestions,
-  submitThisOrThatAnswer,
-} from "../libs/apis";
-import { ThisOrThatQuestion } from "../utils/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import SubPageBack from "../components/headers/SubPageBack";
+import Button from "../components/ui/Button";
+import { fetchThisOrThatQuestions, submitThisOrThatAnswer } from "../libs/apis";
+import { ThisOrThatQuestion } from "../utils/types";
 
 const ThisOrThatScreen = () => {
   const [index, setIndex] = useState(0);
@@ -66,7 +63,7 @@ const ThisOrThatScreen = () => {
             <Text className="text-2xl font-bold text-ui-shade mt-1">
               Pick your vibe
             </Text>
-            <Text className="text-sm text-ui-shade/70 mt-1">
+            <Text className="text-sm max-w-[250px] text-ui-shade/70 mt-1">
               Your choices help us understand your preferences better.
             </Text>
           </View>
@@ -74,7 +71,9 @@ const ThisOrThatScreen = () => {
             <Button
               variant="outline"
               text="Submit"
-              onClick={() => router.navigate("/(subpage)/games/this-or-that/submit")}
+              onClick={() =>
+                router.navigate("/(subpage)/games/this-or-that/submit")
+              }
             />
           </View>
         </View>
@@ -92,7 +91,9 @@ const ThisOrThatScreen = () => {
 
         {isError ? (
           <View className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
-            <Text className="text-sm text-red-600">Unable to load questions.</Text>
+            <Text className="text-sm text-red-600">
+              Unable to load questions.
+            </Text>
             <View className="mt-3">
               <Button text="Retry" onClick={() => refetch()} />
             </View>
@@ -109,12 +110,14 @@ const ThisOrThatScreen = () => {
             </Text>
             <View className="flex-row gap-2 mt-4">
               <Button text="Get More" onClick={() => refetch()} />
-                <Button
-                  variant="outline"
-                  text="Submit a new one"
-                  onClick={() => router.navigate("/(subpage)/games/this-or-that/submit")}
-                />
-              </View>
+              <Button
+                variant="outline"
+                text="Submit a new one"
+                onClick={() =>
+                  router.navigate("/(subpage)/games/this-or-that/submit")
+                }
+              />
+            </View>
           </View>
         ) : null}
 

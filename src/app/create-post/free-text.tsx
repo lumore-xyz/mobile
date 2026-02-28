@@ -6,6 +6,7 @@ import { getUser } from "@/src/service/storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import SubPageBack from "../../components/headers/SubPageBack";
 
 const CreateFreeTextPost = () => {
   const [text, setText] = useState("");
@@ -41,7 +42,8 @@ const CreateFreeTextPost = () => {
 
   return (
     <View className="flex-1 bg-ui-light p-4">
-      <Text className="text-2xl font-semibold">Free text</Text>
+      <SubPageBack title="Free text" />
+      {/* <Text className="text-2xl font-semibold">Free text</Text> */}
       <Text className="text-xs text-ui-shade mt-1">
         Share a thought, quote, or story.
       </Text>
@@ -64,7 +66,9 @@ const CreateFreeTextPost = () => {
         />
       </View>
 
-      {error ? <Text className="text-red-500 text-sm mt-2">{error}</Text> : null}
+      {error ? (
+        <Text className="text-red-500 text-sm mt-2">{error}</Text>
+      ) : null}
 
       <Pressable
         onPress={handleSubmit}

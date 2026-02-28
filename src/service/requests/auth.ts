@@ -1,6 +1,7 @@
 import axios from "axios";
 import { router } from "expo-router";
 import { useCallback } from "react";
+import { OneSignal } from "react-native-onesignal";
 import apiClient from "../api-client";
 import { BASE_URL } from "../config";
 import {
@@ -14,9 +15,27 @@ import {
 } from "../storage";
 
 type User = {
-  id: string;
-  name: string;
-  email: string;
+  id?: string;
+  _id?: string;
+  name?: string;
+  email?: string;
+};
+
+const ONESIGNAL_EMAIL_ALIAS_LABEL = "custom_alias_label";
+
+const syncOneSignalUser = (user: User) => {
+  const externalId = user?._id || user?.id;
+  if (!externalId) return;
+
+  try {
+    OneSignal.login(String(externalId));
+
+    if (user?.email) {
+      OneSignal.User.addAlias(ONESIGNAL_EMAIL_ALIAS_LABEL, user.email);
+    }
+  } catch (error) {
+    console.warn("OneSignal user sync failed", error);
+  }
 };
 
 export default function useAuth() {
@@ -33,6 +52,7 @@ export default function useAuth() {
       setAccessToken(data.accessToken);
       setRefreshToken(data.refreshToken);
       setUser(data.user);
+      syncOneSignalUser(data.user);
 
       return data.user;
     },
@@ -40,6 +60,11 @@ export default function useAuth() {
   );
 
   const logout = useCallback(async () => {
+    try {
+      OneSignal.logout();
+    } catch (error) {
+      console.warn("OneSignal logout failed", error);
+    }
     removeAccessToken();
     removeRefreshToken();
     removeUser();

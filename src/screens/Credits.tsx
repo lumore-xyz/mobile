@@ -18,6 +18,7 @@ const TYPE_LABELS: Record<string, string> = {
   conversation_start: "Conversation start",
   this_or_that_approved: "This-or-That approved",
   referral_bonus: "Referral bonus",
+  rewarded_ad_watch: "Rewarded ad watch",
   admin_adjustment: "Admin adjustment",
 };
 

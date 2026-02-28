@@ -47,14 +47,12 @@ const SplashScreen = () => {
         }
       }
       if (isOnboarded) {
-        console.log("redirecting to profile page...");
         router.replace("/explore");
         return;
       }
       router.replace("/(onboarding)/onboarding");
       return;
     }
-    console.log("redirecting to login page...");
     router.replace("/login");
   }, [refreshTokens, router]);
 
