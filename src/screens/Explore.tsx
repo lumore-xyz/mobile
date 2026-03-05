@@ -2,29 +2,21 @@ import MatchMaking from "@/src/components/explore/MatchMaking";
 import LogoPrefrence from "@/src/components/headers/LogoPrefrence";
 import { useEffect, useState } from "react";
 import { ImageBackground, Text, View } from "react-native";
-import { fetchAppStatus } from "../libs/apis";
+import { fetchPreferenceMatchCount } from "../libs/apis";
 import { formatNumber } from "../utils";
 
-interface APP_STATUS {
-  totalUsers: number;
-  activeUsers: number;
-  isMatching: number;
-  inactiveUsers: number;
-  genderDistribution: { women: number; men: number; others: number };
-}
-
 export default function ExploreScreen() {
-  const [appStatus, setappStatus] = useState<APP_STATUS | null>(null);
+  const [availableUsersCount, setAvailableUsersCount] = useState(0);
 
   useEffect(() => {
-    const _fetchAppStatus = async () => {
-      const appStatus = await fetchAppStatus();
-      if (appStatus.success) {
-        setappStatus(appStatus.data);
+    const fetchMatchCount = async () => {
+      const response = await fetchPreferenceMatchCount();
+      if (response?.success) {
+        setAvailableUsersCount(response.data?.availableUsers || 0);
       }
     };
 
-    _fetchAppStatus();
+    void fetchMatchCount();
   }, []);
 
   return (
@@ -39,7 +31,7 @@ export default function ExploreScreen() {
           <View className="absolute top-0 right-0 w-full z-10 flex items-end justify-center p-4 w-full">
             <View className="bg-ui-light/30 rounded-full space-x-1 px-3 py-1">
               <Text className="text-ui-light">
-                {formatNumber(appStatus?.isMatching || 0)} Active Users
+                {formatNumber(availableUsersCount)} Users
               </Text>
             </View>
           </View>

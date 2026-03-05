@@ -1,31 +1,73 @@
 import { Platform } from "react-native";
 
-const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
-const ensureLeadingSlash = (value: string) =>
-  value.startsWith("/") ? value : `/${value}`;
+const resolveAdMobConfig = <
+  T extends {
+    ADMOB_ANDROID_APP_ID: string;
+    ADMOB_IOS_APP_ID: string;
+    ADMOB_ANDROID_INTERSTITIAL_ID: string;
+    ADMOB_IOS_INTERSTITIAL_ID: string;
+    ADMOB_ANDROID_REWARDED_UNIT_ID: string;
+    ADMOB_IOS_REWARDED_UNIT_ID: string;
+    PLAYSTORE_URL: string;
+    APPSTORE_URL: string;
+  },
+>(
+  baseConfig: T,
+) => ({
+  ...baseConfig,
+  ADMOB_APP_ID:
+    Platform.OS === "ios"
+      ? baseConfig.ADMOB_IOS_APP_ID
+      : baseConfig.ADMOB_ANDROID_APP_ID,
+  ADMOB_INTERSTITIAL_UNIT_ID:
+    Platform.OS === "ios"
+      ? baseConfig.ADMOB_IOS_INTERSTITIAL_ID
+      : baseConfig.ADMOB_ANDROID_INTERSTITIAL_ID,
+  ADMOB_REWARDED_UNIT_ID:
+    Platform.OS === "ios"
+      ? baseConfig.ADMOB_IOS_REWARDED_UNIT_ID
+      : baseConfig.ADMOB_ANDROID_REWARDED_UNIT_ID,
+});
 
-const fallbackBaseUrl =
-  Platform.OS === "android" ? "http://10.0.2.2:5000" : "http://localhost:5000";
+const developmentConfig = resolveAdMobConfig({
+  BASE_URL:
+    Platform.OS === "android"
+      ? "http://10.0.2.2:5000"
+      : "http://localhost:5000",
+  SOCKET_URL: "https://api.lumore.xyz/api/chat",
+  GOOGLE_WEB_CLIENT_ID:
+    "681858960345-ve9vanjcbhk293pj2niqnvme31m2kded.apps.googleusercontent.com",
+  IOS_URL_SCHEMA:
+    "com.googleusercontent.apps.681858960345-t8llre06pgn2pegq01kjgukhmuiu46kf",
+  ADMOB_ANDROID_APP_ID: "ca-app-pub-5845343690682759~9095410597",
+  ADMOB_IOS_APP_ID: "ca-app-pub-5845343690682759~5136193710",
+  ADMOB_ANDROID_INTERSTITIAL_ID: "ca-app-pub-5845343690682759/4569153863",
+  ADMOB_ANDROID_REWARDED_UNIT_ID: "ca-app-pub-5845343690682759/7284110832",
+  ADMOB_IOS_INTERSTITIAL_ID: "ca-app-pub-5845343690682759/3780189521",
+  ADMOB_IOS_REWARDED_UNIT_ID: "ca-app-pub-5845343690682759/1563780217",
+  ONESIGNAL_APP_ID: "1763039e-c3e6-45d6-846d-17cf9868f189",
+  PLAYSTORE_URL: "https://play.google.com/store/apps/details?id=xyz.lumore.www.twa",
+  APPSTORE_URL: "https://play.google.com/store/apps/details?id=xyz.lumore.www.twa",
+});
+const productionConfig = resolveAdMobConfig({
+  BASE_URL: "https://api.lumore.xyz",
+  SOCKET_URL: "https://api.lumore.xyz/api/chat",
+  GOOGLE_WEB_CLIENT_ID:
+    "681858960345-ve9vanjcbhk293pj2niqnvme31m2kded.apps.googleusercontent.com",
+  IOS_URL_SCHEMA:
+    "com.googleusercontent.apps.681858960345-t8llre06pgn2pegq01kjgukhmuiu46kf",
+  ADMOB_ANDROID_APP_ID: "ca-app-pub-5845343690682759~9095410597",
+  ADMOB_IOS_APP_ID: "ca-app-pub-5845343690682759~5136193710",
+  ADMOB_ANDROID_INTERSTITIAL_ID: "ca-app-pub-5845343690682759/4569153863",
+  ADMOB_ANDROID_REWARDED_UNIT_ID: "ca-app-pub-5845343690682759/7284110832",
+  ADMOB_IOS_INTERSTITIAL_ID: "ca-app-pub-5845343690682759/3780189521",
+  ADMOB_IOS_REWARDED_UNIT_ID: "ca-app-pub-5845343690682759/1563780217",
+  ONESIGNAL_APP_ID: "1763039e-c3e6-45d6-846d-17cf9868f189",
+  PLAYSTORE_URL: "https://play.google.com/store/apps/details?id=xyz.lumore.www.twa",
+  APPSTORE_URL: "https://play.google.com/store/apps/details?id=xyz.lumore.www.twa",
+});
 
-const envBaseUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
-const envSocketNamespace = process.env.EXPO_PUBLIC_SOCKET_NAMESPACE?.trim();
-const envAdmobInterstitialUnitId =
-  process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_UNIT_ID?.trim();
-const envAdmobRewardedUnitId =
-  process.env.EXPO_PUBLIC_ADMOB_REWARDED_UNIT_ID?.trim();
+const config = __DEV__ ? developmentConfig : productionConfig;
+// const config = productionConfig;
 
-export const BASE_URL = trimTrailingSlash(envBaseUrl || fallbackBaseUrl);
-export const SOCKET_NAMESPACE = ensureLeadingSlash(
-  envSocketNamespace || "/api/chat",
-);
-export const SOCKET_URL = `${BASE_URL}${SOCKET_NAMESPACE}`;
-
-export const GOOGLE_WEB_CLIENT_ID =
-  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID?.trim() ||
-  "681858960345-ve9vanjcbhk293pj2niqnvme31m2kded.apps.googleusercontent.com";
-
-export const ADMOB_INTERSTITIAL_UNIT_ID = envAdmobInterstitialUnitId || null;
-export const ADMOB_REWARDED_UNIT_ID = envAdmobRewardedUnitId || null;
-
-export const ONESIGNAL_APP_ID =
-  process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID?.trim() || null;
+export default config;

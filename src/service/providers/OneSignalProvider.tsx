@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { LogBox } from "react-native";
 import { LogLevel, OneSignal } from "react-native-onesignal";
-import { ONESIGNAL_APP_ID } from "../config";
+import config from "../config";
 
 interface OneSignalContextValue {
   notificationGranted: boolean | null;
@@ -27,7 +27,7 @@ export const OneSignalProvider = ({ children }: { children: ReactNode }) => {
 
   const checkNotificationPermission = useCallback(
     async (requestIfMissing: boolean) => {
-      if (!ONESIGNAL_APP_ID) {
+      if (!config.ONESIGNAL_APP_ID) {
         setNotificationGranted(false);
         return false;
       }
@@ -57,8 +57,8 @@ export const OneSignalProvider = ({ children }: { children: ReactNode }) => {
     LogBox.ignoreLogs(["new NativeEventEmitter"]);
     OneSignal.Debug.setLogLevel(LogLevel.None);
 
-    if (ONESIGNAL_APP_ID) {
-      OneSignal.initialize(ONESIGNAL_APP_ID);
+    if (config.ONESIGNAL_APP_ID) {
+      OneSignal.initialize(config.ONESIGNAL_APP_ID);
     }
   }, []);
 
@@ -82,4 +82,3 @@ export const useOneSignal = () => {
   }
   return context;
 };
-

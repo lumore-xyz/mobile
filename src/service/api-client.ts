@@ -1,9 +1,9 @@
 import axios from "axios";
-import { BASE_URL } from "./config";
+import config from "./config";
 import { getAccessToken, getRefreshToken, setAccessToken } from "./storage";
 
 const apiClient = axios.create({
-  baseURL: `${BASE_URL}/api`,
+  baseURL: `${config.BASE_URL}/api`,
 });
 
 apiClient.interceptors.request.use(
@@ -31,7 +31,7 @@ apiClient.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${BASE_URL}/api/auth/refresh-token`,
+          `${config.BASE_URL}/api/auth/refresh-token`,
           {
             refreshToken,
           },

@@ -1,4 +1,5 @@
 import SubPageBack from "@/src/components/headers/SubPageBack";
+import Skeleton from "@/src/components/ui/Skeleton";
 import { useNsfw } from "@/src/hooks/useNsfw";
 import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
 import { useUser } from "@/src/hooks/useUser";
@@ -146,6 +147,17 @@ const EditProfileScreen = () => {
     });
   };
 
+  if (isLoading && !user) {
+    return (
+      <View className="flex-1 bg-white">
+        <SubPageBack title="Edit Profile" />
+        <ScrollView className="p-4" contentContainerClassName="pb-8">
+          <EditProfileSkeleton />
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-white">
       <SubPageBack title="Edit Profile" />
@@ -168,12 +180,6 @@ const EditProfileScreen = () => {
         className="p-4"
         contentContainerClassName="pb-8"
       >
-        {isLoading ? (
-          <View className="py-6">
-            <Text className="text-ui-shade">Loading profile...</Text>
-          </View>
-        ) : null}
-
         <ProfileImagePicker
           selectedImage={
             isUploadingImage ? selectedImage : (uploadedImage ?? undefined)
@@ -216,5 +222,35 @@ const EditProfileScreen = () => {
     </View>
   );
 };
+
+const EditProfileSkeleton = () => (
+  <View>
+    <View className="items-center mt-2">
+      <Skeleton width={120} height={120} radius={999} />
+      <Skeleton width={170} height={13} style={{ marginTop: 14 }} />
+    </View>
+
+    <View className="mt-6 p-4 rounded-2xl bg-ui-light border border-ui-shade/10">
+      <View className="flex-row items-center justify-between">
+        <Skeleton width={140} height={14} />
+        <Skeleton width={42} height={13} />
+      </View>
+      <Skeleton width="100%" height={8} radius={999} style={{ marginTop: 12 }} />
+      <Skeleton width="48%" height={11} style={{ marginTop: 10 }} />
+    </View>
+
+    <View className="mt-5 gap-3">
+      {Array.from({ length: 8 }).map((_, index) => (
+        <View
+          key={`edit-profile-skeleton-${index}`}
+          className="rounded-2xl border border-ui-shade/10 bg-white p-4"
+        >
+          <Skeleton width={index % 2 ? "38%" : "52%"} height={12} />
+          <Skeleton width="86%" height={12} style={{ marginTop: 10 }} />
+        </View>
+      ))}
+    </View>
+  </View>
+);
 
 export default EditProfileScreen;

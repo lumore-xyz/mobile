@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { useCallback } from "react";
 import { OneSignal } from "react-native-onesignal";
 import apiClient from "../api-client";
-import { BASE_URL } from "../config";
+import config from "../config";
 import {
   getRefreshToken,
   removeAccessToken,
@@ -78,7 +78,7 @@ export default function useAuth() {
         throw new Error("No refresh token found");
       }
 
-      const { data } = await axios.post(`${BASE_URL}/api/auth/refresh-token`, {
+      const { data } = await axios.post(`${config.BASE_URL}/api/auth/refresh-token`, {
         refreshToken,
       });
 

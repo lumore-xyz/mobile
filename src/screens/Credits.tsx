@@ -1,5 +1,6 @@
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
+import Skeleton from "../components/ui/Skeleton";
 import {
   claimDailyCredits,
   fetchCreditsBalance,
@@ -56,13 +57,21 @@ const CreditsScreen = () => {
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <Text className="text-sm text-ui-shade/70">Available credits</Text>
           <View className="flex-row items-center justify-between mt-2">
-            <Text className="text-3xl font-bold text-ui-shade">{balance}</Text>
+            {isBalanceLoading ? (
+              <Skeleton width={108} height={36} />
+            ) : (
+              <Text className="text-3xl font-bold text-ui-shade">{balance}</Text>
+            )}
           </View>
           <View className="mt-4 gap-2">
             <Button
-              disabled={rewardGrantedToday || claimMutation.isPending}
+              disabled={
+                isBalanceLoading || rewardGrantedToday || claimMutation.isPending
+              }
               text={
-                rewardGrantedToday
+                isBalanceLoading
+                  ? "Checking daily reward..."
+                  : rewardGrantedToday
                   ? "Daily reward already claimed"
                   : `Claim daily +${dailyRewardAmount}`
               }
@@ -80,15 +89,16 @@ const CreditsScreen = () => {
           <Text className="text-lg font-semibold">Credit history</Text>
           <View className="mt-3">
             {isHistoryLoading || isBalanceLoading ? (
-              <Text className="text-sm text-ui-shade">Loading...</Text>
+              <CreditHistoryListSkeleton />
             ) : null}
-            {!isHistoryLoading && items.length === 0 ? (
+            {!isHistoryLoading && !isBalanceLoading && items.length === 0 ? (
               <Text className="text-sm text-ui-shade/70">
                 No credit activity yet.
               </Text>
             ) : null}
 
-            {items.map((item) => (
+            {!isHistoryLoading && !isBalanceLoading
+              ? items.map((item) => (
               <View
                 key={item._id}
                 className="mt-3 flex-row items-center justify-between border border-ui-shade/10 rounded-lg p-3"
@@ -114,7 +124,8 @@ const CreditsScreen = () => {
                   </Text>
                 </View>
               </View>
-            ))}
+                ))
+              : null}
           </View>
 
           <View className="mt-4 flex-row items-center justify-between">
@@ -139,5 +150,25 @@ const CreditsScreen = () => {
     </View>
   );
 };
+
+const CreditHistoryListSkeleton = () => (
+  <View className="gap-3">
+    {Array.from({ length: 4 }).map((_, index) => (
+      <View
+        key={`credit-history-skeleton-${index}`}
+        className="flex-row items-center justify-between border border-ui-shade/10 rounded-lg p-3"
+      >
+        <View className="flex-1 pr-4">
+          <Skeleton width="58%" height={13} />
+          <Skeleton width="44%" height={11} style={{ marginTop: 8 }} />
+        </View>
+        <View className="items-end">
+          <Skeleton width={46} height={13} />
+          <Skeleton width={66} height={11} style={{ marginTop: 8 }} />
+        </View>
+      </View>
+    ))}
+  </View>
+);
 
 export default CreditsScreen;

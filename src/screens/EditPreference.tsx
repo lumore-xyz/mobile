@@ -3,6 +3,7 @@ import { ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import FieldEditorSheet from "../components/profile/FieldEditorSheet";
 import PrefrenceFieldsList from "../components/profile/PrefrenceFieldsList";
+import Skeleton from "../components/ui/Skeleton";
 import { UserPreferences, useUserPrefrence } from "../hooks/useUserPrefrence";
 import { updateUserPreferences } from "../libs/apis";
 import { queryClient } from "../service/query-client";
@@ -96,6 +97,17 @@ const EditPreferenceScreen = () => {
     return { completionPercent: percent, missingCount: total - filledCount };
   }, [preferences]);
 
+  if (isLoading && !preferences) {
+    return (
+      <View className="flex-1 bg-white">
+        <SubPageBack title="Edit Preference" />
+        <ScrollView className="p-4" contentContainerClassName="pb-8">
+          <EditPreferenceSkeleton />
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-white">
       <SubPageBack title="Edit Preference" />
@@ -117,12 +129,6 @@ const EditPreferenceScreen = () => {
         className="p-4"
         contentContainerClassName="pb-8"
       >
-        {isLoading ? (
-          <View className="py-6">
-            <Text className="text-ui-shade">Loading preferences...</Text>
-          </View>
-        ) : null}
-
         <View className="p-4 rounded-2xl bg-ui-light border border-ui-shade/10">
           <Text className="text-base font-semibold">
             Match preferences
@@ -150,5 +156,28 @@ const EditPreferenceScreen = () => {
     </View>
   );
 };
+
+const EditPreferenceSkeleton = () => (
+  <View>
+    <View className="p-4 rounded-2xl bg-ui-light border border-ui-shade/10">
+      <Skeleton width={150} height={14} />
+      <Skeleton width={210} height={11} style={{ marginTop: 10 }} />
+      <Skeleton width="100%" height={8} radius={999} style={{ marginTop: 12 }} />
+      <Skeleton width={120} height={11} style={{ marginTop: 10 }} />
+    </View>
+
+    <View className="mt-5 gap-3">
+      {Array.from({ length: 8 }).map((_, index) => (
+        <View
+          key={`edit-preference-skeleton-${index}`}
+          className="rounded-2xl border border-ui-shade/10 bg-white p-4"
+        >
+          <Skeleton width={index % 2 ? "42%" : "56%"} height={12} />
+          <Skeleton width="82%" height={12} style={{ marginTop: 10 }} />
+        </View>
+      ))}
+    </View>
+  </View>
+);
 
 export default EditPreferenceScreen;

@@ -10,6 +10,7 @@ import { AdProvider } from "./AdProvider";
 import { LocationProvider } from "./LocationProvider";
 import { NsfwProvider } from "./NsfwProvider";
 import { OptionsProvider } from "./OptionsProvider";
+import { ReferralAttributionProvider } from "./ReferralAttributionProvider";
 
 const Provider = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -19,11 +20,13 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
           <AdProvider>
             <LocationProvider>
               <OptionsProvider>
-                <SocketProvider>
-                  <ConfettiProvider>
-                    <ExploreChatProvider>{children}</ExploreChatProvider>
-                  </ConfettiProvider>
-                </SocketProvider>
+                <ReferralAttributionProvider>
+                  <SocketProvider>
+                    <ConfettiProvider>
+                      <ExploreChatProvider>{children}</ExploreChatProvider>
+                    </ConfettiProvider>
+                  </SocketProvider>
+                </ReferralAttributionProvider>
               </OptionsProvider>
             </LocationProvider>
           </AdProvider>

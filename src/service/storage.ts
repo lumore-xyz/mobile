@@ -46,10 +46,17 @@ export const getIsOnboarded = (userId: string): boolean | null => {
 };
 
 const PENDING_REFERRAL_CODE_KEY = "pendingReferralCode";
+const INSTALL_REFERRER_PROCESSED_KEY = "installReferrerProcessed";
 
 export const setPendingReferralCode = (code: string) => {
   const normalized = String(code || "").trim();
   if (!normalized) return;
+  storage.set(PENDING_REFERRAL_CODE_KEY, normalized);
+};
+
+export const capturePendingReferralCode = (code: string) => {
+  const normalized = String(code || "").trim();
+  if (!normalized || getPendingReferralCode()) return;
   storage.set(PENDING_REFERRAL_CODE_KEY, normalized);
 };
 
@@ -59,4 +66,12 @@ export const getPendingReferralCode = (): string | null => {
 
 export const removePendingReferralCode = () => {
   storage.remove(PENDING_REFERRAL_CODE_KEY);
+};
+
+export const getInstallReferrerProcessed = () => {
+  return storage.getString(INSTALL_REFERRER_PROCESSED_KEY) === "1";
+};
+
+export const setInstallReferrerProcessed = () => {
+  storage.set(INSTALL_REFERRER_PROCESSED_KEY, "1");
 };

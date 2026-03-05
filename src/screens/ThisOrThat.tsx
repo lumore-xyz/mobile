@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
+import Skeleton from "../components/ui/Skeleton";
 import { fetchThisOrThatQuestions, submitThisOrThatAnswer } from "../libs/apis";
 import { ThisOrThatQuestion } from "../utils/types";
 
@@ -79,14 +80,7 @@ const ThisOrThatScreen = () => {
         </View>
 
         {isLoading ? (
-          <View className="mt-6 rounded-2xl border border-ui-shade/10 bg-white p-5">
-            <View className="h-4 w-24 rounded bg-ui-shade/10" />
-            <View className="mt-4 h-9 w-3/4 rounded bg-ui-shade/10" />
-            <View className="mt-6 flex-row gap-3">
-              <View className="flex-1 h-20 rounded-xl bg-ui-shade/10" />
-              <View className="flex-1 h-20 rounded-xl bg-ui-shade/10" />
-            </View>
-          </View>
+          <ThisOrThatLoadingSkeleton />
         ) : null}
 
         {isError ? (
@@ -191,5 +185,31 @@ const ThisOrThatScreen = () => {
     </View>
   );
 };
+
+const ThisOrThatLoadingSkeleton = () => (
+  <View className="mt-6 rounded-2xl border border-ui-shade/10 bg-white p-5">
+    <View className="flex-row items-center justify-between">
+      <Skeleton width={76} height={11} />
+      <Skeleton width={42} height={10} />
+    </View>
+    <Skeleton width="100%" height={8} radius={999} style={{ marginTop: 12 }} />
+    <Skeleton width="68%" height={12} style={{ marginTop: 18 }} />
+
+    <View className="mt-4 gap-3">
+      <View className="rounded-xl border border-ui-highlight/20 bg-ui-highlight/5 p-4">
+        <Skeleton width="100%" height={124} radius={10} />
+        <Skeleton width="72%" height={14} style={{ marginTop: 10 }} />
+      </View>
+      <View className="rounded-xl border border-ui-shade/20 bg-white p-4">
+        <Skeleton width="100%" height={124} radius={10} />
+        <Skeleton width="72%" height={14} style={{ marginTop: 10 }} />
+      </View>
+    </View>
+
+    <View className="items-end mt-4">
+      <Skeleton width={88} height={40} radius={14} />
+    </View>
+  </View>
+);
 
 export default ThisOrThatScreen;

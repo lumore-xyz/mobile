@@ -1,4 +1,5 @@
 import SubPageBack from "../components/headers/SubPageBack";
+import Skeleton from "../components/ui/Skeleton";
 import { fetchReceivedFeedbacks } from "../libs/apis";
 import { FeedbackItem } from "../utils/types";
 import { useQuery } from "@tanstack/react-query";
@@ -27,10 +28,7 @@ const FeedbackScreen = () => {
         {isLoading ? (
           <View className="gap-3">
             {Array.from({ length: 4 }).map((_, index) => (
-              <View
-                key={index}
-                className="h-24 rounded-xl border border-ui-shade/10 bg-ui-highlight/5"
-              />
+              <FeedbackSkeletonCard key={index} />
             ))}
           </View>
         ) : null}
@@ -78,6 +76,18 @@ const FeedbackScreen = () => {
     </View>
   );
 };
+
+const FeedbackSkeletonCard = () => (
+  <View className="rounded-xl border border-ui-shade/10 bg-white p-3">
+    <View className="flex-row items-center justify-between gap-2">
+      <Skeleton width="38%" height={12} />
+      <Skeleton width={76} height={10} />
+    </View>
+    <Skeleton width={64} height={10} style={{ marginTop: 10 }} />
+    <Skeleton width="100%" height={12} style={{ marginTop: 10 }} />
+    <Skeleton width="76%" height={12} style={{ marginTop: 8 }} />
+  </View>
+);
 
 export default FeedbackScreen;
 

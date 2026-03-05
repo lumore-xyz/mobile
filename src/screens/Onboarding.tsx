@@ -20,7 +20,9 @@ import {
   updateUserData,
   updateUserPreferences,
 } from "@/src/libs/apis";
+import { referralCodeSchema } from "@/src/schemas/referralSchema";
 import {
+  capturePendingReferralCode,
   getPendingReferralCode,
   getUser,
   removePendingReferralCode,
@@ -59,7 +61,10 @@ const OnboardingScreen = ({
     if (!currentScreen) return;
     const values = getInitialValuesForScreen(currentScreen, user, userPrefrence);
     if (incomingReferralCode) {
-      setPendingReferralCode(incomingReferralCode);
+      const parsedIncomingCode = referralCodeSchema.safeParse(incomingReferralCode);
+      if (parsedIncomingCode.success) {
+        capturePendingReferralCode(parsedIncomingCode.data);
+      }
     }
 
     if (currentScreen.fields.some((field) => field.name === "referralCode")) {

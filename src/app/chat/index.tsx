@@ -1,5 +1,6 @@
-import { CHAT_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
 import MobileNav from "@/src/components/MobileNav";
+import Skeleton from "@/src/components/ui/Skeleton";
+import { CHAT_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
 import { useUser } from "@/src/hooks/useUser";
 import { fetchIbox } from "@/src/libs/apis";
 import Icon from "@/src/libs/Icon";
@@ -58,13 +59,17 @@ const ChatInbox = () => {
 
         <View className="flex-row bg-ui-shade/5 rounded-xl p-2 mb-3">
           <View className="flex-1 py-2 rounded-lg bg-ui-light shadow-sm">
-            <Text className="text-center font-medium text-ui-shade">Active</Text>
+            <Text className="text-center font-medium text-ui-shade">
+              Active
+            </Text>
           </View>
           <TouchableOpacity
             onPress={() => router.push("/chat/archive")}
             className="flex-1 py-2 rounded-lg"
           >
-            <Text className="text-center font-medium text-ui-shade">Archived</Text>
+            <Text className="text-center font-medium text-ui-shade">
+              Archived
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -84,11 +89,13 @@ export default ChatInbox;
 
 export const Inbox = ({ user, rooms, isLoading, error }: any) => {
   if (isLoading) {
-    return <Text className="text-center mt-10 text-ui-shade">Fetching your chats...</Text>;
+    return <InboxSkeleton />;
   }
 
   if (error || !rooms?.length) {
-    return <Text className="text-center mt-10 text-ui-shade">No chats here yet</Text>;
+    return (
+      <Text className="text-center mt-10 text-ui-shade">No chats here yet</Text>
+    );
   }
 
   return (
@@ -98,7 +105,9 @@ export const Inbox = ({ user, rooms, isLoading, error }: any) => {
       contentContainerStyle={{ paddingBottom: 16 }}
       className="flex-1"
       renderItem={({ item: room }) => {
-        const matchedUser = room.participants.find((p: any) => p._id !== user?._id);
+        const matchedUser = room.participants.find(
+          (p: any) => p._id !== user?._id,
+        );
         return <UserChat room={room} matchedUser={matchedUser} />;
       }}
     />
@@ -109,7 +118,10 @@ const decodeLastMessage = (room: any) => {
   const lastMessage = room?.lastMessage;
   if (!lastMessage) return "";
 
-  if (lastMessage.previewType === "image" || lastMessage.messageType === "image") {
+  if (
+    lastMessage.previewType === "image" ||
+    lastMessage.messageType === "image"
+  ) {
     return "Photo";
   }
 
@@ -128,79 +140,88 @@ export const UserChat = ({ room, matchedUser }: any) => {
     : user?.realName || user?.nickname || user?.username || "Lumore User";
 
   if (isLoading) {
-    return (
-      <View className="mt-2 px-3 py-3 rounded-2xl bg-white">
-        <Text className="text-ui-shade">Loading...</Text>
-      </View>
-    );
+    return <InboxItemSkeleton />;
   }
 
   const content = (
     <TouchableOpacity className="flex-row items-center px-3 py-3 rounded-2xl bg-white active:bg-ui-shade/5">
-        <View className="relative mr-4">
-          <View className="bg-ui-background border border-ui-shade/10 h-12 w-12 aspect-square rounded-full flex items-center justify-center overflow-hidden">
-            {user?.profilePicture ? (
-              <Image
-                source={{ uri: user?.profilePicture }}
-                style={{
-                  resizeMode: "cover",
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: 9999,
-                }}
-                alt={displayName}
-              />
-            ) : (
-              <Text className="text-3xl text-ui-shade">
-                {displayName.charAt(0)}
-              </Text>
-            )}
-          </View>
-
-          <View className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-ui-light flex flex-row items-center justify-center">
-            {user?.isViewerUnlockedByUser && !isUserUnavailable ? (
-              <Icon type="Ionicons" name="lock-open-outline" className="h-4 w-4 text-ui-shade" />
-            ) : (
-              <Icon type="Ionicons" name="lock-closed-outline" className="h-4 w-4 text-ui-shade" />
-            )}
-          </View>
-        </View>
-
-        <View className="flex-1">
-          <Text className="font-semibold text-base mb-1">
-            {displayName}
-          </Text>
-
-          {finalPreview ? (
-            <Text className="text-sm text-ui-shade/70" numberOfLines={1}>
-              {finalPreview}
-            </Text>
+      <View className="relative mr-4">
+        <View className="bg-ui-background border border-ui-shade/10 h-12 w-12 aspect-square rounded-full flex items-center justify-center overflow-hidden">
+          {user?.profilePicture ? (
+            <Image
+              source={{
+                uri: user?.profilePicture,
+              }}
+              blurRadius={user?.isViewerUnlockedByUser ? 0 : 12}
+              style={{
+                resizeMode: "cover",
+                width: "100%",
+                height: "100%",
+                borderRadius: 9999,
+              }}
+              alt={displayName}
+            />
           ) : (
-            <View className="flex-row items-center gap-3">
-              {user?.dob && <Meta icon="cake.png" text={calculateAge(user?.dob)} />}
-              {user?.gender && <Meta type="Ionicons" icon="person-outline" text={user.gender} />}
-              {user?.distance != null && (
-                <Meta
-                  type="Ionicons"
-                  icon="footsteps-outline"
-                  text={`${user.distance.toFixed(1)}km`}
-                />
-              )}
-            </View>
+            <Text className="text-3xl text-ui-shade">
+              {displayName.charAt(0)}
+            </Text>
           )}
         </View>
 
-        <View className="items-end gap-1 ml-3">
-          <Text className="text-sm text-ui-shade">
-            {new Date(room.lastMessageAt).toLocaleDateString()}
-          </Text>
-          {unreadCount > 0 ? (
-            <View className="min-w-5 h-5 px-1 rounded-full bg-ui-highlight items-center justify-center">
-              <Text className="text-xs text-white">{unreadCount}</Text>
-            </View>
-          ) : null}
+        <View className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-ui-light flex flex-row items-center justify-center">
+          {user?.isViewerUnlockedByUser && !isUserUnavailable ? (
+            <Icon
+              type="Ionicons"
+              name="lock-open-outline"
+              className="h-4 w-4 text-ui-shade"
+            />
+          ) : (
+            <Icon
+              type="Ionicons"
+              name="lock-closed-outline"
+              className="h-4 w-4 text-ui-shade"
+            />
+          )}
         </View>
-      </TouchableOpacity>
+      </View>
+
+      <View className="flex-1">
+        <Text className="font-semibold text-base mb-1">{displayName}</Text>
+
+        {finalPreview ? (
+          <Text className="text-sm text-ui-shade/70" numberOfLines={1}>
+            {finalPreview}
+          </Text>
+        ) : (
+          <View className="flex-row items-center gap-3">
+            {user?.dob && (
+              <Meta icon="cake.png" text={calculateAge(user?.dob)} />
+            )}
+            {user?.gender && (
+              <Meta type="Ionicons" icon="person-outline" text={user.gender} />
+            )}
+            {user?.distance != null && (
+              <Meta
+                type="Ionicons"
+                icon="footsteps-outline"
+                text={`${user.distance.toFixed(1)}km`}
+              />
+            )}
+          </View>
+        )}
+      </View>
+
+      <View className="items-end gap-1 ml-3">
+        <Text className="text-sm text-ui-shade">
+          {new Date(room.lastMessageAt).toLocaleDateString()}
+        </Text>
+        {unreadCount > 0 ? (
+          <View className="min-w-5 h-5 px-1 rounded-full bg-ui-highlight items-center justify-center">
+            <Text className="text-xs text-white">{unreadCount}</Text>
+          </View>
+        ) : null}
+      </View>
+    </TouchableOpacity>
   );
 
   return isUserUnavailable ? (
@@ -229,5 +250,34 @@ export const Meta = ({
       className="!h-4 !w-4 text-ui-shade"
     />
     <Text className="text-ui-shade">{text}</Text>
+  </View>
+);
+
+const InboxSkeleton = () => (
+  <View className="mt-1">
+    {Array.from({ length: 6 }).map((_, index) => (
+      <InboxItemSkeleton key={`chat-skeleton-${index}`} />
+    ))}
+  </View>
+);
+
+const InboxItemSkeleton = () => (
+  <View className="mt-2 px-3 py-3 rounded-2xl bg-white border border-ui-shade/10">
+    <View className="flex-row items-center">
+      <Skeleton width={48} height={48} radius={999} />
+      <View className="flex-1 ml-4">
+        <Skeleton width="55%" height={14} />
+        <Skeleton width="82%" height={12} style={{ marginTop: 10 }} />
+      </View>
+      <View className="items-end ml-3">
+        <Skeleton width={58} height={11} />
+        <Skeleton
+          width={24}
+          height={24}
+          radius={999}
+          style={{ marginTop: 8 }}
+        />
+      </View>
+    </View>
   </View>
 );

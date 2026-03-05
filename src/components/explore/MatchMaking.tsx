@@ -1,11 +1,13 @@
-import Icon from "@/src/libs/Icon";
 import { useAd } from "@/src/hooks/useAd";
+import Icon from "@/src/libs/Icon";
 import { useExploreChat } from "@/src/service/context/ExploreChatContext";
+import { useOneSignal } from "@/src/service/providers/OneSignalProvider";
 import { getIsOnboarded, getUser } from "@/src/service/storage";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Linking, Pressable, Text, View } from "react-native";
 import AnimatedDots from "../ui/AnimatedDots";
 import Button from "../ui/Button";
 
@@ -18,14 +20,61 @@ const MatchMaking = () => {
     revalidateUser,
   } = useExploreChat();
   const { showRewarded } = useAd();
+  const { checkNotificationPermission } = useOneSignal();
   const [isStarting, setIsStarting] = useState(false);
 
   useEffect(() => {
     revalidateUser();
   }, [revalidateUser]);
 
+  const ensureRequiredPermissions = async () => {
+    const missing: string[] = [];
+
+    try {
+      const locationPermission = await Location.getForegroundPermissionsAsync();
+      if (locationPermission.status !== "granted") {
+        missing.push("Location");
+      }
+    } catch {
+      missing.push("Location");
+    }
+
+    let notificationGranted = false;
+    try {
+      notificationGranted = await checkNotificationPermission(false);
+    } catch {
+      notificationGranted = false;
+    }
+
+    if (!notificationGranted) {
+      missing.push("Notification");
+    }
+
+    if (missing.length === 0) return true;
+
+    Alert.alert(
+      "Permissions required",
+      `Please enable ${missing.join(
+        " and ",
+      )} permission${missing.length > 1 ? "s" : ""} to start matchmaking.`,
+      [
+        { text: "Not now", style: "cancel" },
+        {
+          text: "Open Settings",
+          onPress: () => {
+            void Linking.openSettings();
+          },
+        },
+      ],
+    );
+    return false;
+  };
+
   const handleStartMatchmaking = async () => {
     if (isStarting || isMatching) return;
+
+    const hasRequiredPermissions = await ensureRequiredPermissions();
+    if (!hasRequiredPermissions) return;
 
     setIsStarting(true);
     try {
@@ -67,7 +116,7 @@ const MatchMaking = () => {
       {error && <Text className="text-red-500 text-sm">{error}</Text>}
       <Button
         variant="primary"
-        className="bg-ui-highlight w-full py-6 px-6 flex items-center rounded-2xl border border-ui-shade/30 mt-4"
+        className="bg-ui-highlight w-full py-4 px-6 flex items-center rounded-2xl border border-ui-shade/30 mt-4"
         onClick={isMatching ? stopMatchmaking : handleStartMatchmaking}
         disabled={!isMatching && isStarting}
         text={isMatching ? "Stop Matchmaking" : "Start Matchmaking"}

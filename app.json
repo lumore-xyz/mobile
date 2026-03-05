@@ -17,7 +17,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "xyz.lumore.rebel"
+      "package": "xyz.lumore.www.twa"
     },
     "plugins": [
       "expo-router",
@@ -37,7 +37,7 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-5845343690682759~9095410597",
-          "iosAppId": "ca-app-pub-xxxxxxxx~xxxxxxxx"
+          "iosAppId": "ca-app-pub-5845343690682759~5136193710"
         }
       ],
       [

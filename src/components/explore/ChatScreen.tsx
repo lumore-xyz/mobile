@@ -2,6 +2,7 @@ import { ChatReplyPreview, Message } from "@/src/domain/chat/types";
 import { messageSchema } from "@/src/domain/chat/validation";
 import { useNsfw } from "@/src/hooks/useNsfw";
 import { deleteTempChatImage, uploadChatImage } from "@/src/libs/apis";
+import Skeleton from "@/src/components/ui/Skeleton";
 import { trackAnalytic } from "@/src/service/analytics";
 import { useChat } from "@/src/service/context/ChatContext";
 import { useSocket } from "@/src/service/context/SocketContext";
@@ -9,7 +10,7 @@ import { socketDebug, socketError, socketWarn } from "@/src/service/socket-debug
 import { getUser, storage } from "@/src/service/storage";
 import * as ImagePicker from "expo-image-picker";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Text } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
@@ -647,9 +648,7 @@ export const ChatScreen = () => {
   }, [socket, roomId]);
 
   if (!matchedUser || isLoading) {
-    return (
-      <Text className="text-center mt-10 text-ui-shade">Loading chat...</Text>
-    );
+    return <ChatScreenSkeleton />;
   }
 
   return (
@@ -694,3 +693,36 @@ export const ChatScreen = () => {
     </KeyboardAvoidingView>
   );
 };
+
+const ChatScreenSkeleton = () => (
+  <KeyboardAvoidingView
+    className="flex-1 bg-ui-light"
+    behavior={Platform.OS === "ios" ? "padding" : undefined}
+  >
+    <View className="border-b border-ui-shade/10 bg-white px-4 py-3">
+      <View className="flex-row items-center">
+        <Skeleton width={40} height={40} radius={999} />
+        <View className="ml-3 flex-1">
+          <Skeleton width="46%" height={14} />
+          <Skeleton width="28%" height={11} style={{ marginTop: 8 }} />
+        </View>
+      </View>
+    </View>
+
+    <View className="flex-1 px-4 py-4">
+      <Skeleton width="72%" height={36} radius={16} />
+      <Skeleton width="54%" height={52} radius={16} style={{ marginTop: 12 }} />
+      <View className="items-end mt-3">
+        <Skeleton width="64%" height={36} radius={16} />
+      </View>
+      <Skeleton width="58%" height={36} radius={16} style={{ marginTop: 12 }} />
+      <View className="items-end mt-3">
+        <Skeleton width="44%" height={36} radius={16} />
+      </View>
+    </View>
+
+    <View className="border-t border-ui-shade/10 bg-white px-3 py-3">
+      <Skeleton width="100%" height={48} radius={16} />
+    </View>
+  </KeyboardAvoidingView>
+);

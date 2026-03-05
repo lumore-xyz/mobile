@@ -1,13 +1,20 @@
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
+import Skeleton from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import { referralCodeSchema } from "../schemas/referralSchema";
 import { applyReferralCode, fetchReferralSummary } from "../libs/apis";
 import { queryClient } from "../service/query-client";
+import { buildReferralShareLink } from "../service/referralAttribution";
+import {
+  getPendingReferralCode,
+  removePendingReferralCode,
+  setPendingReferralCode,
+} from "../service/storage";
 import { ReferralSummary } from "../utils/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
 const ReferralScreen = () => {
@@ -23,6 +30,10 @@ const ReferralScreen = () => {
   const summary: ReferralSummary | undefined = data?.data;
   const canAccess = Boolean(summary?.canAccess);
   const referredBy = summary?.referredBy;
+  const referralShareLink = useMemo(() => {
+    if (!summary?.referralCode) return null;
+    return buildReferralShareLink(summary.referralCode);
+  }, [summary?.referralCode]);
 
   const applyMutation = useMutation({
     mutationFn: applyReferralCode,
@@ -40,6 +51,20 @@ const ReferralScreen = () => {
     );
   }, [canAccess, code, referredBy, applyMutation.isPending]);
 
+  useEffect(() => {
+    if (referredBy) {
+      removePendingReferralCode();
+      return;
+    }
+
+    if (code.trim()) return;
+
+    const pendingCode = getPendingReferralCode();
+    if (pendingCode) {
+      setCode(pendingCode);
+    }
+  }, [code, referredBy]);
+
   const handleCopyCode = async () => {
     if (!summary?.referralCode) return;
     await Clipboard.setStringAsync(summary.referralCode);
@@ -48,8 +73,8 @@ const ReferralScreen = () => {
   };
 
   const handleCopyLink = async () => {
-    if (!summary?.referralLink) return;
-    await Clipboard.setStringAsync(summary.referralLink);
+    if (!referralShareLink) return;
+    await Clipboard.setStringAsync(referralShareLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
   };
@@ -65,6 +90,7 @@ const ReferralScreen = () => {
     try {
       await applyMutation.mutateAsync(parsed.data);
       setCode("");
+      removePendingReferralCode();
     } catch (error: any) {
       setCodeError(error?.response?.data?.message || "Could not apply referral code");
     }
@@ -76,9 +102,15 @@ const ReferralScreen = () => {
       <ScrollView className="p-4" contentContainerClassName="pb-10">
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <Text className="text-sm text-ui-shade/70">Your referral code</Text>
-          <Text className="text-2xl font-bold mt-2">
-            {isLoading ? "Loading..." : summary?.referralCode || "-"}
-          </Text>
+          <View className="mt-2">
+            {isLoading ? (
+              <Skeleton width={180} height={30} />
+            ) : (
+              <Text className="text-2xl font-bold">
+                {summary?.referralCode || "-"}
+              </Text>
+            )}
+          </View>
           <Text className="mt-2 text-sm text-ui-shade/70">
             Earn +{summary?.referralRewardCredits ?? 10} credits when a referred
             user completes profile verification.
@@ -92,14 +124,18 @@ const ReferralScreen = () => {
 
           <View className="mt-4 flex-row gap-2">
             <View className="flex-1">
-              <Button text="Copy code" onClick={handleCopyCode} disabled={!canAccess} />
+              <Button
+                text="Copy code"
+                onClick={handleCopyCode}
+                disabled={isLoading || !canAccess}
+              />
             </View>
             <View className="flex-1">
               <Button
                 variant="outline"
                 text="Copy link"
                 onClick={handleCopyLink}
-                disabled={!canAccess}
+                disabled={isLoading || !canAccess || !referralShareLink}
               />
             </View>
           </View>
@@ -115,6 +151,12 @@ const ReferralScreen = () => {
               action={(val) => {
                 setCode(val);
                 setCodeError("");
+                const nextCode = String(val || "").trim();
+                if (nextCode) {
+                  setPendingReferralCode(nextCode);
+                } else {
+                  removePendingReferralCode();
+                }
               }}
               placeholder="Enter referral code"
             />
@@ -137,9 +179,21 @@ const ReferralScreen = () => {
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
           <Text className="text-lg font-semibold">Referral stats</Text>
           <View className="mt-3 flex-row gap-2">
-            <StatCard label="Referred" value={summary?.stats?.referredTotal ?? 0} />
-            <StatCard label="Verified" value={summary?.stats?.referredVerified ?? 0} />
-            <StatCard label="Rewards" value={summary?.stats?.rewardsEarned ?? 0} />
+            <StatCard
+              label="Referred"
+              value={summary?.stats?.referredTotal ?? 0}
+              isLoading={isLoading}
+            />
+            <StatCard
+              label="Verified"
+              value={summary?.stats?.referredVerified ?? 0}
+              isLoading={isLoading}
+            />
+            <StatCard
+              label="Rewards"
+              value={summary?.stats?.rewardsEarned ?? 0}
+              isLoading={isLoading}
+            />
           </View>
         </View>
       </ScrollView>
@@ -147,10 +201,22 @@ const ReferralScreen = () => {
   );
 };
 
-const StatCard = ({ label, value }: { label: string; value: number }) => (
+const StatCard = ({
+  label,
+  value,
+  isLoading,
+}: {
+  label: string;
+  value: number;
+  isLoading?: boolean;
+}) => (
   <View className="flex-1 rounded-lg border border-ui-shade/10 p-3 items-center">
     <Text className="text-xs text-ui-shade/70">{label}</Text>
-    <Text className="text-xl font-semibold mt-1">{value}</Text>
+    {isLoading ? (
+      <Skeleton width={36} height={24} style={{ marginTop: 6 }} />
+    ) : (
+      <Text className="text-xl font-semibold mt-1">{value}</Text>
+    )}
   </View>
 );
 

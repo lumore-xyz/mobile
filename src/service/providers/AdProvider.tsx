@@ -14,7 +14,7 @@ import mobileAds, {
   TestIds,
   type RewardedAdReward,
 } from "react-native-google-mobile-ads";
-import { ADMOB_INTERSTITIAL_UNIT_ID, ADMOB_REWARDED_UNIT_ID } from "../config";
+import config from "../config";
 
 interface AdContextType {
   isInitialized: boolean;
@@ -30,8 +30,8 @@ export const AdContext = createContext<AdContextType | undefined>(undefined);
 
 const interstitialUnitId = __DEV__
   ? TestIds.INTERSTITIAL
-  : ADMOB_INTERSTITIAL_UNIT_ID;
-const rewardedUnitId = __DEV__ ? TestIds.REWARDED : ADMOB_REWARDED_UNIT_ID;
+  : config.ADMOB_INTERSTITIAL_UNIT_ID;
+const rewardedUnitId = __DEV__ ? TestIds.REWARDED : config.ADMOB_REWARDED_UNIT_ID;
 
 export const AdProvider = ({ children }: { children: React.ReactNode }) => {
   const [isInitialized, setIsInitialized] = useState(false);

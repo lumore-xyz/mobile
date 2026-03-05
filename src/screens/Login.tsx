@@ -10,23 +10,26 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { GOOGLE_WEB_CLIENT_ID } from "../service/config";
+import config from "../service/config";
+import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
 
 export default function LoginScreen() {
   const router = useRouter();
   const { loginWithGoogle } = useAuth();
+  const { checkNotificationPermission } = useOneSignal();
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId: GOOGLE_WEB_CLIENT_ID,
+      webClientId: config.GOOGLE_WEB_CLIENT_ID,
     });
   }, []);
 
   const googleLoginMutation = useMutation({
     mutationFn: loginWithGoogle,
-    onSuccess: () => {
+    onSuccess: async () => {
+      await checkNotificationPermission(true);
       const user = getUser();
       const isOnboarded = Boolean(getIsOnboarded(user?._id || ""));
       router.replace(isOnboarded ? "/explore" : "/(onboarding)/onboarding");
