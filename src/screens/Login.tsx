@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import {
   Image,
   ImageBackground,
+  Linking,
   Text,
   TouchableOpacity,
   View,
@@ -16,6 +17,8 @@ import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
 
 export default function LoginScreen() {
+  const termsUrl = "https://www.lumore.xyz/terms-of-use";
+  const privacyUrl = "https://www.lumore.xyz/privacy-policy";
   const router = useRouter();
   const { loginWithGoogle } = useAuth();
   const { checkNotificationPermission } = useOneSignal();
@@ -49,6 +52,14 @@ export default function LoginScreen() {
     }
   };
 
+  const handleOpenExternalUrl = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.error("Failed to open external URL", error);
+    }
+  };
+
   return (
     <ImageBackground
       source={require("@/assets/images/login-screen.webp")}
@@ -76,7 +87,25 @@ export default function LoginScreen() {
 
       <View>
         <Text className="text-center mt-4 text-ui-light">
-          By signing in, you agree to our Terms & Conditions and Privacy Policy.
+          By signing in, you agree to our{" "}
+          <Text
+            className="underline"
+            onPress={() => {
+              void handleOpenExternalUrl(termsUrl);
+            }}
+          >
+            Terms & Conditions
+          </Text>{" "}
+          and{" "}
+          <Text
+            className="underline"
+            onPress={() => {
+              void handleOpenExternalUrl(privacyUrl);
+            }}
+          >
+            Privacy Policy
+          </Text>
+          .
         </Text>
       </View>
     </ImageBackground>

@@ -2,7 +2,7 @@
   "expo": {
     "name": "lumore",
     "slug": "lumore",
-    "version": "1.0.0",
+    "version": "5.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lumore",
@@ -59,8 +59,7 @@
           "locationWhenInUsePermission": "Allow Lumore to use your location for better matches."
         }
       ],
-      "@react-native-community/datetimepicker",
-      "react-native-google-mobile-ads"
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
