@@ -21,6 +21,11 @@ type User = {
   email?: string;
 };
 
+type CredentialLoginPayload = {
+  identifier: string;
+  password: string;
+};
+
 const ONESIGNAL_EMAIL_ALIAS_LABEL = "custom_alias_label";
 
 const syncOneSignalUser = (user: User) => {
@@ -44,6 +49,33 @@ export default function useAuth() {
       const { data } = await apiClient.post("/auth/google-signin", {
         id_token: idToken,
       });
+
+      if (!data?.accessToken || !data?.refreshToken || !data?.user) {
+        throw new Error("Invalid authentication response");
+      }
+
+      setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
+      setUser(data.user);
+      syncOneSignalUser(data.user);
+
+      return data.user;
+    },
+    [],
+  );
+
+  const loginWithCredentials = useCallback(
+    async ({ identifier, password }: CredentialLoginPayload): Promise<User> => {
+      const payload = {
+        identifier: String(identifier || "").trim(),
+        password,
+      };
+
+      if (!payload.identifier || !payload.password) {
+        throw new Error("Identifier and password are required");
+      }
+
+      const { data } = await apiClient.post("/auth/login", payload);
 
       if (!data?.accessToken || !data?.refreshToken || !data?.user) {
         throw new Error("Invalid authentication response");
@@ -97,6 +129,7 @@ export default function useAuth() {
 
   return {
     loginWithGoogle,
+    loginWithCredentials,
     logout,
     refreshTokens,
   };

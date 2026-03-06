@@ -3,10 +3,14 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { GluestackUIProvider } from "../components/ui/gluestack-ui-provider";
+import { useGlobalScreenProtection } from "../hooks/useGlobalScreenProtection";
 import Provider from "../service/providers";
 import { OneSignalProvider } from "../service/providers/OneSignalProvider";
 
 export default function RootLayout() {
+  // Root-level mounting protects the entire Expo Router tree by default.
+  useGlobalScreenProtection();
+
   return (
     <OneSignalProvider>
       <GluestackUIProvider mode="light">

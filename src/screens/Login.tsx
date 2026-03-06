@@ -65,6 +65,13 @@ export default function LoginScreen() {
       source={require("@/assets/images/login-screen.webp")}
       className="flex-1 justify-end items-center bg-cover bg-center overflow-hidden p-6"
     >
+      <TouchableOpacity
+        onPress={() => router.push("/guest-login" as any)}
+        className="absolute right-6 top-6 z-10 rounded-full border border-ui-light/60 bg-ui-dark/35 px-4 py-2"
+      >
+        <Text className="text-sm font-semibold text-ui-light">Guest Login</Text>
+      </TouchableOpacity>
+
       <Image
         source={require("@/assets/images/lumore-hr-white.png")}
         alt="Lumore"
