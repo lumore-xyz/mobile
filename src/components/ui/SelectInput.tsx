@@ -101,7 +101,7 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
             </SelectDragIndicatorWrapper>
             {options?.map((option) => (
               <SelectItem
-                className="rounded-lg px-3 py-2"
+                className="rounded-xl px-4 py-4"
                 key={option.value}
                 label={option.label}
                 value={option.value}

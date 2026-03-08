@@ -30,7 +30,7 @@ type IAnimatedPressableProps = React.ComponentProps<typeof Pressable> &
   MotionComponentProps<typeof Pressable, ViewStyle, unknown, unknown, unknown>;
 
 const AnimatedPressable = createMotionAnimatedComponent(
-  Pressable
+  Pressable,
 ) as React.ComponentType<IAnimatedPressableProps>;
 
 type IMotionViewProps = React.ComponentProps<typeof View> &
@@ -100,15 +100,21 @@ cssInterop(PrimitiveIcon, {
 const actionsheetStyle = tva({ base: "w-full h-full web:pointer-events-none" });
 
 const actionsheetContentStyle = tva({
-  base: "items-center rounded-tl-3xl rounded-tr-3xl p-2 bg-background-0 web:pointer-events-auto web:select-none shadow-lg pb-safe",
+  base: "rounded-tl-3xl rounded-tr-3xl pt-2 pb-safe bg-ui-light web:pointer-events-auto web:select-none shadow-hard-5 border border-b-0 border-ui-shade/10",
 });
 
+const ACTIONSHEET_CONTENT_MIN_VIEWPORT_STYLE: ViewStyle = {
+  minHeight: "70%",
+  width: "100%",
+  alignSelf: "center",
+};
+
 const actionsheetItemStyle = tva({
-  base: "w-full flex-row items-center p-3 rounded-sm data-[disabled=true]:opacity-40 data-[disabled=true]:web:pointer-events-auto data-[disabled=true]:web:cursor-not-allowed hover:bg-background-50 active:bg-background-100 data-[focus=true]:bg-background-100 web:data-[focus-visible=true]:bg-background-100 data-[checked=true]:bg-background-100",
+  base: "w-full flex-row items-center justify-between rounded-xl border border-ui-shade/10 bg-white px-4 py-4 mb-2 data-[disabled=true]:opacity-40 data-[disabled=true]:web:pointer-events-auto data-[disabled=true]:web:cursor-not-allowed hover:bg-ui-highlight/5 active:bg-ui-highlight/10 data-[focus=true]:bg-ui-highlight/10 web:data-[focus-visible=true]:bg-ui-highlight/10 data-[checked=true]:bg-ui-highlight/10 data-[checked=true]:border-ui-highlight/60 data-[checked=true]:border-l-4 data-[selected=true]:bg-ui-highlight/10 data-[selected=true]:border-ui-highlight/60 data-[selected=true]:border-l-4",
 });
 
 const actionsheetItemTextStyle = tva({
-  base: "text-typography-700 font-normal font-body tracking-md text-left mx-2",
+  base: "text-ui-shade font-medium font-body tracking-md text-left flex-1 text-lg data-[checked=true]:text-ui-highlight data-[checked=true]:font-semibold data-[selected=true]:text-ui-highlight data-[selected=true]:font-semibold",
   variants: {
     isTruncated: {
       true: "",
@@ -137,20 +143,20 @@ const actionsheetItemTextStyle = tva({
     },
   },
   defaultVariants: {
-    size: "md",
+    size: "lg",
   },
 });
 
 const actionsheetDragIndicatorStyle = tva({
-  base: "w-16 h-1 bg-background-400 rounded-full",
+  base: "w-16 h-1 bg-ui-shade/20 rounded-full",
 });
 
 const actionsheetDragIndicatorWrapperStyle = tva({
-  base: "w-full py-1 items-center",
+  base: "w-full py-2 items-center",
 });
 
 const actionsheetBackdropStyle = tva({
-  base: "absolute left-0 top-0 right-0 bottom-0 bg-background-dark web:cursor-default web:pointer-events-auto",
+  base: "absolute left-0 top-0 right-0 bottom-0 bg-ui-shade/50 web:cursor-default web:pointer-events-auto",
 });
 
 const actionsheetScrollViewStyle = tva({
@@ -170,7 +176,7 @@ const actionsheetSectionListStyle = tva({
 });
 
 const actionsheetSectionHeaderTextStyle = tva({
-  base: "leading-5 font-bold font-heading my-0 text-typography-500 p-3 uppercase",
+  base: "leading-5 font-bold font-heading my-0 text-ui-shade/60 p-3 uppercase",
   variants: {
     isTruncated: {
       true: "",
@@ -212,7 +218,7 @@ const actionsheetSectionHeaderTextStyle = tva({
 });
 
 const actionsheetIconStyle = tva({
-  base: "text-typography-900",
+  base: "text-ui-shade",
   variants: {
     size: {
       "2xs": "h-3 w-3",
@@ -313,12 +319,13 @@ const Actionsheet = React.forwardRef<
 const ActionsheetContent = React.forwardRef<
   React.ComponentRef<typeof UIActionsheet.Content>,
   IActionsheetContentProps & { className?: string }
->(function ActionsheetContent({ className, ...props }, ref) {
+>(function ActionsheetContent({ className, style, ...props }, ref) {
   return (
     <UIActionsheet.Content
       className={actionsheetContentStyle({
         class: className,
       })}
+      style={[ACTIONSHEET_CONTENT_MIN_VIEWPORT_STYLE, style]}
       ref={ref}
       {...props}
     />
@@ -345,7 +352,7 @@ const ActionsheetItemText = React.forwardRef<
   IActionsheetItemTextProps
 >(function ActionsheetItemText(
   { className, isTruncated, bold, underline, strikeThrough, size, ...props },
-  ref
+  ref,
 ) {
   return (
     <UIActionsheet.ItemText
@@ -493,7 +500,7 @@ const ActionsheetSectionHeaderText = React.forwardRef<
     highlight,
     ...props
   },
-  ref
+  ref,
 ) {
   return (
     <UIActionsheet.SectionHeaderText
@@ -519,7 +526,7 @@ const ActionsheetIcon = React.forwardRef<
   IActionsheetIconProps
 >(function ActionsheetIcon(
   { className, as: AsComp, size = "sm", ...props },
-  ref
+  ref,
 ) {
   if (AsComp) {
     return (

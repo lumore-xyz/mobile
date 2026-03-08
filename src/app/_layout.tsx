@@ -1,6 +1,7 @@
 import "@/global.css";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { GluestackUIProvider } from "../components/ui/gluestack-ui-provider";
 import { useGlobalScreenProtection } from "../hooks/useGlobalScreenProtection";
@@ -17,7 +18,12 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <SafeAreaView className="flex-1 bg-ui-light">
             <Provider>
-              <Stack screenOptions={{ headerShown: false }} />
+              <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+              >
+                <Stack screenOptions={{ headerShown: false }} />
+              </KeyboardAvoidingView>
             </Provider>
             <StatusBar style="dark" backgroundColor="#E6F4FE" />
           </SafeAreaView>

@@ -10,7 +10,7 @@ import { socketDebug, socketError, socketWarn } from "@/src/service/socket-debug
 import { getUser, storage } from "@/src/service/storage";
 import * as ImagePicker from "expo-image-picker";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, View } from "react-native";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
@@ -36,6 +36,7 @@ export const ChatScreen = () => {
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const pendingImageRef = useRef<PendingImage | null>(null);
   const uploadRequestIdRef = useRef(0);
@@ -78,6 +79,23 @@ export const ChatScreen = () => {
     socketDebug("ChatScreen", "revalidateSocket requested");
     revalidateSocket();
   }, [revalidateSocket]);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const onShow = Keyboard.addListener(showEvent, () => {
+      setIsKeyboardOpen(true);
+    });
+    const onHide = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardOpen(false);
+    });
+
+    return () => {
+      onShow.remove();
+      onHide.remove();
+    };
+  }, []);
 
   const replyingToPreview = useMemo<ChatReplyPreview | null>(() => {
     if (!replyingTo?._id) return null;
@@ -653,7 +671,7 @@ export const ChatScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1"
+      className={isKeyboardOpen ? "flex-1 pb-16" : "flex-1"}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ChatHeader
