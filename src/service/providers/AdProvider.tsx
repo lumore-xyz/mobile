@@ -14,7 +14,7 @@ import mobileAds, {
   TestIds,
   type RewardedAdReward,
 } from "react-native-google-mobile-ads";
-import config from "../config";
+import { getConfig } from "../config";
 
 interface AdContextType {
   isInitialized: boolean;
@@ -28,12 +28,15 @@ interface AdContextType {
 
 export const AdContext = createContext<AdContextType | undefined>(undefined);
 
-const interstitialUnitId = __DEV__
-  ? TestIds.INTERSTITIAL
-  : config.ADMOB_INTERSTITIAL_UNIT_ID;
-const rewardedUnitId = __DEV__ ? TestIds.REWARDED : config.ADMOB_REWARDED_UNIT_ID;
-
 export const AdProvider = ({ children }: { children: React.ReactNode }) => {
+  const appConfig = getConfig();
+  const interstitialUnitId = __DEV__
+    ? TestIds.INTERSTITIAL
+    : appConfig.ADMOB_INTERSTITIAL_UNIT_ID;
+  const rewardedUnitId = __DEV__
+    ? TestIds.REWARDED
+    : appConfig.ADMOB_REWARDED_UNIT_ID;
+
   const [isInitialized, setIsInitialized] = useState(false);
   const [isInterstitialLoaded, setIsInterstitialLoaded] = useState(false);
   const [isRewardedLoaded, setIsRewardedLoaded] = useState(false);
@@ -46,14 +49,14 @@ export const AdProvider = ({ children }: { children: React.ReactNode }) => {
     return InterstitialAd.createForAdRequest(interstitialUnitId, {
       requestNonPersonalizedAdsOnly: true,
     });
-  }, []);
+  }, [interstitialUnitId]);
 
   const rewarded = useMemo(() => {
     if (!rewardedUnitId) return null;
     return RewardedAd.createForAdRequest(rewardedUnitId, {
       requestNonPersonalizedAdsOnly: true,
     });
-  }, []);
+  }, [rewardedUnitId]);
 
   const resolveRewardedPromise = useCallback((reward: RewardedAdReward | null) => {
     if (!rewardedResolverRef.current) return;

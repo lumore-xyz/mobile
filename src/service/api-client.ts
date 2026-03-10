@@ -1,18 +1,21 @@
 import axios from "axios";
-import config from "./config";
+import { getConfig } from "./config";
 import { getAccessToken, getRefreshToken, setAccessToken } from "./storage";
 
-const apiClient = axios.create({
-  baseURL: `${config.BASE_URL}/api`,
-});
+const resolveApiBaseUrl = () => `${getConfig().BASE_URL}/api`;
+
+const apiClient = axios.create();
 
 apiClient.interceptors.request.use(
-  (config) => {
+  (requestConfig) => {
+    requestConfig.baseURL = resolveApiBaseUrl();
+
     const token = getAccessToken();
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      requestConfig.headers = (requestConfig.headers || {}) as any;
+      (requestConfig.headers as any).Authorization = `Bearer ${token}`;
     }
-    return config;
+    return requestConfig;
   },
   (error) => Promise.reject(error),
 );
@@ -31,7 +34,7 @@ apiClient.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${config.BASE_URL}/api/auth/refresh-token`,
+          `${getConfig().BASE_URL}/api/auth/refresh-token`,
           {
             refreshToken,
           },
@@ -44,6 +47,7 @@ apiClient.interceptors.response.use(
         setAccessToken(data.accessToken);
         originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        originalRequest.baseURL = resolveApiBaseUrl();
         return apiClient(originalRequest);
       } catch (refreshError) {
         return Promise.reject(refreshError);
