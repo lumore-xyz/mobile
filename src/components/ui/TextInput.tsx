@@ -49,7 +49,7 @@ export const TextInput: React.FC<TextInputProps> = ({
       <FormControlLabel>
         <FormControlLabelText>{label}</FormControlLabelText>
       </FormControlLabel>
-      <Input className="my-1" size="xl">
+      <Input className="mt-1" size="xl">
         <InputField
           type={type}
           placeholder={placeholder}

@@ -3,7 +3,7 @@ import config from "@/src/service/config";
 import { Platform } from "react-native";
 
 const DEFAULT_PLAYSTORE_URL =
-  "https://play.google.com/store/apps/details?id=xyz.lumore.www.twa";
+  "https://play.google.com/store/apps/details?id=xyz.lumore.rebel";
 
 const normalizeReferralCode = (rawCode: unknown): string | null => {
   if (typeof rawCode !== "string") return null;

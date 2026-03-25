@@ -32,27 +32,30 @@ export function getInitialValuesForScreen(
       }
     }
 
-    if (initialValues[field.name] === undefined) {
-      if (field.type === "date") {
-        const age = field.min ?? 18;
-        initialValues[field.name] = getDateFromAge(age).toISOString();
-      }
+    // if (initialValues[field.name] === undefined) {
+    //   if (field.type === "date") {
+    //     const age = field.min ?? 18;
+    //     initialValues[field.name] = getDateFromAge(age).toISOString();
+    //   }
 
-      if (field.type === "range") {
-        initialValues[field.name] =
-          field.defaultValue ?? [field.min ?? 18, field.max ?? 50];
-      }
+    //   if (field.type === "range") {
+    //     initialValues[field.name] =
+    //       field.defaultValue ?? [field.min ?? 18, field.max ?? 50];
+    //   }
 
-      if (field.type === "slider") {
-        initialValues[field.name] = field.defaultValue ?? field.min ?? 1;
-      }
-    }
+    //   if (field.type === "slider") {
+    //     initialValues[field.name] = field.defaultValue ?? field.min ?? 10;
+    //   }
+    // }
   });
 
   return initialValues;
 }
 
-export function validateScreen(screen: Screen, values: Record<string, unknown>) {
+export function validateScreen(
+  screen: Screen,
+  values: Record<string, unknown>,
+) {
   const errors: Record<string, string> = {};
 
   const getAge = (dob: Date) => {
@@ -60,10 +63,7 @@ export function validateScreen(screen: Screen, values: Record<string, unknown>) 
     let age = today.getFullYear() - dob.getFullYear();
     const monthDiff = today.getMonth() - dob.getMonth();
 
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < dob.getDate())
-    ) {
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
       age -= 1;
     }
     return age;
@@ -144,7 +144,8 @@ export function validateScreen(screen: Screen, values: Record<string, unknown>) 
             return field.max === undefined || age <= field.max;
           },
           {
-            message: field.errorText || `Age must be ${field.max} years or below.`,
+            message:
+              field.errorText || `Age must be ${field.max} years or below.`,
           },
         );
     }
@@ -226,7 +227,6 @@ export function buildOnboardingPayload(
     if (field.place === "password") {
       password = String(value || "");
     }
-
   });
 
   return { userData, userPreferenceData, password };

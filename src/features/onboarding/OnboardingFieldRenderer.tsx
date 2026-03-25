@@ -19,6 +19,15 @@ const OnboardingFieldRenderer = ({
   errorText,
   onChange,
 }: OnboardingFieldRendererProps) => {
+  const defaultRangeValue = Array.isArray(field.defaultValue)
+    ? field.defaultValue
+    : [field.min || 18, field.max || 50];
+  const defaultSliderValue =
+    typeof field.defaultValue === "number"
+      ? field.defaultValue
+      : (field.min ?? 10);
+
+  // console.log({ field, value });
   if (field.type === "date") {
     return (
       <DateInput
@@ -68,7 +77,7 @@ const OnboardingFieldRenderer = ({
     return (
       <RangeInput
         label={field.label}
-        value={(value as number[]) || [field.min || 18, field.max || 50]}
+        value={(value as number[]) || defaultRangeValue}
         onChange={(range) => onChange(field.name, range)}
         min={field.min || 18}
         max={field.max || 50}
@@ -87,7 +96,7 @@ const OnboardingFieldRenderer = ({
         min={field.min || 1}
         max={field.max || 100}
         step={field.step}
-        value={Number(value ?? field.min ?? 1)}
+        value={Number(value ?? defaultSliderValue)}
         unit={field.unit}
         onChange={(nextValue) => onChange(field.name, nextValue)}
         helperText={field.helperText}

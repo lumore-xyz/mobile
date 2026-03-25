@@ -6,7 +6,6 @@ import {
   ImageBackground,
   Linking,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import Button from "../components/ui/Button";
@@ -92,13 +91,6 @@ export default function GuestLoginScreen() {
       source={require("@/assets/images/login-screen.webp")}
       className="flex-1 justify-end items-center bg-cover bg-center overflow-hidden p-6"
     >
-      <TouchableOpacity
-        onPress={() => router.replace("/login")}
-        className="absolute right-4 top-4 z-10 rounded-full border border-ui-light/60 bg-ui-dark/35 px-4 py-2"
-      >
-        <Text className="text-sm font-semibold text-ui-light">Google Login</Text>
-      </TouchableOpacity>
-
       <Image
         source={require("@/assets/images/lumore-hr-white.png")}
         alt="Lumore"
@@ -106,7 +98,7 @@ export default function GuestLoginScreen() {
       />
 
       <View className="mt-6 w-full rounded-2xl border border-ui-light/40 bg-ui-light/95 p-4">
-        <Text className="text-xl font-semibold text-ui-shade">Guest Login</Text>
+        <Text className="text-xl font-semibold text-ui-shade">Sign In</Text>
         <Text className="mt-1 text-sm text-ui-shade/70">
           Sign in with your email or username and password.
         </Text>

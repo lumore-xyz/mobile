@@ -1,11 +1,6 @@
 import Button from "@/src/components/ui/Button";
 import { VStack } from "@/src/components/ui/vstack";
-import {
-  legacyOnboardingScreens,
-  onboardingScreens,
-} from "@/src/features/onboarding/config";
-import { useUser } from "@/src/hooks/useUser";
-import { useUserPrefrence } from "@/src/hooks/useUserPrefrence";
+import { onboardingScreens } from "@/src/features/onboarding/config";
 import {
   buildOnboardingPayload,
   getInitialValuesForScreen,
@@ -13,7 +8,8 @@ import {
 } from "@/src/features/onboarding/helpers";
 import OnboardingFieldRenderer from "@/src/features/onboarding/OnboardingFieldRenderer";
 import type { Screen } from "@/src/features/onboarding/types";
-import { isUiSimplificationEnabled } from "@/src/libs/feature-flags";
+import { useUser } from "@/src/hooks/useUser";
+import { useUserPrefrence } from "@/src/hooks/useUserPrefrence";
 import {
   applyReferralCode,
   setNewPassword,
@@ -35,9 +31,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
 const OnboardingScreen = ({
-  screens = isUiSimplificationEnabled()
-    ? onboardingScreens
-    : legacyOnboardingScreens,
+  screens = onboardingScreens,
 }: {
   screens?: Screen[];
 }) => {
@@ -59,9 +53,14 @@ const OnboardingScreen = ({
 
   useEffect(() => {
     if (!currentScreen) return;
-    const values = getInitialValuesForScreen(currentScreen, user, userPrefrence);
+    const values = getInitialValuesForScreen(
+      currentScreen,
+      user,
+      userPrefrence,
+    );
     if (incomingReferralCode) {
-      const parsedIncomingCode = referralCodeSchema.safeParse(incomingReferralCode);
+      const parsedIncomingCode =
+        referralCodeSchema.safeParse(incomingReferralCode);
       if (parsedIncomingCode.success) {
         capturePendingReferralCode(parsedIncomingCode.data);
       }
@@ -99,7 +98,9 @@ const OnboardingScreen = ({
       formValues,
     );
     const referralCodeRaw =
-      typeof formValues.referralCode === "string" ? formValues.referralCode : "";
+      typeof formValues.referralCode === "string"
+        ? formValues.referralCode
+        : "";
     const referralCode = referralCodeRaw.trim();
     const hasReferralCodeField = currentScreen.fields.some(
       (field) => field.name === "referralCode",
@@ -207,4 +208,3 @@ const OnboardingScreen = ({
 };
 
 export default OnboardingScreen;
-

@@ -1,11 +1,11 @@
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 interface RangeInputProps {
   label: string;
   value: number[];
-  onChange: React.Dispatch<React.SetStateAction<number[]>>;
+  onChange: (value: number[]) => void;
   min: number;
   max: number;
   step?: number;
@@ -25,11 +25,30 @@ const RangeInput: React.FC<RangeInputProps> = ({
   errorText,
   unit = "",
 }) => {
-  const [sliderValues, setSliderValues] = useState(value);
+  const clampValue = (nextValue: number) => {
+    if (!Number.isFinite(nextValue)) return min;
+    return Math.min(max, Math.max(min, nextValue));
+  };
+
+  const normalizeRange = (nextValue: number[]) => {
+    if (!Array.isArray(nextValue) || nextValue.length < 2) {
+      return [min, max];
+    }
+    const lower = clampValue(Math.min(nextValue[0], nextValue[1]));
+    const upper = clampValue(Math.max(nextValue[0], nextValue[1]));
+    return [lower, upper];
+  };
+
+  const [sliderValues, setSliderValues] = useState(normalizeRange(value));
+
+  useEffect(() => {
+    setSliderValues(normalizeRange(value));
+  }, [value, min, max]);
 
   const handleValuesChange = (values: number[]) => {
-    setSliderValues(values);
-    onChange(values);
+    const nextValues = normalizeRange(values);
+    setSliderValues(nextValues);
+    onChange(nextValues);
   };
 
   return (

@@ -1,12 +1,12 @@
 // components/SingleSlider.tsx
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 interface SingleSliderProps {
   label: string;
   value: number;
-  onChange: React.Dispatch<React.SetStateAction<number>>;
+  onChange: (value: number) => void;
   min: number;
   max: number;
   step?: number;
@@ -26,11 +26,21 @@ const SingleSlider: React.FC<SingleSliderProps> = ({
   errorText,
   unit = "",
 }) => {
-  const [sliderValue, setSliderValue] = useState(value);
+  const clampValue = (nextValue: number) => {
+    if (!Number.isFinite(nextValue)) return min;
+    return Math.min(max, Math.max(min, nextValue));
+  };
+
+  const [sliderValue, setSliderValue] = useState(clampValue(value));
+
+  useEffect(() => {
+    setSliderValue(clampValue(value));
+  }, [value, min, max]);
 
   const handleValueChange = (values: number[]) => {
-    setSliderValue(values[0]);
-    onChange(values[0]);
+    const nextValue = clampValue(values[0]);
+    setSliderValue(nextValue);
+    onChange(nextValue);
   };
 
   return (

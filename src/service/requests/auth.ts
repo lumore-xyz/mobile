@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { useCallback } from "react";
 import { OneSignal } from "react-native-onesignal";
 import apiClient from "../api-client";
-import { getConfig } from "../config";
+import config from "../config";
 import {
   getRefreshToken,
   removeAccessToken,
@@ -23,6 +23,11 @@ type User = {
 
 type CredentialLoginPayload = {
   identifier: string;
+  password: string;
+};
+
+type CredentialSignupPayload = {
+  email: string;
   password: string;
 };
 
@@ -91,6 +96,33 @@ export default function useAuth() {
     [],
   );
 
+  const signupWithCredentials = useCallback(
+    async ({ email, password }: CredentialSignupPayload): Promise<User> => {
+      const payload = {
+        email: String(email || "").trim().toLowerCase(),
+        password,
+      };
+
+      if (!payload.email || !payload.password) {
+        throw new Error("Email and password are required");
+      }
+
+      const { data } = await apiClient.post("/auth/signup", payload);
+
+      if (!data?.accessToken || !data?.refreshToken || !data?.user) {
+        throw new Error("Invalid authentication response");
+      }
+
+      setAccessToken(data.accessToken);
+      setRefreshToken(data.refreshToken);
+      setUser(data.user);
+      syncOneSignalUser(data.user);
+
+      return data.user;
+    },
+    [],
+  );
+
   const logout = useCallback(async () => {
     try {
       OneSignal.logout();
@@ -110,7 +142,7 @@ export default function useAuth() {
         throw new Error("No refresh token found");
       }
 
-      const { data } = await axios.post(`${getConfig().BASE_URL}/api/auth/refresh-token`, {
+      const { data } = await axios.post(`${config.BASE_URL}/api/auth/refresh-token`, {
         refreshToken,
       });
 
@@ -130,6 +162,7 @@ export default function useAuth() {
   return {
     loginWithGoogle,
     loginWithCredentials,
+    signupWithCredentials,
     logout,
     refreshTokens,
   };

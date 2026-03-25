@@ -1,8 +1,8 @@
 import axios from "axios";
-import { getConfig } from "./config";
+import config from "./config";
 import { getAccessToken, getRefreshToken, setAccessToken } from "./storage";
 
-const resolveApiBaseUrl = () => `${getConfig().BASE_URL}/api`;
+const resolveApiBaseUrl = () => `${config.BASE_URL}/api`;
 
 const apiClient = axios.create();
 
@@ -34,7 +34,7 @@ apiClient.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${getConfig().BASE_URL}/api/auth/refresh-token`,
+          `${config.BASE_URL}/api/auth/refresh-token`,
           {
             refreshToken,
           },

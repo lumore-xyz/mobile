@@ -1,8 +1,7 @@
-import React from "react";
-import GuestLoginScreen from "../screens/GuestLogin";
+import { Redirect } from "expo-router";
 
 const GuestLogin = () => {
-  return <GuestLoginScreen />;
+  return <Redirect href="/login" />;
 };
 
 export default GuestLogin;

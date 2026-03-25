@@ -56,8 +56,8 @@ const Button: React.FC<ButtonProps> = ({
         "flex items-center justify-center rounded-2xl",
         sizeStyles[size],
         variantStyles[variant],
-        disabled && "opacity-50",
-          className, // allow user to pass additional classes
+        disabled && "opacity-85",
+        className, // allow user to pass additional classes
       )}
       onPress={() => onClick && onClick()}
       disabled={disabled}

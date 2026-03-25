@@ -2,7 +2,7 @@
   "expo": {
     "name": "lumore",
     "slug": "lumore",
-    "version": "7.0.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lumore",
@@ -17,7 +17,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "xyz.lumore.www.twa"
+      "package": "xyz.lumore.rebel"
     },
     "plugins": [
       "expo-router",
