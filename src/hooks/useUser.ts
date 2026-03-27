@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
 import apiClient from "../service/api-client";
-import { getUser, removeAccessToken, removeRefreshToken, removeUser } from "../service/storage";
+import { clearSession, getUser } from "../service/storage";
 
 const fetchUser = async (userId: string) => {
   const { data } = await apiClient.get(`/profile/${userId}`);
@@ -71,9 +71,7 @@ export const useUser = (userId: string) => {
     if (!shouldForceLogout) return;
 
     hasForcedLogoutRef.current = true;
-    removeAccessToken();
-    removeRefreshToken();
-    removeUser();
+    clearSession();
     router.replace("/login");
   }, [currentUserId, error, router, userId]);
 

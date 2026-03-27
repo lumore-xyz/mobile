@@ -2,7 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import socketIoClient from "socket.io-client";
 import config from "../config";
 import { socketError, socketWarn } from "../socket-debug";
-import { getAccessToken, getUser } from "../storage";
+import {
+  ACCESS_TOKEN_KEY,
+  USER_KEY,
+  getAccessToken,
+  getUser,
+  storage,
+} from "../storage";
 
 type Socket = ReturnType<typeof socketIoClient>;
 
@@ -24,37 +30,40 @@ export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isActive, setIsActive] = useState(false);
 
   const revalidateSocket = useCallback(() => {
-    if (userId) {
-      return;
-    }
     const _user = getUser();
     setUserId(_user?._id || null);
-  }, [userId]);
+    setAuthToken(getAccessToken() || null);
+  }, []);
 
   useEffect(() => {
-    if (!userId) {
-      socketWarn("SocketContext", "no userId; closing any existing socket");
-      setSocket((existingSocket) => {
-        if (existingSocket) {
-          existingSocket.close();
-        }
-        return null;
-      });
-      setIsConnected(false);
-      setIsActive(false);
-      return;
-    }
+    const listener = storage.addOnValueChangedListener((changedKey) => {
+      if (changedKey === ACCESS_TOKEN_KEY) {
+        setAuthToken(getAccessToken() || null);
+      }
 
-    const token = getAccessToken();
-    if (!token) {
-      socketWarn("SocketContext", "no access token; closing any existing socket", {
-        userId,
-      });
+      if (changedKey === USER_KEY) {
+        const nextUser = getUser();
+        setUserId(nextUser?._id || null);
+      }
+    });
+
+    return () => {
+      listener.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!userId || !authToken) {
+      socketWarn(
+        "SocketContext",
+        "missing userId or access token; closing any existing socket",
+      );
       setSocket((existingSocket) => {
         if (existingSocket) {
           existingSocket.close();
@@ -65,9 +74,17 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       setIsActive(false);
       return;
     }
+    const applyLatestToken = () => {
+      const nextToken = getAccessToken();
+      if (!nextToken) return;
+      newSocket.auth = { token: nextToken };
+    };
+    const handleReconnectAttempt = () => {
+      applyLatestToken();
+    };
 
     const newSocket = socketIoClient(config.SOCKET_URL, {
-      auth: { token },
+      auth: { token: authToken },
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -86,9 +103,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         name: error?.name,
         message: error?.message,
       });
+      applyLatestToken();
       setIsConnected(false);
       setIsActive(false);
     });
+
+    newSocket.io.on("reconnect_attempt", handleReconnectAttempt);
 
     newSocket.on("reconnect", () => {
       setIsConnected(true);
@@ -117,6 +137,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       setIsActive(false);
 
       if (reason === "io server disconnect") {
+        applyLatestToken();
         newSocket.connect();
       }
     });
@@ -131,9 +152,10 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       clearInterval(pingInterval);
+      newSocket.io.off("reconnect_attempt", handleReconnectAttempt);
       newSocket.close();
     };
-  }, [userId]);
+  }, [authToken, userId]);
 
   return (
     <SocketContext.Provider

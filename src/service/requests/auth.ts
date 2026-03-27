@@ -1,17 +1,11 @@
-import axios from "axios";
 import { router } from "expo-router";
 import { useCallback } from "react";
 import { OneSignal } from "react-native-onesignal";
+import { refreshAccessToken } from "../auth-session";
 import apiClient from "../api-client";
-import config from "../config";
 import {
-  getRefreshToken,
-  removeAccessToken,
-  removeRefreshToken,
-  removeUser,
-  setAccessToken,
-  setRefreshToken,
-  setUser,
+  clearSession,
+  setSession,
 } from "../storage";
 
 type User = {
@@ -59,9 +53,11 @@ export default function useAuth() {
         throw new Error("Invalid authentication response");
       }
 
-      setAccessToken(data.accessToken);
-      setRefreshToken(data.refreshToken);
-      setUser(data.user);
+      setSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        user: data.user,
+      });
       syncOneSignalUser(data.user);
 
       return data.user;
@@ -86,9 +82,11 @@ export default function useAuth() {
         throw new Error("Invalid authentication response");
       }
 
-      setAccessToken(data.accessToken);
-      setRefreshToken(data.refreshToken);
-      setUser(data.user);
+      setSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        user: data.user,
+      });
       syncOneSignalUser(data.user);
 
       return data.user;
@@ -113,9 +111,11 @@ export default function useAuth() {
         throw new Error("Invalid authentication response");
       }
 
-      setAccessToken(data.accessToken);
-      setRefreshToken(data.refreshToken);
-      setUser(data.user);
+      setSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        user: data.user,
+      });
       syncOneSignalUser(data.user);
 
       return data.user;
@@ -129,35 +129,14 @@ export default function useAuth() {
     } catch (error) {
       console.warn("OneSignal logout failed", error);
     }
-    removeAccessToken();
-    removeRefreshToken();
-    removeUser();
+    clearSession();
     router.replace("/login");
   }, []);
 
   const refreshTokens = useCallback(async (): Promise<boolean> => {
-    try {
-      const refreshToken = getRefreshToken();
-      if (!refreshToken) {
-        throw new Error("No refresh token found");
-      }
-
-      const { data } = await axios.post(`${config.BASE_URL}/api/auth/refresh-token`, {
-        refreshToken,
-      });
-
-      if (data?.accessToken) {
-        setAccessToken(data.accessToken);
-        return true;
-      } else {
-        throw new Error("Invalid refresh response");
-      }
-    } catch (error) {
-      console.error("Token refresh failed", error);
-      logout();
-      return false;
-    }
-  }, [logout]);
+    const nextAccessToken = await refreshAccessToken();
+    return Boolean(nextAccessToken);
+  }, []);
 
   return {
     loginWithGoogle,

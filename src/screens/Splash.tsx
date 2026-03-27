@@ -1,60 +1,32 @@
 import { useRouter } from "expo-router";
-import { jwtDecode } from "jwt-decode";
 import { MotiView } from "moti";
 import React, { useCallback, useEffect } from "react";
-import { Alert, Dimensions, Image, Text, View } from "react-native";
-import useAuth from "../service/requests/auth";
-import {
-  getAccessToken,
-  getIsOnboarded,
-  getRefreshToken,
-  getUser,
-} from "../service/storage";
+import { Dimensions, Image, Text, View } from "react-native";
+import { bootstrapAuthSession } from "../service/auth-session";
+import { getIsOnboarded, getUser } from "../service/storage";
 
 const { width } = Dimensions.get("window");
 
-interface DecodedToken {
-  exp: number;
-}
-
 const SplashScreen = () => {
   const router = useRouter();
-  const { refreshTokens } = useAuth();
+
   const tokenCheck = useCallback(async () => {
-    const accessToken = getAccessToken() as string;
-    const refreshToken = getRefreshToken() as string;
+    const hasValidSession = await bootstrapAuthSession();
+    if (!hasValidSession) {
+      router.replace("/login");
+      return;
+    }
+
     const user = getUser();
     const isOnboarded = getIsOnboarded(user?._id) as boolean;
 
-    if (accessToken) {
-      const decodedAccessToken = jwtDecode<DecodedToken>(accessToken);
-      const decodedRefreshToken = jwtDecode<DecodedToken>(refreshToken);
-
-      const currentTime = Date.now() / 1000;
-
-      if (decodedRefreshToken?.exp < currentTime) {
-        router.replace("/login");
-        // resetAndNavigate("login");
-        Alert.alert("Session expired please login again");
-        return;
-      }
-
-      if (decodedAccessToken?.exp < currentTime) {
-        const refreshed = await refreshTokens();
-        if (!refreshed) {
-          Alert.alert("There was a problem");
-          return;
-        }
-      }
-      if (isOnboarded) {
-        router.replace("/explore");
-        return;
-      }
-      router.replace("/(onboarding)/onboarding");
+    if (isOnboarded) {
+      router.replace("/explore");
       return;
     }
-    router.replace("/login");
-  }, [refreshTokens, router]);
+
+    router.replace("/(onboarding)/onboarding");
+  }, [router]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {

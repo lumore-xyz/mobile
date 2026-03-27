@@ -1,40 +1,69 @@
 import { createMMKV } from "react-native-mmkv";
 
 export const storage = createMMKV();
+export const ACCESS_TOKEN_KEY = "accessToken";
+export const REFRESH_TOKEN_KEY = "refreshToken";
+export const USER_KEY = "user";
 
 export const setAccessToken = (token: string) => {
-  storage.set("accessToken", token);
+  storage.set(ACCESS_TOKEN_KEY, token);
 };
 
 export const getAccessToken = () => {
-  return storage.getString("accessToken");
+  return storage.getString(ACCESS_TOKEN_KEY);
 };
 
 export const removeAccessToken = () => {
-  storage.remove("accessToken");
+  storage.remove(ACCESS_TOKEN_KEY);
 };
 
 export const setRefreshToken = (token: string) => {
-  storage.set("refreshToken", token);
+  storage.set(REFRESH_TOKEN_KEY, token);
 };
 
 export const getRefreshToken = () => {
-  return storage.getString("refreshToken");
+  return storage.getString(REFRESH_TOKEN_KEY);
 };
 
 export const removeRefreshToken = () => {
-  storage.remove("refreshToken");
+  storage.remove(REFRESH_TOKEN_KEY);
 };
 export const setUser = (user: any) => {
-  storage.set("user", JSON.stringify(user));
+  storage.set(USER_KEY, JSON.stringify(user));
 };
 
 export const getUser = () => {
-  return JSON.parse(storage.getString("user") || "{}");
+  return JSON.parse(storage.getString(USER_KEY) || "{}");
 };
 
 export const removeUser = () => {
-  storage.remove("user");
+  storage.remove(USER_KEY);
+};
+
+export const setSession = ({
+  accessToken,
+  refreshToken,
+  user,
+}: {
+  accessToken?: string;
+  refreshToken?: string;
+  user?: any;
+}) => {
+  if (accessToken) {
+    setAccessToken(accessToken);
+  }
+  if (refreshToken) {
+    setRefreshToken(refreshToken);
+  }
+  if (user) {
+    setUser(user);
+  }
+};
+
+export const clearSession = () => {
+  removeAccessToken();
+  removeRefreshToken();
+  removeUser();
 };
 
 export const setIsOnboarded = (userId: string, isOnboarded: boolean) => {

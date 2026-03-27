@@ -1,10 +1,21 @@
 import axios from "axios";
+import { refreshAccessToken } from "./auth-session";
 import config from "./config";
-import { getAccessToken, getRefreshToken, setAccessToken } from "./storage";
+import { clearSession, getAccessToken, getRefreshToken } from "./storage";
 
 const resolveApiBaseUrl = () => `${config.BASE_URL}/api`;
 
 const apiClient = axios.create();
+
+type RetryableRequestConfig = {
+  _retry?: boolean;
+  baseURL?: string;
+  headers?: Record<string, string>;
+  url?: string;
+};
+
+const isRefreshRequest = (url?: string) =>
+  Boolean(url?.includes("/auth/refresh-token"));
 
 apiClient.interceptors.request.use(
   (requestConfig) => {
@@ -24,34 +35,31 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const status = Number(error?.response?.status || 0);
-    const originalRequest = error?.config;
+    const originalRequest = error?.config as RetryableRequestConfig | undefined;
 
-    if ((status === 401 || status === 403) && originalRequest) {
+    if (
+      status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isRefreshRequest(originalRequest.url)
+    ) {
       const refreshToken = getRefreshToken();
       if (!refreshToken) {
+        clearSession();
         return Promise.reject(error);
       }
 
-      try {
-        const { data } = await axios.post(
-          `${config.BASE_URL}/api/auth/refresh-token`,
-          {
-            refreshToken,
-          },
-        );
+      originalRequest._retry = true;
 
-        if (!data?.accessToken) {
-          return Promise.reject(error);
-        }
-
-        setAccessToken(data.accessToken);
-        originalRequest.headers = originalRequest.headers || {};
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        originalRequest.baseURL = resolveApiBaseUrl();
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        return Promise.reject(refreshError);
+      const nextAccessToken = await refreshAccessToken();
+      if (!nextAccessToken) {
+        return Promise.reject(error);
       }
+
+      originalRequest.headers = originalRequest.headers || {};
+      originalRequest.headers.Authorization = `Bearer ${nextAccessToken}`;
+      originalRequest.baseURL = resolveApiBaseUrl();
+      return apiClient(originalRequest);
     }
 
     return Promise.reject(error);
