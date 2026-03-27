@@ -1,4 +1,9 @@
-import { getFormattedAddress, updateUserData } from "@/src/libs/apis";
+import {
+  getFormattedAddress,
+  type LocationWritePayload,
+  updateUserLocation,
+} from "@/src/libs/apis";
+import { hasSignificantLocationChange } from "@/src/libs/locationSync";
 import { useMutation } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import {
@@ -9,6 +14,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { getUser } from "../storage";
 
 interface LocationContextType {
   latitude: number | null;
@@ -72,41 +78,50 @@ const LocationContext = createContext<LocationContextType | undefined>(
 );
 
 export const LocationProvider = ({ children }: { children: ReactNode }) => {
+  const userId = getUser()?._id || null;
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [formattedAddress, setFormattedAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const lastSentLocation = useRef<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  const [currentFix, setCurrentFix] = useState<LocationWritePayload | null>(null);
+  const lastSentLocation = useRef<LocationWritePayload | null>(null);
 
-  const mutation = useMutation({
-    mutationFn: (locationData: { latitude: number; longitude: number }) =>
-      updateUserData({
-        location: {
-          type: "Point",
-          coordinates: [locationData.longitude, locationData.latitude],
-          formattedAddress,
-        },
-      }),
+  const locationMutation = useMutation({
+    mutationFn: (locationData: LocationWritePayload) =>
+      updateUserLocation(locationData),
   });
 
   useEffect(() => {
+    if (!userId) {
+      lastSentLocation.current = null;
+      setLatitude(null);
+      setLongitude(null);
+      setCurrentFix(null);
+      setError(null);
+      return;
+    }
+
     let watchSubscription: Location.LocationSubscription | null = null;
     let isUnmounted = false;
+    setError(null);
 
     const syncLocation = async (nextLatitude: number, nextLongitude: number) => {
-      try {
-        const formatted = await getFormattedAddress(nextLatitude, nextLongitude);
-        if (isUnmounted) return;
+      let nextFormattedAddress: string | null = null;
 
-        setLatitude(nextLatitude);
-        setLongitude(nextLongitude);
-        setFormattedAddress(formatted);
-      } catch (error) {
-        console.error("Error fetching address:", error);
+      try {
+        nextFormattedAddress = await getFormattedAddress(nextLatitude, nextLongitude);
+      } catch (locationError) {
+        console.error("Error fetching address:", locationError);
       }
+
+      if (isUnmounted) return;
+
+      setLatitude(nextLatitude);
+      setLongitude(nextLongitude);
+      setCurrentFix({
+        latitude: nextLatitude,
+        longitude: nextLongitude,
+        formattedAddress: nextFormattedAddress,
+      });
     };
 
     const startTracking = async () => {
@@ -147,21 +162,15 @@ export const LocationProvider = ({ children }: { children: ReactNode }) => {
       isUnmounted = true;
       watchSubscription?.remove();
     };
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    if (latitude !== null && longitude !== null) {
-      const hasSignificantChange =
-        !lastSentLocation.current ||
-        Math.abs(lastSentLocation.current.latitude - latitude) > 1 ||
-        Math.abs(lastSentLocation.current.longitude - longitude) > 1;
+    if (!userId || !currentFix) return;
+    if (!hasSignificantLocationChange(lastSentLocation.current, currentFix)) return;
 
-      if (hasSignificantChange) {
-        lastSentLocation.current = { latitude, longitude };
-        mutation.mutate({ latitude, longitude });
-      }
-    }
-  }, [latitude, longitude, mutation]);
+    lastSentLocation.current = currentFix;
+    locationMutation.mutate(currentFix);
+  }, [currentFix, locationMutation, userId]);
 
   return (
     <LocationContext.Provider value={{ latitude, longitude, error }}>
