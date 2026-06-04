@@ -13,13 +13,13 @@ interface MessageGroupProps {
   onToggleLike: (messageId: string, emoji?: string) => void;
 }
 
-export const MessageGroup: React.FC<MessageGroupProps> = ({
+export const MessageGroup = React.memo(function MessageGroup({
   messages,
   currentUserId,
   onReply,
   onStartEdit,
   onToggleLike,
-}) => {
+}: MessageGroupProps) {
   return (
     <View className="space-y-4">
       <DateHeader timestamp={messages[0]?.timestamp} />
@@ -35,4 +35,4 @@ export const MessageGroup: React.FC<MessageGroupProps> = ({
       ))}
     </View>
   );
-};
+});

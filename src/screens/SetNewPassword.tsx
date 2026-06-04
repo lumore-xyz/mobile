@@ -39,7 +39,9 @@ const SetNewPasswordScreen = () => {
 
     const parsed = passwordSchema.safeParse(newPassword);
     if (!parsed.success) {
-      setNewPasswordError(parsed.error.issues[0]?.message || "Invalid password.");
+      setNewPasswordError(
+        parsed.error.issues[0]?.message || "Invalid password.",
+      );
       return false;
     }
 
@@ -77,6 +79,10 @@ const SetNewPasswordScreen = () => {
             }}
             type="password"
             placeholder="New Password"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="new-password"
+            textContentType="newPassword"
             isInvalid={Boolean(newPasswordError)}
             errorText={newPasswordError}
           />
@@ -90,6 +96,12 @@ const SetNewPasswordScreen = () => {
             }}
             type="password"
             placeholder="Confirm Password"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="new-password"
+            textContentType="newPassword"
+            returnKeyType="done"
+            onSubmitEditing={onSubmit}
             isInvalid={Boolean(confirmPasswordError)}
             errorText={confirmPasswordError}
           />

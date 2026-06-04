@@ -9,8 +9,36 @@ import { getUser } from "@/src/service/storage";
 import { calculateAge } from "@/src/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "expo-router";
-import React, { useEffect, useMemo } from "react";
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useMemo } from "react";
+import {
+  FlatList,
+  Image,
+  ListRenderItem,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+type InboxTab = "active" | "archive";
+
+interface InboxProps {
+  user: any;
+  rooms: any[];
+  isLoading: boolean;
+  error?: unknown;
+}
+
+interface UserChatProps {
+  room: any;
+  matchedUser: any;
+}
+
+interface MetaProps {
+  type?: string;
+  icon: string;
+  text: string | number;
+}
 
 const ChatInbox = () => {
   const currentUser = getUser();
@@ -57,21 +85,7 @@ const ChatInbox = () => {
           </TouchableOpacity>
         </View>
 
-        <View className="flex-row bg-ui-shade/5 rounded-xl p-2 mb-3">
-          <View className="flex-1 py-2 rounded-lg bg-ui-light shadow-sm">
-            <Text className="text-center font-medium text-ui-shade">
-              Active
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => router.push("/chat/archive")}
-            className="flex-1 py-2 rounded-lg"
-          >
-            <Text className="text-center font-medium text-ui-shade">
-              Archived
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <InboxTabs activeTab="active" />
 
         <Inbox
           user={user}
@@ -87,7 +101,60 @@ const ChatInbox = () => {
 
 export default ChatInbox;
 
-export const Inbox = ({ user, rooms, isLoading, error }: any) => {
+export const InboxTabs = React.memo(function InboxTabs({
+  activeTab,
+}: {
+  activeTab: InboxTab;
+}) {
+  const router = useRouter();
+
+  const goToTab = useCallback(
+    (tab: InboxTab) => {
+      if (tab === activeTab) return;
+      router.push(tab === "active" ? "/chat" : "/chat/archive");
+    },
+    [activeTab, router],
+  );
+
+  return (
+    <View className="mb-3 flex-row rounded-xl bg-ui-shade/5 p-2">
+      {(["active", "archive"] as InboxTab[]).map((tab) => {
+        const isActive = tab === activeTab;
+        return (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => goToTab(tab)}
+            disabled={isActive}
+            className={`flex-1 rounded-lg py-2 ${
+              isActive ? "bg-ui-light shadow-sm" : ""
+            }`}
+          >
+            <Text className="text-center font-medium text-ui-shade">
+              {tab === "active" ? "Active" : "Archived"}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+});
+
+export const Inbox = React.memo(function Inbox({
+  user,
+  rooms,
+  isLoading,
+  error,
+}: InboxProps) {
+  const renderItem = useCallback<ListRenderItem<any>>(
+    ({ item: room }) => {
+      const matchedUser = room?.participants?.find(
+        (participant: any) => participant?._id !== user?._id,
+      );
+      return <UserChat room={room} matchedUser={matchedUser} />;
+    },
+    [user?._id],
+  );
+
   if (isLoading) {
     return <InboxSkeleton />;
   }
@@ -101,18 +168,19 @@ export const Inbox = ({ user, rooms, isLoading, error }: any) => {
   return (
     <FlatList
       data={rooms}
-      keyExtractor={(room) => room._id}
+      keyExtractor={(room) => String(room._id)}
       contentContainerStyle={{ paddingBottom: 16 }}
       className="flex-1"
-      renderItem={({ item: room }) => {
-        const matchedUser = room.participants.find(
-          (p: any) => p._id !== user?._id,
-        );
-        return <UserChat room={room} matchedUser={matchedUser} />;
-      }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      initialNumToRender={8}
+      maxToRenderPerBatch={8}
+      windowSize={7}
+      removeClippedSubviews={Platform.OS === "android"}
+      renderItem={renderItem}
     />
   );
-};
+});
 
 const decodeLastMessage = (room: any) => {
   const lastMessage = room?.lastMessage;
@@ -129,7 +197,10 @@ const decodeLastMessage = (room: any) => {
   return lastMessage.message;
 };
 
-export const UserChat = ({ room, matchedUser }: any) => {
+export const UserChat = React.memo(function UserChat({
+  room,
+  matchedUser,
+}: UserChatProps) {
   const { user, isLoading, error } = useUser(matchedUser?._id ?? "");
   const unreadCount = Number(room?.unreadCount || 0);
   const lastMessagePreview = useMemo(() => decodeLastMessage(room), [room]);
@@ -231,27 +302,21 @@ export const UserChat = ({ room, matchedUser }: any) => {
       {content}
     </Link>
   );
-};
+});
 
-export const Meta = ({
-  type,
-  icon,
-  text,
-}: {
-  type?: string;
-  icon: string;
-  text: string | number;
-}) => (
-  <View className="flex-row items-center gap-1">
-    <Icon
-      type={type as any}
-      name={icon as any}
-      size={16}
-      className="!h-4 !w-4 text-ui-shade"
-    />
-    <Text className="text-ui-shade">{text}</Text>
-  </View>
-);
+export const Meta = React.memo(function Meta({ type, icon, text }: MetaProps) {
+  return (
+    <View className="flex-row items-center gap-1">
+      <Icon
+        type={type as any}
+        name={icon as any}
+        size={16}
+        className="!h-4 !w-4 text-ui-shade"
+      />
+      <Text className="text-ui-shade">{text}</Text>
+    </View>
+  );
+});
 
 const InboxSkeleton = () => (
   <View className="mt-1">

@@ -13,9 +13,6 @@ export function getInitialValuesForScreen(
   userPreference: Record<string, any> | undefined,
 ) {
   const initialValues: Record<string, unknown> = {};
-  const today = new Date();
-  const getDateFromAge = (age: number) =>
-    new Date(today.getFullYear() - age, today.getMonth(), today.getDate());
 
   screen.fields.forEach((field) => {
     if (field.place === "user" && user) {
@@ -31,22 +28,6 @@ export function getInitialValuesForScreen(
         initialValues[field.name] = userPreference[field.name];
       }
     }
-
-    // if (initialValues[field.name] === undefined) {
-    //   if (field.type === "date") {
-    //     const age = field.min ?? 18;
-    //     initialValues[field.name] = getDateFromAge(age).toISOString();
-    //   }
-
-    //   if (field.type === "range") {
-    //     initialValues[field.name] =
-    //       field.defaultValue ?? [field.min ?? 18, field.max ?? 50];
-    //   }
-
-    //   if (field.type === "slider") {
-    //     initialValues[field.name] = field.defaultValue ?? field.min ?? 10;
-    //   }
-    // }
   });
 
   return initialValues;

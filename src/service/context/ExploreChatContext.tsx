@@ -8,7 +8,14 @@ import type {
 import { useConfetti } from "@/src/hooks/useConfetti";
 import { useUser } from "@/src/hooks/useUser";
 import { useRouter } from "expo-router";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { trackAnalytic } from "../analytics";
 import { queryClient } from "../query-client";
 import { socketDebug, socketError, socketWarn } from "../socket-debug";
@@ -52,14 +59,18 @@ export const ExploreChatProvider = ({
     }
   }, [user]);
 
-  const revalidateUser = () => {
+  const revalidateUser = useCallback(() => {
     socketDebug("ExploreChatContext", "revalidateUser called", {
       hasExistingUserId: Boolean(userId),
     });
     if (userId) {
-      socketDebug("ExploreChatContext", "revalidateUser skipped: userId already set", {
-        userId,
-      });
+      socketDebug(
+        "ExploreChatContext",
+        "revalidateUser skipped: userId already set",
+        {
+          userId,
+        },
+      );
       return;
     }
     const nextUser = getUser();
@@ -68,9 +79,9 @@ export const ExploreChatProvider = ({
     });
     revalidateSocket();
     setUserId(nextUser?._id || null);
-  };
+  }, [revalidateSocket, userId]);
 
-  const startMatchmaking = () => {
+  const startMatchmaking = useCallback(() => {
     socketDebug("ExploreChatContext", "startMatchmaking called", {
       hasSocket: Boolean(socket),
       socketConnected: Boolean(socket?.connected),
@@ -78,15 +89,24 @@ export const ExploreChatProvider = ({
       isMatching,
     });
     if (!socket) {
-      socketWarn("ExploreChatContext", "startMatchmaking blocked: missing socket");
+      socketWarn(
+        "ExploreChatContext",
+        "startMatchmaking blocked: missing socket",
+      );
       return;
     }
     if (!user) {
-      socketWarn("ExploreChatContext", "startMatchmaking blocked: missing user");
+      socketWarn(
+        "ExploreChatContext",
+        "startMatchmaking blocked: missing user",
+      );
       return;
     }
     if (isMatching) {
-      socketWarn("ExploreChatContext", "startMatchmaking blocked: already matching");
+      socketWarn(
+        "ExploreChatContext",
+        "startMatchmaking blocked: already matching",
+      );
       return;
     }
 
@@ -102,9 +122,9 @@ export const ExploreChatProvider = ({
       userId: user?._id,
     });
     socket.emit("startMatchmaking");
-  };
+  }, [isMatching, socket, user]);
 
-  const stopMatchmaking = () => {
+  const stopMatchmaking = useCallback(() => {
     socketDebug("ExploreChatContext", "stopMatchmaking called", {
       hasSocket: Boolean(socket),
       socketConnected: Boolean(socket?.connected),
@@ -112,11 +132,17 @@ export const ExploreChatProvider = ({
       isMatching,
     });
     if (!socket) {
-      socketWarn("ExploreChatContext", "stopMatchmaking blocked: missing socket");
+      socketWarn(
+        "ExploreChatContext",
+        "stopMatchmaking blocked: missing socket",
+      );
       return;
     }
     if (!userId) {
-      socketWarn("ExploreChatContext", "stopMatchmaking blocked: missing userId");
+      socketWarn(
+        "ExploreChatContext",
+        "stopMatchmaking blocked: missing userId",
+      );
       return;
     }
     if (!isMatching) {
@@ -134,28 +160,34 @@ export const ExploreChatProvider = ({
       socketId: socket.id,
     });
     socket.emit("stopMatchmaking", { userId });
-  };
+  }, [isMatching, socket, userId]);
 
-  const onMatchFound = useCallback((roomId: string, matchedUser: unknown) => {
-    socketDebug("ExploreChatContext", "matchFound received", {
-      roomId,
-      matchedUser,
-    });
-    setMatchId(roomId);
-    setIsMatching(false);
-    fireSideCannons();
-    trackAnalytic({
-      activity: "match_found",
-      label: "Match Found",
-    });
-    queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-    queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
-    router.push(`/chat/${roomId}`);
-  }, [fireSideCannons, router]);
+  const onMatchFound = useCallback(
+    (roomId: string, matchedUser: unknown) => {
+      socketDebug("ExploreChatContext", "matchFound received", {
+        roomId,
+        matchedUser,
+      });
+      setMatchId(roomId);
+      setIsMatching(false);
+      fireSideCannons();
+      trackAnalytic({
+        activity: "match_found",
+        label: "Match Found",
+      });
+      queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
+      router.push(`/chat/${roomId}`);
+    },
+    [fireSideCannons, router],
+  );
 
   useEffect(() => {
     if (!socket) {
-      socketWarn("ExploreChatContext", "event subscription skipped: socket missing");
+      socketWarn(
+        "ExploreChatContext",
+        "event subscription skipped: socket missing",
+      );
       return;
     }
 
@@ -246,19 +278,29 @@ export const ExploreChatProvider = ({
       socket.off(EXPLORE_SOCKET_EVENTS.creditsUpdated);
       socket.off(EXPLORE_SOCKET_EVENTS.chatEnded);
     };
-  }, [socket, matchId, onMatchFound]);
+  }, [socket, onMatchFound]);
+
+  const value = useMemo(
+    () => ({
+      matchId,
+      isMatching,
+      error,
+      startMatchmaking,
+      stopMatchmaking,
+      revalidateUser,
+    }),
+    [
+      error,
+      isMatching,
+      matchId,
+      revalidateUser,
+      startMatchmaking,
+      stopMatchmaking,
+    ],
+  );
 
   return (
-    <ExploreChatContext.Provider
-      value={{
-        matchId,
-        isMatching,
-        error,
-        startMatchmaking,
-        stopMatchmaking,
-        revalidateUser,
-      }}
-    >
+    <ExploreChatContext.Provider value={value}>
       {children}
     </ExploreChatContext.Provider>
   );

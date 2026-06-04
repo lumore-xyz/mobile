@@ -30,6 +30,88 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
+const DUPLICATE_FIELD_MESSAGES: Record<string, string> = {
+  phoneNumber: "This phone number is already in use. Please use another.",
+  email: "This email is already in use. Please use another.",
+  username: "This username is already in use. Please use another.",
+};
+
+const extractApiMessage = (error: any) =>
+  String(
+    error?.response?.data?.message ||
+      error?.message ||
+      "Unable to save this step right now. Please try again.",
+  );
+
+const extractDuplicateField = (message: string) => {
+  const indexMatch = message.match(/index:\s*([A-Za-z0-9._$-]+)_1/i);
+  if (indexMatch?.[1]) {
+    const indexField = indexMatch[1].split(".").pop();
+    if (indexField) return indexField;
+  }
+
+  const duplicateKeyMatch = message.match(
+    /dup key:\s*\{\s*"?([A-Za-z0-9._$-]+)"?\s*:/i,
+  );
+  if (duplicateKeyMatch?.[1]) {
+    return duplicateKeyMatch[1].split(".").pop() || duplicateKeyMatch[1];
+  }
+
+  return null;
+};
+
+const resolveFieldErrorFromApi = (message: string, screen: Screen) => {
+  const normalized = message.toLowerCase();
+  const hasDuplicateSignature =
+    normalized.includes("e11000") || normalized.includes("duplicate key");
+
+  if (hasDuplicateSignature) {
+    const duplicateField = extractDuplicateField(message);
+
+    if (
+      duplicateField &&
+      screen.fields.some((field) => field.name === duplicateField)
+    ) {
+      return {
+        fieldName: duplicateField,
+        message:
+          DUPLICATE_FIELD_MESSAGES[duplicateField] ||
+          "This value already exists. Please use a different one.",
+      };
+    }
+
+    if (normalized.includes("phone") || normalized.includes("phonenumber")) {
+      if (screen.fields.some((field) => field.name === "phoneNumber")) {
+        return {
+          fieldName: "phoneNumber",
+          message: DUPLICATE_FIELD_MESSAGES.phoneNumber,
+        };
+      }
+    }
+
+    if (normalized.includes("email")) {
+      if (screen.fields.some((field) => field.name === "email")) {
+        return {
+          fieldName: "email",
+          message: DUPLICATE_FIELD_MESSAGES.email,
+        };
+      }
+    }
+  }
+
+  if (
+    normalized.includes("referral") &&
+    screen.fields.some((field) => field.name === "referralCode")
+  ) {
+    return {
+      fieldName: "referralCode",
+      message,
+    };
+  }
+
+  return null;
+};
+
 const OnboardingScreen = ({
   screens = onboardingScreens,
 }: {
@@ -42,6 +124,7 @@ const OnboardingScreen = ({
   const [screenIndex, setScreenIndex] = useState(0);
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState("");
   const queryClient = useQueryClient();
   const router = useRouter();
   const params = useLocalSearchParams<{ code?: string }>();
@@ -73,6 +156,7 @@ const OnboardingScreen = ({
       }
     }
     setFormValues(values);
+    setSubmitError("");
   }, [currentScreen, user, userPrefrence, incomingReferralCode]);
 
   const handleInputChange = (name: string, value: unknown) => {
@@ -84,6 +168,13 @@ const OnboardingScreen = ({
         removePendingReferralCode();
       }
     }
+    setSubmitError("");
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
     setFormValues((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -133,13 +224,23 @@ const OnboardingScreen = ({
   const handleNext = async () => {
     if (Object.keys(screenErrors).length > 0) {
       setErrors(screenErrors);
+      setSubmitError("");
       return;
     }
 
     setErrors({});
+    setSubmitError("");
     try {
       await submitOnboardingData();
-    } catch {
+    } catch (error: any) {
+      const apiMessage = extractApiMessage(error);
+      const fieldError = resolveFieldErrorFromApi(apiMessage, currentScreen);
+
+      if (fieldError) {
+        setErrors((prev) => ({ ...prev, [fieldError.fieldName]: fieldError.message }));
+      } else {
+        setSubmitError(apiMessage);
+      }
       return;
     }
 
@@ -197,6 +298,9 @@ const OnboardingScreen = ({
         </View>
 
         <View className="w-full mt-6">
+          {submitError ? (
+            <Text className="text-sm text-red-500 mb-3">{submitError}</Text>
+          ) : null}
           <Button
             onClick={handleNext}
             text={screenIndex === totalScreens - 1 ? "Let's Go..." : "Next"}

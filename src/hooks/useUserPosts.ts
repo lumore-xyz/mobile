@@ -14,6 +14,7 @@ export const useUserPosts = (userId: string) => {
   } = useQuery({
     queryKey: ["user posts", userId],
     queryFn: () => fetchUserPosts(userId),
+    enabled: Boolean(userId),
   });
 
   return {

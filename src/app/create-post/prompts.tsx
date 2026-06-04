@@ -19,7 +19,6 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../../components/headers/SubPageBack";
-import MobileNav from "../../components/MobileNav";
 
 const FALLBACK_CATEGORIES = [
   { _id: "deep" },

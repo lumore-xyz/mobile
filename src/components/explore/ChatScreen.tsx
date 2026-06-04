@@ -532,7 +532,7 @@ export const ChatScreen = () => {
     };
   }, []);
 
-  const handleToggleLike = (messageId: string, emoji = DEFAULT_HEART_EMOJI) => {
+  const handleToggleLike = useCallback((messageId: string, emoji = DEFAULT_HEART_EMOJI) => {
     if (!socket || !roomId || !messageId) {
       socketWarn("ChatScreen", "toggle_message_reaction blocked", {
         hasSocket: Boolean(socket),
@@ -552,26 +552,26 @@ export const ChatScreen = () => {
       messageId,
       emoji,
     });
-  };
+  }, [roomId, socket]);
 
-  const handleReply = (msg: Message) => {
+  const handleReply = useCallback((msg: Message) => {
     setReplyingTo(msg);
     setEditingMessageId(null);
-  };
+  }, []);
 
-  const handleStartEdit = (msg: Message) => {
+  const handleStartEdit = useCallback((msg: Message) => {
     if (!msg._id || msg.sender !== userId || msg.messageType !== "text") return;
     setEditingMessageId(msg._id);
     setReplyingTo(null);
     setNewMessage(msg.message);
-  };
+  }, [userId]);
 
-  const cancelReply = () => setReplyingTo(null);
-  const cancelEdit = () => {
+  const cancelReply = useCallback(() => setReplyingTo(null), []);
+  const cancelEdit = useCallback(() => {
     setEditingMessageId(null);
     setNewMessage("");
-  };
-  const dismissUploadError = () => setUploadError(null);
+  }, []);
+  const dismissUploadError = useCallback(() => setUploadError(null), []);
 
   useEffect(() => {
     if (!socket || !roomId || !matchedUser?._id || !isActive) return;

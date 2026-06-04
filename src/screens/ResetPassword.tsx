@@ -3,13 +3,8 @@ import { resetPasswordWithToken } from "@/src/libs/apis";
 import { useMutation } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import {
-  Image,
-  ImageBackground,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
 
@@ -98,81 +93,80 @@ const ResetPasswordScreen = () => {
   };
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/login-screen.webp")}
-      className="flex-1 justify-end items-center bg-cover bg-center overflow-hidden p-6"
-    >
-      <Image
-        source={require("@/assets/images/lumore-hr-white.png")}
-        alt="Lumore"
-        className="h-[4.5rem] w-40 object-contain"
-      />
+    <AuthScreenLayout>
+      <Text className="text-2xl font-semibold text-ui-shade">
+        Reset Password
+      </Text>
+      <Text className="mt-1 text-sm text-ui-shade/70">
+        {email
+          ? `Create a new password for ${email}.`
+          : "Create a new password for your account."}
+      </Text>
 
-      <View className="mt-6 w-full rounded-2xl border border-ui-light/40 bg-ui-light/95 p-4">
-        <Text className="text-2xl font-semibold text-ui-shade">
-          Reset Password
-        </Text>
-        <Text className="mt-1 text-sm text-ui-shade/70">
-          {email
-            ? `Create a new password for ${email}.`
-            : "Create a new password for your account."}
-        </Text>
+      <View className="mt-4 gap-2">
+        <TextInput
+          label="New Password"
+          value={newPassword}
+          action={(value) => {
+            setNewPassword(value);
+            setNewPasswordError("");
+            setApiError("");
+          }}
+          type="password"
+          placeholder="Enter new password"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="new-password"
+          textContentType="newPassword"
+          isInvalid={Boolean(newPasswordError)}
+          errorText={newPasswordError}
+        />
 
-        <View className="mt-4 gap-2">
-          <TextInput
-            label="New Password"
-            value={newPassword}
-            action={(value) => {
-              setNewPassword(value);
-              setNewPasswordError("");
-              setApiError("");
-            }}
-            type="password"
-            placeholder="Enter new password"
-            isInvalid={Boolean(newPasswordError)}
-            errorText={newPasswordError}
-          />
+        <TextInput
+          label="Confirm Password"
+          value={confirmPassword}
+          action={(value) => {
+            setConfirmPassword(value);
+            setConfirmPasswordError("");
+            setApiError("");
+          }}
+          type="password"
+          placeholder="Confirm new password"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="new-password"
+          textContentType="newPassword"
+          returnKeyType="done"
+          onSubmitEditing={onSubmit}
+          isInvalid={Boolean(confirmPasswordError)}
+          errorText={confirmPasswordError}
+        />
 
-          <TextInput
-            label="Confirm Password"
-            value={confirmPassword}
-            action={(value) => {
-              setConfirmPassword(value);
-              setConfirmPasswordError("");
-              setApiError("");
-            }}
-            type="password"
-            placeholder="Confirm new password"
-            isInvalid={Boolean(confirmPasswordError)}
-            errorText={confirmPasswordError}
-          />
+        {apiError ? (
+          <Text className="text-sm text-red-500">{apiError}</Text>
+        ) : null}
+        {successMessage ? (
+          <Text className="text-sm text-green-700">{successMessage}</Text>
+        ) : null}
 
-          {apiError ? (
-            <Text className="text-sm text-red-500">{apiError}</Text>
-          ) : null}
-          {successMessage ? (
-            <Text className="text-sm text-green-700">{successMessage}</Text>
-          ) : null}
+        <Button
+          text={
+            resetPasswordMutation.isPending ? "Updating..." : "Reset Password"
+          }
+          onClick={onSubmit}
+          disabled={resetPasswordMutation.isPending || !token}
+        />
 
-          <Button
-            text={
-              resetPasswordMutation.isPending ? "Updating..." : "Reset Password"
-            }
-            onClick={onSubmit}
-            disabled={resetPasswordMutation.isPending || !token}
-          />
-
-          <TouchableOpacity
-            onPress={() => router.replace("/login")}
-            className="mt-1 self-center"
-          >
-            <Text className="text-sm font-medium text-ui-shade underline">
-              Back to Sign In
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={() => router.replace("/login")}
+          className="mt-1 self-center"
+        >
+          <Text className="text-sm font-medium text-ui-shade underline">
+            Back to Sign In
+          </Text>
+        </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </AuthScreenLayout>
   );
 };
 

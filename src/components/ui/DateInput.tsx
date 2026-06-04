@@ -1,7 +1,7 @@
 import { formatDate } from "@/src/utils";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useState } from "react";
-import { Platform, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Platform, Text, TextInput as RNTextInput, View } from "react-native";
 import Button from "./Button";
 
 interface DateInputProps {
@@ -10,9 +10,42 @@ interface DateInputProps {
   label: string;
   helperText?: string;
   errorText?: string;
-  min?: number; // 👈 make it optional
-  max?: number; // 👈 make it optional
+  min?: number;
+  max?: number;
 }
+
+const DATE_PLACEHOLDER = "DD/MM/YYYY";
+
+const parseTypedDate = (value: string): Date | null => {
+  const trimmedValue = value.trim();
+  const separatedDateMatch = trimmedValue.match(
+    /^([0-9]{1,2})[\/.-]([0-9]{1,2})[\/.-]([0-9]{4})$/
+  );
+  const compactDateMatch = trimmedValue.match(/^([0-9]{2})([0-9]{2})([0-9]{4})$/);
+  const dateMatch = separatedDateMatch || compactDateMatch;
+
+  if (!dateMatch) return null;
+
+  const day = Number(dateMatch[1]);
+  const month = Number(dateMatch[2]);
+  const year = Number(dateMatch[3]);
+  const parsedDate = new Date(year, month - 1, day);
+
+  const isValidDate =
+    parsedDate.getFullYear() === year &&
+    parsedDate.getMonth() === month - 1 &&
+    parsedDate.getDate() === day;
+
+  return isValidDate ? parsedDate : null;
+};
+
+const isDateWithinAgeRange = (value: Date, min: number, max: number) => {
+  const youngestAllowedDate = getDateFromAge(min);
+  const oldestAllowedDate = getDateFromAge(max);
+
+  return value <= youngestAllowedDate && value >= oldestAllowedDate;
+};
+
 const DateInput: React.FC<DateInputProps> = ({
   date = getDateFromAge(18),
   min = 18,
@@ -22,19 +55,67 @@ const DateInput: React.FC<DateInputProps> = ({
   helperText,
   errorText,
 }) => {
-  const [isOpen, setisOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [typedDate, setTypedDate] = useState("");
+  const [localErrorText, setLocalErrorText] = useState("");
+  const formattedDate = useMemo(() => formatDate(date), [date]);
+
+  useEffect(() => {
+    setTypedDate(formattedDate);
+    setLocalErrorText("");
+  }, [formattedDate]);
+
+  const commitTypedDate = () => {
+    const normalizedTypedDate = typedDate.trim();
+
+    if (!normalizedTypedDate) {
+      setLocalErrorText(`Please enter date in ${DATE_PLACEHOLDER} format.`);
+      return;
+    }
+
+    const parsedDate = parseTypedDate(normalizedTypedDate);
+    if (!parsedDate) {
+      setLocalErrorText(`Please use ${DATE_PLACEHOLDER} or DDMMYYYY format.`);
+      return;
+    }
+
+    if (!isDateWithinAgeRange(parsedDate, min, max)) {
+      setLocalErrorText(`Date should match age between ${min} and ${max}.`);
+      return;
+    }
+
+    setLocalErrorText("");
+    onChange(parsedDate);
+    setTypedDate(formatDate(parsedDate));
+  };
+
   return (
     <View className="">
       <Text className="font-medium text-typography-900 text-xl mb-1">
         {label}
       </Text>
       <View className="w-full flex flex-row justify-between items-center border border-ui-shade/10 rounded-xl p-3">
-        <Text className="text-ui-shade text-xl">{formatDate(date)}</Text>
+        <RNTextInput
+          value={typedDate}
+          onChangeText={(text) => {
+            setTypedDate(text);
+            if (localErrorText) setLocalErrorText("");
+          }}
+          onBlur={commitTypedDate}
+          onSubmitEditing={commitTypedDate}
+          placeholder={DATE_PLACEHOLDER}
+          maxLength={10}
+          keyboardType="number-pad"
+          autoCorrect={false}
+          autoCapitalize="none"
+          className="flex-1 text-ui-shade text-xl"
+          accessibilityLabel={`${label} input`}
+        />
         <Button
           size="md"
           variant="secondary"
           className="text-ui-light"
-          onClick={() => setisOpen(true)}
+          onClick={() => setIsOpen(true)}
           text="change"
         />
         {isOpen ? (
@@ -43,30 +124,36 @@ const DateInput: React.FC<DateInputProps> = ({
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}
             maximumDate={getDateFromAge(min)} // youngest: 18 years old
-            minimumDate={getDateFromAge(max)} // oldest: 45 years old
+            minimumDate={getDateFromAge(max)} // oldest: 50 years old
             onChange={(event, selectedDate) => {
               if (event.type === "dismissed") {
-                setisOpen(false); // user cancelled
+                setIsOpen(false);
                 return;
               }
-              setisOpen(Platform.OS === "ios");
+
+              setIsOpen(Platform.OS === "ios");
+
               if (selectedDate) {
-                onChange(selectedDate || new Date());
+                onChange(selectedDate);
+                setTypedDate(formatDate(selectedDate));
+                setLocalErrorText("");
               }
             }}
-            onTouchCancel={() => setisOpen(false)}
+            onTouchCancel={() => setIsOpen(false)}
           />
         ) : null}
       </View>
       {helperText ? (
         <Text className="text-xl text-typography-500 mt-2">{helperText}</Text>
       ) : null}
-      {errorText ? (
-        <Text className="text-red-500 mt-2">{errorText}</Text>
+      {localErrorText ? (
+        <Text className="text-red-500 mt-2">{localErrorText}</Text>
       ) : null}
+      {errorText ? <Text className="text-red-500 mt-2">{errorText}</Text> : null}
     </View>
   );
 };
+
 export default DateInput;
 
 /**
@@ -76,7 +163,6 @@ export default DateInput;
  */
 export function getDateFromAge(age: number): Date {
   const today = new Date();
-  // Subtract `age` years from today's date
   const birthDate = new Date(
     today.getFullYear() - age,
     today.getMonth(),

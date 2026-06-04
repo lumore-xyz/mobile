@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import socketIoClient from "socket.io-client";
 import config from "../config";
 import { socketError, socketWarn } from "../socket-debug";
@@ -157,11 +164,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, [authToken, userId]);
 
+  const value = useMemo(
+    () => ({ socket, isConnected, isActive, revalidateSocket }),
+    [isActive, isConnected, revalidateSocket, socket],
+  );
+
   return (
-    <SocketContext.Provider
-      value={{ socket, isConnected, isActive, revalidateSocket }}
-    >
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
 };

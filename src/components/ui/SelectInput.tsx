@@ -53,7 +53,7 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
 }) => {
   const selectedOption = useMemo(
     () => options?.find((option) => option.value === value),
-    [options, value]
+    [options, value],
   );
 
   return (
@@ -128,4 +128,5 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
     </FormControl>
   );
 };
-export default SelectInputUI;
+
+export default React.memo(SelectInputUI);

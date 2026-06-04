@@ -8,6 +8,9 @@ import { useGlobalScreenProtection } from "../hooks/useGlobalScreenProtection";
 import Provider from "../service/providers";
 import { OneSignalProvider } from "../service/providers/OneSignalProvider";
 
+const stackScreenOptions = { headerShown: false };
+const keyboardAvoidingBehavior = Platform.OS === "ios" ? "padding" : undefined;
+
 export default function RootLayout() {
   // Root-level mounting protects the entire Expo Router tree by default.
   useGlobalScreenProtection();
@@ -20,9 +23,9 @@ export default function RootLayout() {
             <Provider>
               <KeyboardAvoidingView
                 style={{ flex: 1 }}
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                behavior={keyboardAvoidingBehavior}
               >
-                <Stack screenOptions={{ headerShown: false }} />
+                <Stack screenOptions={stackScreenOptions} />
               </KeyboardAvoidingView>
             </Provider>
             <StatusBar style="dark" backgroundColor="#E6F4FE" />

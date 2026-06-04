@@ -1,14 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import {
-  Image,
-  ImageBackground,
-  Linking,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import { LegalAgreementText } from "../components/auth/LegalAgreementText";
+import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
 import { useOneSignal } from "../service/providers/OneSignalProvider";
@@ -16,8 +11,6 @@ import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
 
 export default function LoginScreen() {
-  const termsUrl = "https://www.lumore.xyz/terms-of-use";
-  const privacyUrl = "https://www.lumore.xyz/privacy-policy";
   const router = useRouter();
   const { loginWithCredentials } = useAuth();
   const { checkNotificationPermission } = useOneSignal();
@@ -50,14 +43,6 @@ export default function LoginScreen() {
     },
   });
 
-  const handleOpenExternalUrl = async (url: string) => {
-    try {
-      await Linking.openURL(url);
-    } catch (error) {
-      console.error("Failed to open external URL", error);
-    }
-  };
-
   const validate = () => {
     let isValid = true;
 
@@ -88,99 +73,73 @@ export default function LoginScreen() {
   };
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/login-screen.webp")}
-      className="flex-1 justify-end items-center bg-cover bg-center overflow-hidden p-6"
-    >
-      <Image
-        source={require("@/assets/images/lumore-hr-white.png")}
-        alt="Lumore"
-        className="h-[4.5rem] w-40 object-contain"
-      />
+    <AuthScreenLayout>
+      <Text className="text-2xl font-semibold text-ui-shade">Sign In</Text>
+      <Text className="mt-1 text-sm text-ui-shade/70">
+        Sign in with your email or username and password.
+      </Text>
 
-      <View className="mt-6 w-full rounded-2xl border border-ui-light/40 bg-ui-light/95 p-4">
-        <Text className="text-2xl font-semibold text-ui-shade">Sign In</Text>
-        <Text className="mt-1 text-sm text-ui-shade/70">
-          Sign in with your email or username and password.
-        </Text>
-
-        <View className="mt-4 gap-0">
-          <TextInput
-            label="Email or Username"
-            value={identifier}
-            action={(value) => {
-              setIdentifier(value);
-              setIdentifierError("");
-              setApiError("");
-            }}
-            placeholder="you@example.com or username"
-            isInvalid={Boolean(identifierError)}
-            errorText={identifierError}
-          />
-          <TextInput
-            label="Password"
-            value={password}
-            action={(value) => {
-              setPassword(value);
-              setPasswordError("");
-              setApiError("");
-            }}
-            type="password"
-            placeholder="Enter password"
-            isInvalid={Boolean(passwordError)}
-            errorText={passwordError}
-          />
-          <View className="flex flex-row items-center justify-between mb-4">
-            <TouchableOpacity
-              onPress={() => router.push("/forgot-password" as any)}
-            >
-              <Text className="text-sm font-medium text-ui-shade underline">
-                Forgot Password?
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push("/signup" as any)}>
-              <Text className="text-sm font-medium text-ui-shade underline">
-                New here? Create Account
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {apiError ? (
-            <Text className="text-sm text-red-500">{apiError}</Text>
-          ) : null}
-          <Button
-            text={
-              credentialLoginMutation.isPending ? "Signing in..." : "Sign In"
-            }
-            onClick={handleCredentialLogin}
-            disabled={credentialLoginMutation.isPending || !canSubmit}
-          />
+      <View className="mt-4 gap-0">
+        <TextInput
+          label="Email or Username"
+          value={identifier}
+          action={(value) => {
+            setIdentifier(value);
+            setIdentifierError("");
+            setApiError("");
+          }}
+          placeholder="you@example.com or username"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="username"
+          textContentType="username"
+          isInvalid={Boolean(identifierError)}
+          errorText={identifierError}
+        />
+        <TextInput
+          label="Password"
+          value={password}
+          action={(value) => {
+            setPassword(value);
+            setPasswordError("");
+            setApiError("");
+          }}
+          type="password"
+          placeholder="Enter password"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="current-password"
+          textContentType="password"
+          returnKeyType="send"
+          onSubmitEditing={handleCredentialLogin}
+          isInvalid={Boolean(passwordError)}
+          errorText={passwordError}
+        />
+        <View className="flex flex-row items-center justify-between mb-4">
+          <TouchableOpacity
+            onPress={() => router.push("/forgot-password" as any)}
+          >
+            <Text className="text-sm font-medium text-ui-shade underline">
+              Forgot Password?
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/signup" as any)}>
+            <Text className="text-sm font-medium text-ui-shade underline">
+              New here? Create Account
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
 
-      <View>
-        <Text className="text-center mt-4 text-ui-light">
-          By signing in, you agree to our{" "}
-          <Text
-            className="underline"
-            onPress={() => {
-              void handleOpenExternalUrl(termsUrl);
-            }}
-          >
-            Terms & Conditions
-          </Text>{" "}
-          and{" "}
-          <Text
-            className="underline"
-            onPress={() => {
-              void handleOpenExternalUrl(privacyUrl);
-            }}
-          >
-            Privacy Policy
-          </Text>
-          .
-        </Text>
+        {apiError ? (
+          <Text className="text-sm text-red-500">{apiError}</Text>
+        ) : null}
+        <Button
+          text={credentialLoginMutation.isPending ? "Signing in..." : "Sign In"}
+          onClick={handleCredentialLogin}
+          disabled={credentialLoginMutation.isPending || !canSubmit}
+        />
       </View>
-    </ImageBackground>
+      <LegalAgreementText />
+    </AuthScreenLayout>
   );
 }

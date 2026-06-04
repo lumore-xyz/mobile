@@ -1,4 +1,3 @@
-import LogoPrefrenceSetting from "@/src/components/headers/LogoPrefrenceSetting";
 import {
   Actionsheet,
   ActionsheetBackdrop,
@@ -13,6 +12,7 @@ import {
   fetchUserThisOrThatAnswers,
   startDiditVerification,
 } from "@/src/libs/apis";
+import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
 import { extractFullAddressParts } from "@/src/service/providers/LocationProvider";
 import { queryClient } from "@/src/service/query-client";
@@ -26,13 +26,17 @@ import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useMemo, useRef, useState } from "react";
 import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
-import SubPageBack from "../components/headers/SubPageBack";
 import { useUserPosts } from "../hooks/useUserPosts";
 import { useUserPrefrence } from "../hooks/useUserPrefrence";
 
 interface ProfileScreenProps {
   profileUserId?: string;
 }
+
+const hasDisplayValue = (value: unknown) => {
+  if (Array.isArray(value)) return value.length > 0;
+  return value !== undefined && value !== null && String(value).trim() !== "";
+};
 
 const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
   const currentUser = getUser();
@@ -44,6 +48,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
   const { posts, isLoading: isPostsLoading } = useUserPosts(targetUserId);
   const { userPrefrence, isLoading: isPreferenceLoading } =
     useUserPrefrence(targetUserId);
+  const shouldBlurProfilePicture =
+    !isOwner && !user?.isViewerUnlockedByUser && Boolean(user?.profilePicture);
   const scrollRef = useRef<ScrollView>(null);
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<any>(null);
@@ -117,7 +123,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
       type: "Fontisto",
       value: user.bloodGroup,
     },
-  ].filter(Boolean); // remove falsy entries
+  ].filter((trait) => trait && hasDisplayValue(trait.value));
 
   const traitsVr = [
     user?.work && {
@@ -144,13 +150,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
       size: 24,
       value: user.maritalStatus,
     },
-    user?.homeTown && {
+    (user?.homeTown || user?.hometown) && {
       icon: "location-outline",
       type: "Ionicons",
       size: 24,
-      value: user?.homeTown,
+      value: user?.homeTown || user?.hometown,
     },
-    user?.languages && {
+    user?.languages?.length && {
       icon: "language-outline",
       type: "Ionicons",
       size: 24,
@@ -162,7 +168,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
       size: 24,
       value: user?.personalityType,
     },
-  ].filter(Boolean); // remove falsy entries
+  ].filter((trait) => trait && hasDisplayValue(trait.value));
 
   const { profileCompletion, preferenceCompletion } = useMemo(() => {
     const profileFields = [
@@ -314,13 +320,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
       <View className="flex-1 w-full">
         <View className="rounded-3xl bg-white p-4 border border-ui-shade/10">
           <View className="flex flex-row gap-4 items-center justify-start">
-            <View className="bg-ui-background border border-ui-shade/10 h-20 w-20 aspect-square rounded-full">
+            <View className="bg-ui-background border border-ui-shade/10 h-20 w-20 aspect-square rounded-full overflow-hidden">
               <Image
                 source={{
                   uri: user?.profilePicture
                     ? user?.profilePicture
                     : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
                 }}
+                blurRadius={shouldBlurProfilePicture ? 12 : 0}
                 style={{
                   resizeMode: "cover",
                   width: "100%",
@@ -347,48 +354,55 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
                   <MaterialCommunityIcons
                     name="check-decagram"
                     size={16}
-                    className="flex-shrink-0 text-ui-highlight"
+                    color={COLORS.highlight}
+                    className="flex-shrink-0"
                   />
-                ) : (
+                ) : isOwner ? (
                   <MaterialCommunityIcons
                     name="alert-decagram-outline"
                     size={16}
                     className="flex-shrink-0 text-ui-shade/10"
                   />
-                )}
+                ) : null}
               </Text>
               <View className="flex flex-row items-center justify-start gap-2 mt-1">
-                <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-                  <MaterialCommunityIcons
-                    name="cake-variant-outline"
-                    size={16}
-                    className="flex-shrink-0"
-                  />
-                  <Text className="text-base">{calculateAge(user?.dob)}</Text>
-                </View>
+                {user?.dob ? (
+                  <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
+                    <MaterialCommunityIcons
+                      name="cake-variant-outline"
+                      size={16}
+                      className="flex-shrink-0"
+                    />
+                    <Text className="text-base">{calculateAge(user.dob)}</Text>
+                  </View>
+                ) : null}
 
-                <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-                  <Ionicons name="person-outline" size={16} />
-                  <Text className="text-base capitalize">{user?.gender}</Text>
-                </View>
+                {user?.gender ? (
+                  <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
+                    <Ionicons name="person-outline" size={16} />
+                    <Text className="text-base capitalize">{user.gender}</Text>
+                  </View>
+                ) : null}
 
-                <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-                  <Ionicons
-                    name="footsteps-outline"
-                    size={16}
-                    className="flex-shrink-0"
-                  />
-                  <Text className="text-base">
-                    {distanceDisplay(user?.distance || 0)}
-                  </Text>
-                </View>
+                {user?.distance != null ? (
+                  <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
+                    <Ionicons
+                      name="footsteps-outline"
+                      size={16}
+                      className="flex-shrink-0"
+                    />
+                    <Text className="text-base">
+                      {distanceDisplay(user.distance)}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
             </View>
           </View>
 
           <View className="mt-4">
             <Text className="text-sm uppercase text-ui-shade/60">
-              About you
+              {isOwner ? "About you" : "About"}
             </Text>
             <Text className="text-base mt-2">
               {user?.bio ? user?.bio : "No bio added yet."}
@@ -532,27 +546,43 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
               </View>
             ))}
           </View>
-          <View className="border-b border-ui-shade/10 w-full mt-2" />
-          <View>
-            {traitsVr.map((trait, index) => (
-              <InfoItemVerticle
-                key={index}
-                icon={trait!.icon}
-                type={trait!.type}
-                value={trait?.value}
-              />
-            ))}
-          </View>
+          {traitsHr.length || traitsVr.length ? (
+            <>
+              {traitsVr.length ? (
+                <View className="border-b border-ui-shade/10 w-full mt-2" />
+              ) : null}
+              <View>
+                {traitsVr.map((trait, index) => (
+                  <InfoItemVerticle
+                    key={index}
+                    icon={trait!.icon}
+                    type={trait!.type}
+                    value={trait?.value}
+                  />
+                ))}
+              </View>
+            </>
+          ) : (
+            <View className="rounded-xl border border-ui-shade/10 bg-ui-light p-3">
+              <Text className="text-xs text-ui-shade">
+                {isOwner
+                  ? "Add profile details to build your snapshot."
+                  : "No public details yet."}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View className="mt-4 rounded-2xl bg-white border border-ui-shade/10 p-4">
           <View className="flex-row items-center justify-between">
             <Text className="text-base font-semibold">This or That</Text>
-            <Pressable
-              onPress={() => router.navigate("/(subpage)/games/this-or-that")}
-            >
-              <Text className="text-xs text-ui-highlight">Play</Text>
-            </Pressable>
+            {isOwner ? (
+              <Pressable
+                onPress={() => router.navigate("/(subpage)/games/this-or-that")}
+              >
+                <Text className="text-xs text-ui-highlight">Play</Text>
+              </Pressable>
+            ) : null}
           </View>
           {isThisOrThatLoading ? (
             <ThisOrThatSectionSkeleton />
@@ -581,9 +611,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
                     </Text>
                     <Text className="text-sm font-semibold mt-1">
                       {answer.selectedText}
-                    </Text>
-                    <Text className="text-[10px] text-ui-shade/60 mt-1">
-                      {new Date(answer.answeredAt).toLocaleDateString()}
                     </Text>
                   </View>
                 </View>
@@ -623,7 +650,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
           ) : (
             <View className="p-4 rounded-2xl bg-white border border-ui-shade/10">
               <Text className="text-sm text-ui-shade">
-                No posts yet. Create your first post to show your vibe.
+                {isOwner
+                  ? "No posts yet. Create your first post to show your vibe."
+                  : "No posts yet."}
               </Text>
             </View>
           )}

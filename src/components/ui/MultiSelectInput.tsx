@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
+  ListRenderItem,
   Pressable,
   Text,
   TouchableOpacity,
@@ -44,70 +45,100 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  // ✅ FIX: Ensure value is always an array
   const safeValue = useMemo(() => {
     if (!value) return [];
     if (Array.isArray(value)) return value;
-    // If it's a string or other type, return empty array
-    console.warn(`MultiSelectInput received non-array value:`, value);
+    if (__DEV__) {
+      console.warn("MultiSelectInput received non-array value:", value);
+    }
     return [];
   }, [value]);
 
+  const selectedValueSet = useMemo(() => new Set(safeValue), [safeValue]);
+
+  const optionByValue = useMemo(
+    () => new Map(options.map((option) => [option.value, option])),
+    [options],
+  );
+
   const filteredOptions = useMemo(() => {
-    return options.filter((opt) =>
-      opt.label.toLowerCase().includes(search.toLowerCase())
+    const normalizedSearch = search.trim().toLowerCase();
+    if (!normalizedSearch) return options;
+
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(normalizedSearch),
     );
-  }, [search, options]);
+  }, [options, search]);
 
-  const handleSelect = (selectedValue: string) => {
-    // if it's already selected -> remove
-    if (safeValue.includes(selectedValue)) {
-      onChange(safeValue.filter((val) => val !== selectedValue));
-      return;
-    }
+  const handleSelect = useCallback(
+    (selectedValue: string) => {
+      if (selectedValueSet.has(selectedValue)) {
+        onChange(safeValue.filter((itemValue) => itemValue !== selectedValue));
+        return;
+      }
 
-    // enforce max limit
-    if (max && safeValue.length >= max) return;
+      if (max && safeValue.length >= max) return;
 
-    onChange([...safeValue, selectedValue]);
-  };
+      onChange([...safeValue, selectedValue]);
+    },
+    [max, onChange, safeValue, selectedValueSet],
+  );
 
-  // ✅ Function to remove a specific item
-  const removeItem = (itemValue: string, event?: any) => {
-    // Prevent the parent Pressable from opening the modal
-    if (event) {
-      event.stopPropagation();
-    }
-    onChange(safeValue.filter((val) => val !== itemValue));
-  };
+  const removeItem = useCallback(
+    (itemValue: string, event?: { stopPropagation?: () => void }) => {
+      event?.stopPropagation?.();
+      onChange(safeValue.filter((valueItem) => valueItem !== itemValue));
+    },
+    [onChange, safeValue],
+  );
+
+  const renderOption = useCallback<ListRenderItem<SelectOption>>(
+    ({ item, index }) => {
+      const isSelected = selectedValueSet.has(item.value);
+
+      return (
+        <TouchableOpacity
+          onPress={() => handleSelect(item.value)}
+          className={`flex w-full flex-row items-center justify-between rounded-lg px-1 py-2 ${
+            index % 2 === 0 ? "bg-white" : "bg-ui-background/40"
+          }`}
+        >
+          <Text className="max-w-[80%] text-lg">{item.label}</Text>
+          <View
+            className={`h-5 w-5 rounded-full border border-black ${
+              isSelected ? "bg-black" : "bg-white"
+            }`}
+          />
+        </TouchableOpacity>
+      );
+    },
+    [handleSelect, selectedValueSet],
+  );
 
   return (
     <View className="mb-4">
-      {/* Label */}
-      <Text className="font-medium text-typography-900 text-xl mb-2">
+      <Text className="mb-2 text-xl font-medium text-typography-900">
         {label}
       </Text>
 
-      {/* Dropdown trigger */}
       <Pressable
         onPress={() => setIsOpen(true)}
-        className="border border-gray-300 rounded-xl p-4"
+        className="rounded-xl border border-gray-300 p-4"
       >
         {safeValue.length === 0 ? (
           <Text className="text-gray-400">{placeholder}</Text>
         ) : (
           <View className="flex flex-row flex-wrap gap-2">
-            {safeValue.map((val) => {
-              const item = options.find((opt) => opt.value === val);
+            {safeValue.map((selectedValue) => {
+              const item = optionByValue.get(selectedValue);
               return (
                 <TouchableOpacity
-                  key={val}
-                  onPress={(e) => removeItem(val, e)}
-                  className="bg-ui-highlight/10 !rounded-full px-3 py-1 flex-row items-center gap-1"
+                  key={selectedValue}
+                  onPress={(event) => removeItem(selectedValue, event)}
+                  className="flex-row items-center gap-1 rounded-full bg-ui-highlight/10 px-3 py-1"
                 >
                   <Text className="text-ui-highlight">{item?.label}</Text>
-                  {/* ✅ X icon to indicate it's removable */}
-                  <Text className="text-ui-highlight font-bold ml-1">×</Text>
+                  <Text className="ml-1 font-bold text-ui-highlight">×</Text>
                 </TouchableOpacity>
               );
             })}
@@ -115,12 +146,11 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
         )}
       </Pressable>
 
-      {/* ✅ Helper text showing count and limit */}
-      {max && safeValue.length > 0 && (
-        <Text className="text-sm text-gray-500 mt-1">
+      {max && safeValue.length > 0 ? (
+        <Text className="mt-1 text-sm text-gray-500">
           {safeValue.length} / {max} selected
         </Text>
-      )}
+      ) : null}
 
       <Actionsheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
         <ActionsheetBackdrop />
@@ -129,49 +159,44 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
             <ActionsheetDragIndicator />
           </ActionsheetDragIndicatorWrapper>
 
-          {/* ✅ Search Input */}
-          <View className="w-full mt-6">
+          <View className="mt-6 w-full">
             <TextInput
               label="Search"
               placeholder="Search..."
               value={search}
               action={setSearch}
+              autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
 
-          {/* Options List */}
           <FlatList
             data={filteredOptions}
             keyExtractor={(item) => item.value}
-            renderItem={({ item, index }) => (
-              <TouchableOpacity
-                onPress={() => handleSelect(item.value)}
-                className={`flex flex-row items-center justify-between py-2 w-full rounded-lg px-1 ${
-                  index % 2 === 0 ? "bg-white" : "bg-ui-background/40"
-                }`}
-              >
-                <Text className="text-lg max-w-[80%]">{item.label}</Text>
-                <View
-                  className={`rounded-full w-5 h-5 border border-black ${
-                    safeValue.includes(item.value) ? "bg-black" : "bg-white"
-                  }`}
-                />
-              </TouchableOpacity>
-            )}
+            renderItem={renderOption}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={16}
+            maxToRenderPerBatch={16}
+            windowSize={8}
+            ListEmptyComponent={
+              <Text className="py-6 text-center text-ui-shade/70">
+                No options found
+              </Text>
+            }
           />
         </ActionsheetContent>
       </Actionsheet>
 
-      {/* Helper/Error messages */}
       {helperText && !errorText ? (
-        <Text className="text-xl text-typography-500 mt-1">{helperText}</Text>
+        <Text className="mt-1 text-xl text-typography-500">{helperText}</Text>
       ) : null}
 
       {errorText ? (
-        <Text className="text-red-500 mt-1">{errorText}</Text>
+        <Text className="mt-1 text-red-500">{errorText}</Text>
       ) : null}
     </View>
   );
 };
 
-export default MultiSelectInput;
+export default React.memo(MultiSelectInput);

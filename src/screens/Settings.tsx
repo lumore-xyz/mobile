@@ -1,13 +1,13 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
+import React, { useMemo, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import { useUser } from "../hooks/useUser";
 import { startDiditVerification } from "../libs/apis";
 import { getUser } from "../service/storage";
-import { Ionicons } from "@expo/vector-icons";
-import * as WebBrowser from "expo-web-browser";
-import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
 
 const SettingsScreen = () => {
   const currentUser = getUser();
@@ -61,11 +61,11 @@ const SettingsScreen = () => {
             label="User settings"
             onPress={() => router.navigate("/(subpage)/edit-user-settings")}
           />
-          <SettingsItem
+          {/* <SettingsItem
             icon="key-outline"
             label="Set new password"
             onPress={() => router.navigate("/set-new-password")}
-          />
+          /> */}
         </View>
 
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
@@ -147,4 +147,3 @@ const SettingsItem = ({
 );
 
 export default SettingsScreen;
-

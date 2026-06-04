@@ -1,6 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface ReplyingToPreview {
   _id: string;
@@ -36,7 +43,7 @@ interface ChatInputProps {
   onDismissUploadError: () => void;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({
+const ChatInput = React.memo(function ChatInput({
   value,
   onChangeText,
   onSend,
@@ -54,7 +61,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   pendingImage,
   uploadError,
   onDismissUploadError,
-}) => {
+}: ChatInputProps) {
   if (!isActive) {
     return (
       <Text className="p-4 text-center text-sm text-ui-shade">
@@ -165,6 +172,6 @@ const ChatInput: React.FC<ChatInputProps> = ({
       ) : null}
     </View>
   );
-};
+});
 
 export default ChatInput;

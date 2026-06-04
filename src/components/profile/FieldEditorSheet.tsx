@@ -9,6 +9,7 @@ import { validateSettingsField } from "@/src/lib/settingsValidators";
 import Icon from "@/src/libs/Icon";
 import { preferenceSchema } from "@/src/schemas/preferenceSchema";
 import { createProfileSchema } from "@/src/schemas/profileSchema";
+import { useUsernameAvailability } from "@/src/hooks/useUsernameAvailability";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import * as z from "zod";
@@ -37,6 +38,15 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
 }) => {
   const [value, setValue] = useState(currentValue);
   const [errorMessage, setErrorMessage] = useState("");
+  const isUsernameField = schemaType === "profile" && fieldType === "username";
+  const usernameAvailability = useUsernameAvailability({
+    username: String(value || ""),
+    currentUsername,
+    enabled: isOpen && isUsernameField,
+  });
+  const isSubmitDisabled =
+    isUsernameField &&
+    (usernameAvailability.isChecking || !usernameAvailability.canSubmit);
 
   useEffect(() => {
     if (isOpen) {
@@ -44,6 +54,11 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
       setErrorMessage("");
     }
   }, [currentValue, fieldType, isOpen]);
+
+  const handleValueChange = (nextValue: any) => {
+    setValue(nextValue);
+    setErrorMessage("");
+  };
 
   const getFieldSchema = (schema: any, fieldPath: string) => {
     return fieldPath.split(".").reduce((acc, key) => acc?.shape?.[key], schema);
@@ -72,6 +87,13 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (isSubmitDisabled) {
+      setErrorMessage(
+        usernameAvailability.message || "Please choose an available username.",
+      );
+      return;
+    }
+
     try {
       setErrorMessage("");
       await validateField();
@@ -84,7 +106,9 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
       }
 
       if (error instanceof Error) {
-        setErrorMessage(error.message || "Unable to update this field. Please try again.");
+        setErrorMessage(
+          error.message || "Unable to update this field. Please try again.",
+        );
         return;
       }
 
@@ -122,7 +146,11 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
             </Text>
           </View>
 
-          <TouchableOpacity onPress={handleSubmit}>
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={isSubmitDisabled}
+            className={isSubmitDisabled ? "opacity-40" : ""}
+          >
             <Icon
               type="Ionicons"
               name="checkmark-outline"
@@ -137,7 +165,10 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
             <FieldEditorContent
               fieldType={fieldType}
               value={value}
-              setValue={setValue}
+              setValue={handleValueChange}
+              usernameAvailability={
+                isUsernameField ? usernameAvailability : undefined
+              }
             />
             {errorMessage ? (
               <Text className="text-red-500 text-sm mt-1">{errorMessage}</Text>

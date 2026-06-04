@@ -1,6 +1,7 @@
 import DateInput from "@/src/components/ui/DateInput";
 import MultiSelectChipInput from "@/src/components/ui/MultiSelectChipInput";
 import { TextAreaInput, TextInput } from "@/src/components/ui/TextInput";
+import type { UsernameAvailabilityStatus } from "@/src/hooks/useUsernameAvailability";
 import {
   bloodTypeOptions,
   dietOptions,
@@ -18,8 +19,9 @@ import {
   smokingOptions,
   zodiacOptions,
 } from "@/src/libs/options";
-import React from "react";
-import { View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import RangeInput from "../ui/RangeInput";
 import SingleSlider from "../ui/SliderInput";
 
@@ -27,23 +29,267 @@ interface FieldEditorContentProps {
   fieldType: string;
   value: any;
   setValue: (value: any) => void;
+  usernameAvailability?: {
+    status: UsernameAvailabilityStatus;
+    message: string;
+    isChecking: boolean;
+  };
 }
+
+const usernameStatusStyles: Record<
+  UsernameAvailabilityStatus,
+  {
+    color: string;
+    icon?: keyof typeof Ionicons.glyphMap;
+  }
+> = {
+  idle: { color: "#667085", icon: "information-circle-outline" },
+  invalid: { color: "#EF4444", icon: "alert-circle-outline" },
+  current: { color: "#667085", icon: "person-circle-outline" },
+  checking: { color: "#541388" },
+  available: { color: "#15803D", icon: "checkmark-circle-outline" },
+  taken: { color: "#EF4444", icon: "close-circle-outline" },
+  error: { color: "#B45309", icon: "warning-outline" },
+};
+
+type HeightUnit = "cm" | "ft";
+
+const CM_PER_INCH = 2.54;
+const INCHES_PER_FOOT = 12;
+
+const digitsOnly = (text: string) => text.replace(/\D/g, "");
+
+const cmToFeetParts = (cmValue: string | number | null | undefined) => {
+  const cm = Number.parseInt(String(cmValue || ""), 10);
+  if (!Number.isFinite(cm) || cm <= 0) {
+    return { feet: "", inches: "" };
+  }
+
+  const totalInches = Math.round(cm / CM_PER_INCH);
+  return {
+    feet: String(Math.floor(totalInches / INCHES_PER_FOOT)),
+    inches: String(totalInches % INCHES_PER_FOOT),
+  };
+};
+
+const cmToFeetLabel = (cmValue: string | number | null | undefined) => {
+  const { feet, inches } = cmToFeetParts(cmValue);
+  if (!feet) return "";
+  return `${feet} ft ${inches || "0"} in`;
+};
+
+const feetPartsToCm = (feet: string, inches: string) => {
+  if (!feet) return "";
+
+  const parsedFeet = Number.parseInt(feet, 10);
+  const parsedInches = Number.parseInt(inches || "0", 10);
+  if (!Number.isFinite(parsedFeet) || parsedFeet <= 0) return "";
+
+  const totalInches = parsedFeet * INCHES_PER_FOOT + (parsedInches || 0);
+  return String(Math.round(totalInches * CM_PER_INCH));
+};
+
+const UsernameAvailabilityFeedback = ({
+  status,
+  message,
+  isChecking,
+}: {
+  status: UsernameAvailabilityStatus;
+  message: string;
+  isChecking: boolean;
+}) => {
+  if (!message) return null;
+
+  const style = usernameStatusStyles[status];
+
+  return (
+    <View className="mt-2 flex-row items-center gap-2">
+      {isChecking ? (
+        <ActivityIndicator size="small" color={style.color} />
+      ) : style.icon ? (
+        <Ionicons name={style.icon} size={16} color={style.color} />
+      ) : null}
+      <Text className="text-sm" style={{ color: style.color }}>
+        {message}
+      </Text>
+    </View>
+  );
+};
+
+const HeightInput = ({
+  value,
+  setValue,
+}: {
+  value: string | number | null | undefined;
+  setValue: (value: string) => void;
+}) => {
+  const cmValue = String(value || "");
+  const [unit, setUnit] = useState<HeightUnit>("cm");
+  const initialFeetPartsRef = useRef(cmToFeetParts(cmValue));
+  const [feet, setFeet] = useState(initialFeetPartsRef.current.feet);
+  const [inches, setInches] = useState(initialFeetPartsRef.current.inches);
+
+  const feetLabel = useMemo(() => cmToFeetLabel(cmValue), [cmValue]);
+
+  useEffect(() => {
+    if (unit !== "ft") return;
+    if (feetPartsToCm(feet, inches) === cmValue) return;
+
+    const nextParts = cmToFeetParts(cmValue);
+    setFeet(nextParts.feet);
+    setInches(nextParts.inches);
+  }, [cmValue, feet, inches, unit]);
+
+  const selectUnit = (nextUnit: HeightUnit) => {
+    setUnit(nextUnit);
+    if (nextUnit === "ft") {
+      const nextParts = cmToFeetParts(cmValue);
+      setFeet(nextParts.feet);
+      setInches(nextParts.inches);
+    }
+  };
+
+  const updateCm = (text: string) => {
+    setValue(digitsOnly(text));
+  };
+
+  const updateFeet = (text: string) => {
+    const nextFeet = digitsOnly(text).slice(0, 1);
+    setFeet(nextFeet);
+    setValue(feetPartsToCm(nextFeet, inches));
+  };
+
+  const updateInches = (text: string) => {
+    const digits = digitsOnly(text).slice(0, 2);
+    const nextInches = digits
+      ? String(Math.min(Number.parseInt(digits, 10), 11))
+      : "";
+    setInches(nextInches);
+    setValue(feetPartsToCm(feet, nextInches));
+  };
+
+  return (
+    <View>
+      <Text className="mb-2 text-sm font-medium text-ui-shade">
+        Choose height unit
+      </Text>
+      <View className="mb-4 flex-row rounded-2xl bg-ui-shade/5 p-1">
+        <Pressable
+          onPress={() => selectUnit("cm")}
+          className={`flex-1 rounded-xl py-2 ${
+            unit === "cm" ? "bg-white" : ""
+          }`}
+          accessibilityRole="button"
+          accessibilityState={{ selected: unit === "cm" }}
+        >
+          <Text
+            className={`text-center text-sm font-medium ${
+              unit === "cm" ? "text-ui-highlight" : "text-ui-shade"
+            }`}
+          >
+            Centimeters
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => selectUnit("ft")}
+          className={`flex-1 rounded-xl py-2 ${
+            unit === "ft" ? "bg-white" : ""
+          }`}
+          accessibilityRole="button"
+          accessibilityState={{ selected: unit === "ft" }}
+        >
+          <Text
+            className={`text-center text-sm font-medium ${
+              unit === "ft" ? "text-ui-highlight" : "text-ui-shade"
+            }`}
+          >
+            Feet
+          </Text>
+        </Pressable>
+      </View>
+
+      {unit === "cm" ? (
+        <TextInput
+          value={cmValue}
+          action={updateCm}
+          label="Height in cm"
+          type="text"
+          placeholder="Enter your height"
+          keyboardType="number-pad"
+          helperText={
+            cmValue
+              ? `Saved as ${cmValue} cm${feetLabel ? ` (${feetLabel})` : ""}.`
+              : "Enter height between 100cm and 250cm."
+          }
+        />
+      ) : (
+        <View>
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <TextInput
+                value={feet}
+                action={updateFeet}
+                label="Feet"
+                type="text"
+                placeholder="5"
+                keyboardType="number-pad"
+              />
+            </View>
+            <View className="flex-1">
+              <TextInput
+                value={inches}
+                action={updateInches}
+                label="Inches"
+                type="text"
+                placeholder="9"
+                keyboardType="number-pad"
+              />
+            </View>
+          </View>
+          <Text className="mt-1 text-sm text-ui-shade/70">
+            {cmValue
+              ? `Saved as ${cmValue} cm. Inches should be 0-11.`
+              : "Enter feet and inches; we'll save it in centimeters."}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+};
 
 const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
   fieldType,
   value,
   setValue,
+  usernameAvailability,
 }) => {
   switch (fieldType) {
     case "username":
       return (
-        <TextInput
-          value={value || ""}
-          action={(text: string) => setValue(text)}
-          label="Username"
-          type="text"
-          placeholder="Enter unique username"
-        />
+        <View>
+          <TextInput
+            value={value || ""}
+            action={(text: string) => setValue(text)}
+            label="Username"
+            type="text"
+            placeholder="Enter unique username"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="username"
+            textContentType="username"
+            isInvalid={
+              usernameAvailability?.status === "invalid" ||
+              usernameAvailability?.status === "taken"
+            }
+          />
+          {usernameAvailability ? (
+            <UsernameAvailabilityFeedback
+              status={usernameAvailability.status}
+              message={usernameAvailability.message}
+              isChecking={usernameAvailability.isChecking}
+            />
+          ) : null}
+        </View>
       );
 
     case "nickname":
@@ -163,15 +409,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       );
 
     case "height":
-      return (
-        <TextInput
-          value={value || ""}
-          action={(text: string) => setValue(text)}
-          label="Height in cm."
-          type="text"
-          placeholder="Enter your height"
-        />
-      );
+      return <HeightInput value={value} setValue={setValue} />;
 
     case "diet":
       return (

@@ -5,7 +5,10 @@ import {
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
 } from "@/src/components/ui/actionsheet";
-import { chatFeedbackSchema, chatReportSchema } from "@/src/domain/chat/validation";
+import {
+  chatFeedbackSchema,
+  chatReportSchema,
+} from "@/src/domain/chat/validation";
 import { TextAreaInput } from "@/src/components/ui/TextInput";
 import { reportChatUser, submitChatFeedback } from "@/src/libs/apis";
 import Icon from "@/src/libs/Icon";
@@ -27,7 +30,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onEndChat,
   currentUserId,
 }) => {
-  const { roomId, matchedUser, lockProfile, unlockProfile, isActive } = useChat();
+  const { roomId, matchedUser, lockProfile, unlockProfile, isActive } =
+    useChat();
 
   const [isUnlocked, setisUnlocked] = useState(
     user?.isViewerUnlockedUser || false,
@@ -84,7 +88,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     if (!feedbackResult.success) {
       setErrorText(
         feedbackResult.error.issues[0]?.message ||
-          "Please add feedback before ending the chat.",
+          "Please check your feedback before ending the chat.",
       );
       return;
     }
@@ -260,9 +264,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                 onPress={() => setSheetMode("feedback")}
                 className="w-full py-3 px-4 rounded-xl bg-ui-light border border-ui-shade/20 mb-2"
               >
-                <Text className="text-base font-medium">End chat with feedback</Text>
+                <Text className="text-base font-medium">
+                  End chat with feedback
+                </Text>
                 <Text className="text-xs text-ui-shade">
-                  Leave feedback before ending
+                  Feedback is optional, but helpful
                 </Text>
               </Pressable>
               <Pressable
@@ -274,17 +280,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                 </Text>
                 <Text className="text-xs text-red-500">
                   Tell us what happened
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  closeSheet();
-                  onEndChat();
-                }}
-                className="w-full mt-2 py-3 px-4 rounded-xl bg-ui-light border border-red-200"
-              >
-                <Text className="text-base font-medium text-red-600">
-                  End Chat
                 </Text>
               </Pressable>
             </View>
@@ -308,7 +303,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                     setFeedbackText(value);
                     setErrorText("");
                   }}
-                  placeholder="What could they improve?"
+                  placeholder="What could they improve? (optional)"
                   helperText="Your feedback helps improve the community."
                 />
               ) : (
@@ -380,9 +375,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                     : handleReportUser
                 }
                 className={`w-full mt-4 py-3 rounded-xl ${
-                  sheetMode === "feedback"
-                    ? "bg-ui-highlight"
-                    : "bg-red-600"
+                  sheetMode === "feedback" ? "bg-ui-highlight" : "bg-red-600"
                 } ${isSubmitting ? "opacity-70" : ""}`}
               >
                 <Text className="text-center text-white font-semibold">

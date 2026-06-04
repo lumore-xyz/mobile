@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Href, router } from "expo-router";
-import React from "react";
+import React, { useCallback } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 const SubPageBack = ({
@@ -10,7 +10,7 @@ const SubPageBack = ({
   title: string;
   fallbackHref?: Href;
 }) => {
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (typeof router.canGoBack === "function" && router.canGoBack()) {
       router.back();
       return;
@@ -19,7 +19,7 @@ const SubPageBack = ({
     if (fallbackHref) {
       router.replace(fallbackHref);
     }
-  };
+  }, [fallbackHref]);
 
   return (
     <View className="h-16 bg-ui-light flex flex-row items-center justify-start gap-3 w-full px-4">
@@ -38,4 +38,4 @@ const SubPageBack = ({
   );
 };
 
-export default SubPageBack;
+export default React.memo(SubPageBack);

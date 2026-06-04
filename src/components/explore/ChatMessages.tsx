@@ -1,5 +1,5 @@
 import type { Message } from "@/src/domain/chat/types";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { MatchNoteBanner } from "./MatchNoteBanner";
 import { MessageGroup } from "./MessageGroup";
@@ -15,7 +15,7 @@ interface ChatMessagesProps {
   onToggleLike: (messageId: string, emoji?: string) => void;
 }
 
-export const ChatMessages: React.FC<ChatMessagesProps> = ({
+export const ChatMessages = React.memo(function ChatMessages({
   messages,
   currentUserId,
   matchNote,
@@ -24,7 +24,7 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   onReply,
   onStartEdit,
   onToggleLike,
-}) => {
+}: ChatMessagesProps) {
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -33,35 +33,42 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
     }, 100);
 
     return () => clearTimeout(timeout);
-  }, [messages]);
+  }, [isPartnerTyping, messages]);
 
-  const groupedMessages = messages.reduce(
-    (
-      groups: Record<
-        string,
-        {
-          messages: Message[];
-          timestamp: number;
+  const { groupedMessages, sortedDates } = useMemo(() => {
+    const nextGroups = messages.reduce(
+      (
+        groups: Record<
+          string,
+          {
+            messages: Message[];
+            timestamp: number;
+          }
+        >,
+        message: Message,
+      ) => {
+        const date = new Date(message.timestamp).toLocaleDateString();
+        if (!groups[date]) {
+          groups[date] = {
+            messages: [],
+            timestamp: message.timestamp,
+          };
         }
-      >,
-      message: Message,
-    ) => {
-      const date = new Date(message.timestamp).toLocaleDateString();
-      if (!groups[date]) {
-        groups[date] = {
-          messages: [],
-          timestamp: message.timestamp,
-        };
-      }
-      groups[date].messages.push(message);
-      return groups;
-    },
-    {} as Record<string, { messages: Message[]; timestamp: number }>,
-  );
+        groups[date].messages.push(message);
+        return groups;
+      },
+      {} as Record<string, { messages: Message[]; timestamp: number }>,
+    );
 
-  const sortedDates = Object.keys(groupedMessages).sort(
-    (a, b) => groupedMessages[a].timestamp - groupedMessages[b].timestamp,
-  );
+    const nextSortedDates = Object.keys(nextGroups).sort(
+      (a, b) => nextGroups[a].timestamp - nextGroups[b].timestamp,
+    );
+
+    return {
+      groupedMessages: nextGroups,
+      sortedDates: nextSortedDates,
+    };
+  }, [messages]);
 
   return (
     <ScrollView
@@ -91,4 +98,4 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
       </View>
     </ScrollView>
   );
-};
+});

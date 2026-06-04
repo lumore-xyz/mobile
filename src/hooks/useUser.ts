@@ -59,6 +59,7 @@ export const useUser = (userId: string) => {
   } = useQuery({
     queryKey: ["user", userId],
     queryFn: () => fetchUser(userId),
+    enabled: Boolean(userId),
   });
 
   useEffect(() => {
@@ -67,7 +68,8 @@ export const useUser = (userId: string) => {
     if (!userId || !currentUserId || userId !== currentUserId) return;
 
     const status = (error as any)?.response?.status;
-    const shouldForceLogout = status === 401 || status === 403 || status === 404;
+    const shouldForceLogout =
+      status === 401 || status === 403 || status === 404;
     if (!shouldForceLogout) return;
 
     hasForcedLogoutRef.current = true;

@@ -29,7 +29,9 @@ export const setNewPassword = async (data: { newPassword: string }) => {
 
 export const requestPasswordResetEmail = async (email: string) => {
   const response = await apiClient.post("/auth/forgot-password", {
-    email: String(email || "").trim().toLowerCase(),
+    email: String(email || "")
+      .trim()
+      .toLowerCase(),
   });
   return response.data as { message: string };
 };
@@ -46,8 +48,11 @@ export const resetPasswordWithToken = async (data: {
 };
 
 export const checkUsernameAvailability = async (username: string) => {
-  const response = await apiClient.get(`/auth/check-username/${username}`);
-  return response.data.isUnique;
+  const normalizedUsername = String(username || "").trim();
+  const response = await apiClient.get(
+    `/auth/check-username/${encodeURIComponent(normalizedUsername)}`,
+  );
+  return Boolean(response.data.isUnique);
 };
 
 export const updateUserData = async (data: any) => {
@@ -57,14 +62,11 @@ export const updateUserData = async (data: any) => {
 };
 export const updateUserLocation = async (data: LocationWritePayload) => {
   const { _id: userId } = getUser();
-  const response = await apiClient.post(
-    `/profile/${userId}/update-location`,
-    {
-      latitude: data.latitude,
-      longitude: data.longitude,
-      formattedAddress: data.formattedAddress || undefined,
-    },
-  );
+  const response = await apiClient.post(`/profile/${userId}/update-location`, {
+    latitude: data.latitude,
+    longitude: data.longitude,
+    formattedAddress: data.formattedAddress || undefined,
+  });
   return response.data;
 };
 export const findNearbyUsers = async () => {

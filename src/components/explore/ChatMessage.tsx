@@ -1,7 +1,14 @@
 import type { Message } from "@/src/domain/chat/types";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useRef } from "react";
-import { Image, Linking, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import {
+  Image,
+  Linking,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 interface ChatMessageProps {
   message: Message;
@@ -11,13 +18,16 @@ interface ChatMessageProps {
   onToggleLike: (messageId: string, emoji?: string) => void;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({
+const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+const URL_TEST_REGEX = /^(https?:\/\/[^\s]+|www\.[^\s]+)$/i;
+
+export const ChatMessage = React.memo(function ChatMessage({
   message,
   isOwnMessage,
   onReply,
   onStartEdit,
   onToggleLike,
-}) => {
+}: ChatMessageProps) {
   const lastTapRef = useRef(0);
   const type = message.messageType || "text";
   const isRead = Boolean(message.readAt);
@@ -95,7 +105,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             className={`flex-row gap-2 ${isOwnMessage ? "justify-end" : "justify-start"}`}
           >
             {reactionCounts.map(([emoji, count]) => (
-              <View key={emoji} className="bg-ui-highlight/10 rounded-full px-2 py-0.5">
+              <View
+                key={emoji}
+                className="bg-ui-highlight/10 rounded-full px-2 py-0.5"
+              >
                 <Text className="text-xs text-ui-shade">
                   {emoji} {count > 1 ? count : ""}
                 </Text>
@@ -117,10 +130,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
           ) : null}
         </View>
 
-        <View className={`mt-1 flex-row items-center ${isOwnMessage ? "justify-end" : "justify-start"}`}>
-          <Text
-            className="text-xs text-ui-shade/60 opacity-70"
-          >
+        <View
+          className={`mt-1 flex-row items-center ${isOwnMessage ? "justify-end" : "justify-start"}`}
+        >
+          <Text className="text-xs text-ui-shade/60 opacity-70">
             {new Date(message.timestamp).toLocaleTimeString("en-US", {
               hour: "2-digit",
               minute: "2-digit",
@@ -140,23 +153,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
       </View>
     </View>
   );
-};
+});
 
-const LinkifyText = ({
+const LinkifyText = React.memo(function LinkifyText({
   text,
   isOwnMessage,
 }: {
   text: string;
   isOwnMessage: boolean;
-}) => {
-  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
-  const parts = text.split(urlRegex);
+}) {
+  const parts = useMemo(() => text.split(URL_SPLIT_REGEX), [text]);
 
   return (
     <Text className={`${isOwnMessage ? "text-ui-light" : "text-ui-shade"}`}>
       {parts.map((part, index) => {
         if (!part) return null;
-        if (part.match(urlRegex)) {
+        if (URL_TEST_REGEX.test(part)) {
           const href = part.startsWith("http") ? part : `https://${part}`;
           return (
             <Text
@@ -174,4 +186,4 @@ const LinkifyText = ({
       })}
     </Text>
   );
-};
+});

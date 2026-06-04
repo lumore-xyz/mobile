@@ -1,6 +1,6 @@
 // components/SingleSlider.tsx
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 interface SingleSliderProps {
@@ -26,22 +26,28 @@ const SingleSlider: React.FC<SingleSliderProps> = ({
   errorText,
   unit = "",
 }) => {
-  const clampValue = (nextValue: number) => {
-    if (!Number.isFinite(nextValue)) return min;
-    return Math.min(max, Math.max(min, nextValue));
-  };
+  const clampValue = useCallback(
+    (nextValue: number) => {
+      if (!Number.isFinite(nextValue)) return min;
+      return Math.min(max, Math.max(min, nextValue));
+    },
+    [max, min],
+  );
 
   const [sliderValue, setSliderValue] = useState(clampValue(value));
 
   useEffect(() => {
     setSliderValue(clampValue(value));
-  }, [value, min, max]);
+  }, [clampValue, value]);
 
-  const handleValueChange = (values: number[]) => {
-    const nextValue = clampValue(values[0]);
-    setSliderValue(nextValue);
-    onChange(nextValue);
-  };
+  const handleValueChange = useCallback(
+    (values: number[]) => {
+      const nextValue = clampValue(values[0]);
+      setSliderValue(nextValue);
+      onChange(nextValue);
+    },
+    [clampValue, onChange],
+  );
 
   return (
     <View className="border rounded-2xl px-6 py-4 border-ui-shade/20">
@@ -85,4 +91,4 @@ const SingleSlider: React.FC<SingleSliderProps> = ({
   );
 };
 
-export default SingleSlider;
+export default React.memo(SingleSlider);

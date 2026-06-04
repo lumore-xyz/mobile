@@ -6,14 +6,12 @@ import { fetchIbox } from "@/src/libs/apis";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { Inbox } from ".";
+import { Text, View } from "react-native";
+import { Inbox, InboxTabs } from ".";
 
 const ChatInbox = () => {
   const u = getUser();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { socket, revalidateSocket } = useSocket();
   const { user, isLoading: gettingUser } = useUser(u?._id);
@@ -54,25 +52,10 @@ const ChatInbox = () => {
           <Text className="text-3xl font-bold tracking-tight">Inbox</Text>
         </View>
 
-        {/* Tabs */}
-        <View className="flex-row bg-ui-shade/5 rounded-xl p-2 mb-5">
-          <TouchableOpacity
-            onPress={() => router.push("/chat/")}
-            className={`flex-1 py-2 rounded-lg `}
-          >
-            <Text className={`text-center font-medium text-ui-shade`}>
-              Active
-            </Text>
-          </TouchableOpacity>
-          <View className={`flex-1 py-2 rounded-lg bg-ui-light shadow-sm`}>
-            <Text className={`text-center font-medium text-ui-shade`}>
-              Archived
-            </Text>
-          </View>
-        </View>
+        <InboxTabs activeTab="archive" />
 
         <Inbox
-          key={"active"}
+          key="archive"
           user={user}
           rooms={rooms}
           isLoading={isLoading || gettingUser}

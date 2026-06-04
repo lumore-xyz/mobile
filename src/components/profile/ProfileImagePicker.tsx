@@ -8,12 +8,12 @@ interface ProfileImagePickerProps {
   isUploading?: boolean;
 }
 
-const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
+const ProfileImagePicker = React.memo(function ProfileImagePicker({
   selectedImage,
   profilePicture,
   onPickImage,
   isUploading = false,
-}) => {
+}: ProfileImagePickerProps) {
   const imageUri =
     selectedImage ||
     profilePicture ||
@@ -46,6 +46,6 @@ const ProfileImagePicker: React.FC<ProfileImagePickerProps> = ({
       </Pressable>
     </View>
   );
-};
+});
 
 export default ProfileImagePicker;

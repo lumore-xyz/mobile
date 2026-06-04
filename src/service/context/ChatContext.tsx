@@ -54,7 +54,8 @@ const mapReplyPreview = (replyTo: any) => {
   if (!replyTo?._id) return null;
 
   const replyType: "text" | "image" = replyTo.messageType || "text";
-  const replyMessage = replyType === "image" ? "Photo" : replyTo.message || "Message";
+  const replyMessage =
+    replyType === "image" ? "Photo" : replyTo.message || "Message";
 
   return {
     _id: replyTo._id,
@@ -74,9 +75,13 @@ const deriveRoomIsActive = (room: any): boolean => {
   if (typeof room.isActive === "boolean") return room.isActive;
   if (room.endedAt || room.endedBy) return false;
 
-  const rawStatus = String(room.status ?? "").toLowerCase().trim();
+  const rawStatus = String(room.status ?? "")
+    .toLowerCase()
+    .trim();
   if (!rawStatus) return true;
-  if (["archive", "archived", "ended", "closed", "inactive"].includes(rawStatus)) {
+  if (
+    ["archive", "archived", "ended", "closed", "inactive"].includes(rawStatus)
+  ) {
     return false;
   }
 
@@ -91,7 +96,11 @@ const mergeIncomingMessage = (messages: Message[], incoming: Message) => {
       (item) => item.clientMessageId === incoming.clientMessageId,
     );
     if (optimisticIndex >= 0) {
-      next[optimisticIndex] = { ...next[optimisticIndex], ...incoming, pending: false };
+      next[optimisticIndex] = {
+        ...next[optimisticIndex],
+        ...incoming,
+        pending: false,
+      };
       return sortByTimestamp(next);
     }
   }
@@ -99,7 +108,11 @@ const mergeIncomingMessage = (messages: Message[], incoming: Message) => {
   if (incoming._id) {
     const existingIndex = next.findIndex((item) => item._id === incoming._id);
     if (existingIndex >= 0) {
-      next[existingIndex] = { ...next[existingIndex], ...incoming, pending: false };
+      next[existingIndex] = {
+        ...next[existingIndex],
+        ...incoming,
+        pending: false,
+      };
       return sortByTimestamp(next);
     }
   }
@@ -156,7 +169,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const mapIncomingMessage = useCallback((rawMessage: any): Message | null => {
     const messageType: "text" | "image" = rawMessage?.messageType || "text";
     const text = messageType === "text" ? rawMessage?.message || "" : "";
-    const sender = getSenderId(rawMessage?.sender) || rawMessage?.senderId || "";
+    const sender =
+      getSenderId(rawMessage?.sender) || rawMessage?.senderId || "";
 
     return {
       _id: rawMessage?._id,
@@ -168,14 +182,20 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       imagePublicId: rawMessage?.imagePublicId || null,
       timestamp:
         rawMessage?.timestamp ||
-        (rawMessage?.createdAt ? new Date(rawMessage.createdAt).getTime() : Date.now()),
+        (rawMessage?.createdAt
+          ? new Date(rawMessage.createdAt).getTime()
+          : Date.now()),
       replyTo: mapReplyPreview(rawMessage?.replyTo),
       reactions: (rawMessage?.reactions || []).map((reaction: any) => ({
         userId: getSenderId(reaction.userId || reaction.user),
         emoji: reaction.emoji || "\u2764\uFE0F",
       })),
-      editedAt: rawMessage?.editedAt ? new Date(rawMessage.editedAt).getTime() : null,
-      deliveredAt: rawMessage?.deliveredAt ? new Date(rawMessage.deliveredAt).getTime() : null,
+      editedAt: rawMessage?.editedAt
+        ? new Date(rawMessage.editedAt).getTime()
+        : null,
+      deliveredAt: rawMessage?.deliveredAt
+        ? new Date(rawMessage.deliveredAt).getTime()
+        : null,
       readAt: rawMessage?.readAt ? new Date(rawMessage.readAt).getTime() : null,
       pending: false,
     };
@@ -196,7 +216,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     });
     setMatchedUserId(other?._id ?? null);
     setIsActive(nextIsActive);
-  }, [roomData, user]);
+  }, [roomData, roomId, user]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -345,7 +365,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
     const onRead = (payload: MessageReadPayload) => {
       const messageIds = new Set((payload?.messageIds || []).map(String));
-      const readAt = payload?.readAt ? new Date(payload.readAt).getTime() : Date.now();
+      const readAt = payload?.readAt
+        ? new Date(payload.readAt).getTime()
+        : Date.now();
       if (messageIds.size === 0) return;
       socketDebug("ChatContext", "event message read", {
         roomId,
@@ -393,12 +415,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       socket.off(CHAT_SOCKET_EVENTS.messageRead, onRead);
       socket.off(CHAT_SOCKET_EVENTS.chatEnded);
     };
-  }, [
-    socket,
-    roomId,
-    mapIncomingMessage,
-    invalidateInboxQueries,
-  ]);
+  }, [socket, roomId, mapIncomingMessage, invalidateInboxQueries]);
 
   const cancelChat = useCallback(() => {
     if (!socket || !roomId) {

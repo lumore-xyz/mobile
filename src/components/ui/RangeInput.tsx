@@ -1,5 +1,5 @@
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 interface RangeInputProps {
@@ -25,31 +25,40 @@ const RangeInput: React.FC<RangeInputProps> = ({
   errorText,
   unit = "",
 }) => {
-  const clampValue = (nextValue: number) => {
-    if (!Number.isFinite(nextValue)) return min;
-    return Math.min(max, Math.max(min, nextValue));
-  };
+  const clampValue = useCallback(
+    (nextValue: number) => {
+      if (!Number.isFinite(nextValue)) return min;
+      return Math.min(max, Math.max(min, nextValue));
+    },
+    [max, min],
+  );
 
-  const normalizeRange = (nextValue: number[]) => {
-    if (!Array.isArray(nextValue) || nextValue.length < 2) {
-      return [min, max];
-    }
-    const lower = clampValue(Math.min(nextValue[0], nextValue[1]));
-    const upper = clampValue(Math.max(nextValue[0], nextValue[1]));
-    return [lower, upper];
-  };
+  const normalizeRange = useCallback(
+    (nextValue: number[]) => {
+      if (!Array.isArray(nextValue) || nextValue.length < 2) {
+        return [min, max];
+      }
+      const lower = clampValue(Math.min(nextValue[0], nextValue[1]));
+      const upper = clampValue(Math.max(nextValue[0], nextValue[1]));
+      return [lower, upper];
+    },
+    [clampValue, max, min],
+  );
 
   const [sliderValues, setSliderValues] = useState(normalizeRange(value));
 
   useEffect(() => {
     setSliderValues(normalizeRange(value));
-  }, [value, min, max]);
+  }, [normalizeRange, value]);
 
-  const handleValuesChange = (values: number[]) => {
-    const nextValues = normalizeRange(values);
-    setSliderValues(nextValues);
-    onChange(nextValues);
-  };
+  const handleValuesChange = useCallback(
+    (values: number[]) => {
+      const nextValues = normalizeRange(values);
+      setSliderValues(nextValues);
+      onChange(nextValues);
+    },
+    [normalizeRange, onChange],
+  );
 
   return (
     <View className="border rounded-2xl px-6 py-4 border-ui-shade/20">
@@ -91,4 +100,4 @@ const RangeInput: React.FC<RangeInputProps> = ({
   );
 };
 
-export default RangeInput;
+export default React.memo(RangeInput);

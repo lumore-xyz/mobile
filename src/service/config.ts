@@ -36,7 +36,10 @@ const developmentConfig = resolveAdMobConfig({
     Platform.OS === "android"
       ? "http://10.0.2.2:5000"
       : "http://localhost:5000",
-  SOCKET_URL: "http://localhost:5000/api/chat",
+  SOCKET_URL:
+    Platform.OS === "android"
+      ? "http://10.0.2.2:5000/api/chat"
+      : "http://localhost:5000/api/chat",
   GOOGLE_WEB_CLIENT_ID:
     "681858960345-qghtb8olrkb2oh6q05ki37i6p8k8f9ga.apps.googleusercontent.com",
   IOS_URL_SCHEMA:

@@ -3,7 +3,6 @@ import * as z from "zod";
 export const chatFeedbackSchema = z
   .string()
   .trim()
-  .min(3, "Please add feedback before ending the chat.")
   .max(500, "Feedback must be at most 500 characters.");
 
 export const chatReportSchema = z.object({

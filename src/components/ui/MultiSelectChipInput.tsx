@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 
 export interface MultiSelectChipOption {
@@ -86,23 +86,30 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
   }, [multiple, value]);
 
   const maxReached = Boolean(multiple && max && selectedValues.length >= max);
+  const selectedValueSet = useMemo(
+    () => new Set(selectedValues),
+    [selectedValues],
+  );
 
-  const toggleOption = (optionValue: string) => {
-    const isSelected = selectedValues.includes(optionValue);
+  const toggleOption = useCallback(
+    (optionValue: string) => {
+      const isSelected = selectedValueSet.has(optionValue);
 
-    if (multiple && isSelected) {
-      onChange(selectedValues.filter((item) => item !== optionValue));
-      return;
-    }
+      if (multiple && isSelected) {
+        onChange(selectedValues.filter((item) => item !== optionValue));
+        return;
+      }
 
-    if (multiple) {
-      if (maxReached) return;
-      onChange([...selectedValues, optionValue]);
-      return;
-    }
+      if (multiple) {
+        if (maxReached) return;
+        onChange([...selectedValues, optionValue]);
+        return;
+      }
 
-    onChange(optionValue);
-  };
+      onChange(optionValue);
+    },
+    [maxReached, multiple, onChange, selectedValueSet, selectedValues],
+  );
 
   return (
     <View
@@ -128,7 +135,7 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
         <View className="flex-row flex-wrap gap-2">
           {options.length ? (
             options.map((option) => {
-              const isSelected = selectedValues.includes(option.value);
+              const isSelected = selectedValueSet.has(option.value);
               const isDisabled = Boolean(multiple && !isSelected && maxReached);
               const palette = getPaletteForText(option.label || option.value);
               return (
@@ -164,4 +171,4 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
   );
 };
 
-export default MultiSelectChipInput;
+export default React.memo(MultiSelectChipInput);
