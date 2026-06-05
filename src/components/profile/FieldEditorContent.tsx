@@ -2,6 +2,7 @@ import DateInput from "@/src/components/ui/DateInput";
 import MultiSelectChipInput from "@/src/components/ui/MultiSelectChipInput";
 import { TextAreaInput, TextInput } from "@/src/components/ui/TextInput";
 import type { UsernameAvailabilityStatus } from "@/src/hooks/useUsernameAvailability";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import {
   bloodTypeOptions,
   dietOptions,
@@ -141,6 +142,9 @@ const HeightInput = ({
   }, [cmValue, feet, inches, unit]);
 
   const selectUnit = (nextUnit: HeightUnit) => {
+    if (nextUnit !== unit) {
+      triggerSelectionHaptic();
+    }
     setUnit(nextUnit);
     if (nextUnit === "ft") {
       const nextParts = cmToFeetParts(cmValue);
@@ -173,10 +177,10 @@ const HeightInput = ({
       <Text className="mb-2 text-sm font-medium text-ui-shade">
         Choose height unit
       </Text>
-      <View className="mb-4 flex-row rounded-2xl bg-ui-shade/5 p-1">
+      <View className="mb-4 flex-row rounded-md bg-ui-shade/5 p-1">
         <Pressable
           onPress={() => selectUnit("cm")}
-          className={`flex-1 rounded-xl py-2 ${
+          className={`min-h-11 flex-1 justify-center rounded-md py-2 ${
             unit === "cm" ? "bg-white" : ""
           }`}
           accessibilityRole="button"
@@ -192,7 +196,7 @@ const HeightInput = ({
         </Pressable>
         <Pressable
           onPress={() => selectUnit("ft")}
-          className={`flex-1 rounded-xl py-2 ${
+          className={`min-h-11 flex-1 justify-center rounded-md py-2 ${
             unit === "ft" ? "bg-white" : ""
           }`}
           accessibilityRole="button"

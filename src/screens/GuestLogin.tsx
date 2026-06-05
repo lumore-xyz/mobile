@@ -82,7 +82,7 @@ export default function GuestLoginScreen() {
         Sign in with your email or username and password.
       </Text>
 
-      <View className="mt-4 gap-2">
+      <View className="mt-4 gap-3">
         <TextInput
           label="Email or Username"
           value={identifier}

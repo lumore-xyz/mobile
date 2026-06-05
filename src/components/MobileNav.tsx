@@ -2,6 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, usePathname } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
+import { triggerSelectionHaptic } from "../utils/haptics";
 
 const NAV_ITEMS = [
   {
@@ -31,9 +32,7 @@ const NAV_ITEMS = [
     path: "/create-post",
     icon: (active: boolean, color: string) => (
       <MaterialCommunityIcons
-        name={
-          active ? "plus-circle-multiple" : "plus-circle-multiple-outline"
-        }
+        name={active ? "plus-circle-multiple" : "plus-circle-multiple-outline"}
         size={24}
         color={color}
       />
@@ -68,7 +67,10 @@ const MobileNav = () => {
             label={item.label}
             active={active}
             onPress={() => {
-              if (!active) router.push(item.path as any);
+              if (!active) {
+                triggerSelectionHaptic();
+                router.push(item.path as any);
+              }
             }}
             icon={(color) => item.icon(active, color)}
           />
@@ -94,7 +96,7 @@ function NavItem({
   return (
     <Pressable
       onPress={onPress}
-      className="flex-1 items-center justify-center rounded-xl py-1"
+      className="min-h-12 flex-1 items-center justify-center rounded-xl py-1"
       hitSlop={8}
       android_ripple={{ color: "rgba(0,0,0,0.06)", borderless: false }}
       accessibilityRole="tab"

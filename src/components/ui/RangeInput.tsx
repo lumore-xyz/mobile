@@ -61,7 +61,7 @@ const RangeInput: React.FC<RangeInputProps> = ({
   );
 
   return (
-    <View className="border rounded-2xl px-6 py-4 border-ui-shade/20">
+    <View className="border rounded-md px-6 py-4 border-ui-shade/20">
       <Text className="font-medium text-typography-900 text-xl mb-2">
         {label}
       </Text>

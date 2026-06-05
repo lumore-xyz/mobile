@@ -6,11 +6,21 @@ import Skeleton from "@/src/components/ui/Skeleton";
 import { trackAnalytic } from "@/src/service/analytics";
 import { useChat } from "@/src/service/context/ChatContext";
 import { useSocket } from "@/src/service/context/SocketContext";
-import { socketDebug, socketError, socketWarn } from "@/src/service/socket-debug";
+import {
+  socketDebug,
+  socketError,
+  socketWarn,
+} from "@/src/service/socket-debug";
 import { getUser, storage } from "@/src/service/storage";
 import * as ImagePicker from "expo-image-picker";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, View } from "react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
@@ -36,12 +46,13 @@ export const ChatScreen = () => {
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const pendingImageRef = useRef<PendingImage | null>(null);
   const uploadRequestIdRef = useRef(0);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const partnerTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const partnerTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const userId = useMemo(() => {
     try {
@@ -80,23 +91,6 @@ export const ChatScreen = () => {
     revalidateSocket();
   }, [revalidateSocket]);
 
-  useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-    const onShow = Keyboard.addListener(showEvent, () => {
-      setIsKeyboardOpen(true);
-    });
-    const onHide = Keyboard.addListener(hideEvent, () => {
-      setIsKeyboardOpen(false);
-    });
-
-    return () => {
-      onShow.remove();
-      onHide.remove();
-    };
-  }, []);
-
   const replyingToPreview = useMemo<ChatReplyPreview | null>(() => {
     if (!replyingTo?._id) return null;
     return {
@@ -115,7 +109,10 @@ export const ChatScreen = () => {
     () =>
       `${userId}-${Date.now()}-${Math.random()
         .toString(36)
-        .slice(CLIENT_MESSAGE_ID_RANDOM_SLICE_START, CLIENT_MESSAGE_ID_RANDOM_SLICE_END)}`,
+        .slice(
+          CLIENT_MESSAGE_ID_RANDOM_SLICE_START,
+          CLIENT_MESSAGE_ID_RANDOM_SLICE_END,
+        )}`,
     [userId],
   );
 
@@ -222,7 +219,10 @@ export const ChatScreen = () => {
       return;
     }
     if (pendingImage?.uploading) {
-      socketWarn("ChatScreen", "sendMessage blocked: pending image still uploading");
+      socketWarn(
+        "ChatScreen",
+        "sendMessage blocked: pending image still uploading",
+      );
       return;
     }
 
@@ -235,10 +235,16 @@ export const ChatScreen = () => {
     if (trimmed) {
       const messageResult = messageSchema.safeParse(trimmed);
       if (!messageResult.success) {
-        socketWarn("ChatScreen", "sendMessage blocked: message validation failed", {
-          issue: messageResult.error.issues[0]?.message || "Invalid message.",
-        });
-        setUploadError(messageResult.error.issues[0]?.message || "Invalid message.");
+        socketWarn(
+          "ChatScreen",
+          "sendMessage blocked: message validation failed",
+          {
+            issue: messageResult.error.issues[0]?.message || "Invalid message.",
+          },
+        );
+        setUploadError(
+          messageResult.error.issues[0]?.message || "Invalid message.",
+        );
         return;
       }
     }
@@ -369,7 +375,8 @@ export const ChatScreen = () => {
     let selectedImageUri: string | null = null;
 
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (permission.status !== ImagePicker.PermissionStatus.GRANTED) {
         socketWarn("ChatScreen", "media permission denied");
         Alert.alert(
@@ -452,7 +459,9 @@ export const ChatScreen = () => {
       });
 
       if (previousPending?.imagePublicId) {
-        await deleteTempChatImage(previousPending.imagePublicId).catch(() => {});
+        await deleteTempChatImage(previousPending.imagePublicId).catch(
+          () => {},
+        );
       }
     } catch (error: any) {
       if (requestId !== uploadRequestIdRef.current) return;
@@ -464,8 +473,8 @@ export const ChatScreen = () => {
         normalizedMessage.includes("valid jpeg image") ||
         normalizedMessage.includes("unsupported image type");
       const resolvedLocalMessage = isImageScanFormatError
-          ? "Unable to scan selected image. Please choose a different image."
-          : localMessage;
+        ? "Unable to scan selected image. Please choose a different image."
+        : localMessage;
       const fallbackMessage =
         status === 413
           ? "Image is too large. Please choose a smaller image."
@@ -473,7 +482,8 @@ export const ChatScreen = () => {
       setUploadError(apiMessage || resolvedLocalMessage || fallbackMessage);
       setPendingImage((prev) => {
         if (!prev || !prev.uploading) return prev;
-        if (selectedImageUri && prev.previewUrl !== selectedImageUri) return prev;
+        if (selectedImageUri && prev.previewUrl !== selectedImageUri)
+          return prev;
         return null;
       });
       socketError("ChatScreen", "uploadChatImage failed", {
@@ -532,39 +542,46 @@ export const ChatScreen = () => {
     };
   }, []);
 
-  const handleToggleLike = useCallback((messageId: string, emoji = DEFAULT_HEART_EMOJI) => {
-    if (!socket || !roomId || !messageId) {
-      socketWarn("ChatScreen", "toggle_message_reaction blocked", {
-        hasSocket: Boolean(socket),
-        roomId: roomId ?? null,
-        messageId: messageId || null,
+  const handleToggleLike = useCallback(
+    (messageId: string, emoji = DEFAULT_HEART_EMOJI) => {
+      if (!socket || !roomId || !messageId) {
+        socketWarn("ChatScreen", "toggle_message_reaction blocked", {
+          hasSocket: Boolean(socket),
+          roomId: roomId ?? null,
+          messageId: messageId || null,
+        });
+        return;
+      }
+      socketDebug("ChatScreen", "emit toggle_message_reaction", {
+        roomId,
+        messageId,
+        emoji,
+        socketId: socket.id,
       });
-      return;
-    }
-    socketDebug("ChatScreen", "emit toggle_message_reaction", {
-      roomId,
-      messageId,
-      emoji,
-      socketId: socket.id,
-    });
-    socket.emit("toggle_message_reaction", {
-      roomId,
-      messageId,
-      emoji,
-    });
-  }, [roomId, socket]);
+      socket.emit("toggle_message_reaction", {
+        roomId,
+        messageId,
+        emoji,
+      });
+    },
+    [roomId, socket],
+  );
 
   const handleReply = useCallback((msg: Message) => {
     setReplyingTo(msg);
     setEditingMessageId(null);
   }, []);
 
-  const handleStartEdit = useCallback((msg: Message) => {
-    if (!msg._id || msg.sender !== userId || msg.messageType !== "text") return;
-    setEditingMessageId(msg._id);
-    setReplyingTo(null);
-    setNewMessage(msg.message);
-  }, [userId]);
+  const handleStartEdit = useCallback(
+    (msg: Message) => {
+      if (!msg._id || msg.sender !== userId || msg.messageType !== "text")
+        return;
+      setEditingMessageId(msg._id);
+      setReplyingTo(null);
+      setNewMessage(msg.message);
+    },
+    [userId],
+  );
 
   const cancelReply = useCallback(() => setReplyingTo(null), []);
   const cancelEdit = useCallback(() => {
@@ -671,8 +688,9 @@ export const ChatScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      className={isKeyboardOpen ? "flex-1 pb-16" : "flex-1"}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      className="flex-1"
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={0}
     >
       <ChatHeader
         user={matchedUser}
@@ -715,7 +733,8 @@ export const ChatScreen = () => {
 const ChatScreenSkeleton = () => (
   <KeyboardAvoidingView
     className="flex-1 bg-ui-light"
-    behavior={Platform.OS === "ios" ? "padding" : undefined}
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    keyboardVerticalOffset={0}
   >
     <View className="border-b border-ui-shade/10 bg-white px-4 py-3">
       <View className="flex-row items-center">

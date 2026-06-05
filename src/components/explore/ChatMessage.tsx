@@ -1,4 +1,8 @@
 import type { Message } from "@/src/domain/chat/types";
+import {
+  triggerLightImpactHaptic,
+  triggerSelectionHaptic,
+} from "@/src/utils/haptics";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useRef } from "react";
 import {
@@ -43,6 +47,7 @@ export const ChatMessage = React.memo(function ChatMessage({
 
   const onDoubleLike = () => {
     if (!message._id) return;
+    triggerLightImpactHaptic();
     onToggleLike(message._id, "\u2764\uFE0F");
   };
 
@@ -120,11 +125,25 @@ export const ChatMessage = React.memo(function ChatMessage({
         <View
           className={`flex-row gap-3 ${isOwnMessage ? "justify-end" : "justify-start"}`}
         >
-          <TouchableOpacity onPress={() => onReply(message)}>
+          <TouchableOpacity
+            onPress={() => {
+              triggerSelectionHaptic();
+              onReply(message);
+            }}
+            className="min-h-11 justify-center"
+            hitSlop={8}
+          >
             <Text className="text-xs text-ui-shade/70">Reply</Text>
           </TouchableOpacity>
           {isOwnMessage && type === "text" && message._id ? (
-            <TouchableOpacity onPress={() => onStartEdit(message)}>
+            <TouchableOpacity
+              onPress={() => {
+                triggerSelectionHaptic();
+                onStartEdit(message);
+              }}
+              className="min-h-11 justify-center"
+              hitSlop={8}
+            >
               <Text className="text-xs text-ui-shade/70">Edit</Text>
             </TouchableOpacity>
           ) : null}

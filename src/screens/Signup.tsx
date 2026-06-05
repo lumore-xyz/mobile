@@ -9,6 +9,7 @@ import { TextInput } from "../components/ui/TextInput";
 import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
+import { triggerSelectionHaptic } from "../utils/haptics";
 
 const SignupScreen = () => {
   const router = useRouter();
@@ -78,7 +79,7 @@ const SignupScreen = () => {
         Sign up with your email and password.
       </Text>
 
-      <View className="mt-4 gap-0">
+      <View className="mt-4 gap-3">
         <TextInput
           label="Email"
           value={email}
@@ -127,8 +128,12 @@ const SignupScreen = () => {
         />
 
         <TouchableOpacity
-          onPress={() => router.replace("/login")}
-          className="mt-1 self-center"
+          onPress={() => {
+            triggerSelectionHaptic();
+            router.replace("/login");
+          }}
+          className="mt-1 min-h-11 justify-center self-center"
+          hitSlop={8}
         >
           <Text className="text-sm font-medium text-ui-shade underline">
             Already have an account? Sign In

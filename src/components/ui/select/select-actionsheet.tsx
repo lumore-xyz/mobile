@@ -110,7 +110,7 @@ const ACTIONSHEET_CONTENT_MIN_VIEWPORT_STYLE: ViewStyle = {
 };
 
 const actionsheetItemStyle = tva({
-  base: "w-full flex-row items-center justify-between rounded-xl border border-ui-shade/10 bg-white px-4 py-4 mb-2 data-[disabled=true]:opacity-40 data-[disabled=true]:web:pointer-events-auto data-[disabled=true]:web:cursor-not-allowed hover:bg-ui-highlight/5 active:bg-ui-highlight/10 data-[focus=true]:bg-ui-highlight/10 web:data-[focus-visible=true]:bg-ui-highlight/10 data-[checked=true]:bg-ui-highlight/10 data-[checked=true]:border-ui-highlight/60 data-[checked=true]:border-l-4 data-[selected=true]:bg-ui-highlight/10 data-[selected=true]:border-ui-highlight/60 data-[selected=true]:border-l-4",
+  base: "w-full flex-row items-center justify-between rounded-md border border-ui-shade/10 bg-white px-4 py-4 mb-2 data-[disabled=true]:opacity-40 data-[disabled=true]:web:pointer-events-auto data-[disabled=true]:web:cursor-not-allowed hover:bg-ui-highlight/5 active:bg-ui-highlight/10 data-[focus=true]:bg-ui-highlight/10 web:data-[focus-visible=true]:bg-ui-highlight/10 data-[checked=true]:bg-ui-highlight/10 data-[checked=true]:border-ui-highlight/60 data-[checked=true]:border-l-4 data-[selected=true]:bg-ui-highlight/10 data-[selected=true]:border-ui-highlight/60 data-[selected=true]:border-l-4",
 });
 
 const actionsheetItemTextStyle = tva({

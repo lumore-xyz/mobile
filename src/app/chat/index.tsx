@@ -6,6 +6,7 @@ import { fetchIbox } from "@/src/libs/apis";
 import Icon from "@/src/libs/Icon";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import { calculateAge } from "@/src/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "expo-router";
@@ -80,7 +81,14 @@ const ChatInbox = () => {
       <View className="flex-1 pt-6 px-4">
         <View className="mb-6 flex-row items-center justify-between">
           <Text className="text-3xl font-bold tracking-tight">Inbox</Text>
-          <TouchableOpacity onPress={() => router.push("/feedback")}>
+          <TouchableOpacity
+            onPress={() => {
+              triggerSelectionHaptic();
+              router.push("/feedback");
+            }}
+            className="min-h-11 justify-center"
+            hitSlop={8}
+          >
             <Text className="text-ui-highlight">Feedback</Text>
           </TouchableOpacity>
         </View>
@@ -111,6 +119,7 @@ export const InboxTabs = React.memo(function InboxTabs({
   const goToTab = useCallback(
     (tab: InboxTab) => {
       if (tab === activeTab) return;
+      triggerSelectionHaptic();
       router.push(tab === "active" ? "/chat" : "/chat/archive");
     },
     [activeTab, router],
@@ -125,9 +134,11 @@ export const InboxTabs = React.memo(function InboxTabs({
             key={tab}
             onPress={() => goToTab(tab)}
             disabled={isActive}
-            className={`flex-1 rounded-lg py-2 ${
+            className={`min-h-11 flex-1 justify-center rounded-lg py-2 ${
               isActive ? "bg-ui-light shadow-sm" : ""
             }`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
           >
             <Text className="text-center font-medium text-ui-shade">
               {tab === "active" ? "Active" : "Archived"}
@@ -169,7 +180,7 @@ export const Inbox = React.memo(function Inbox({
     <FlatList
       data={rooms}
       keyExtractor={(room) => String(room._id)}
-      contentContainerStyle={{ paddingBottom: 16 }}
+      contentContainerStyle={{ paddingBottom: 20 }}
       className="flex-1"
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}

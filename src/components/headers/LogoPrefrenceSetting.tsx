@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
 const LUMORE_WORDMARK = require("@/assets/images/lumore-hr.png");
 
@@ -13,7 +14,14 @@ const LogoPrefrenceSetting = () => {
       </View>
       <View className="flex flex-row items-center justify-end gap-4">
         <TouchableOpacity
-          onPress={() => router.navigate("/(subpage)/edit-preference")}
+          onPress={() => {
+            triggerSelectionHaptic();
+            router.navigate("/(subpage)/edit-preference");
+          }}
+          className="h-11 w-11 items-center justify-center rounded-full"
+          hitSlop={4}
+          accessibilityRole="button"
+          accessibilityLabel="Edit preferences"
         >
           <Ionicons
             name="options-outline"
@@ -22,7 +30,14 @@ const LogoPrefrenceSetting = () => {
           />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => router.navigate("/(subpage)/settings")}
+          onPress={() => {
+            triggerSelectionHaptic();
+            router.navigate("/(subpage)/settings");
+          }}
+          className="h-11 w-11 items-center justify-center rounded-full"
+          hitSlop={4}
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
         >
           <Ionicons
             name="settings-outline"

@@ -19,6 +19,10 @@ import { queryClient } from "@/src/service/query-client";
 import { getUser } from "@/src/service/storage";
 import { calculateAge, convertHeight, distanceDisplay } from "@/src/utils";
 import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
+import {
+  triggerSelectionHaptic,
+  triggerSuccessHaptic,
+} from "@/src/utils/haptics";
 import { ThisOrThatAnswer } from "@/src/utils/types";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
@@ -273,6 +277,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
               await queryClient.invalidateQueries({
                 queryKey: ["user posts", targetUserId],
               });
+              triggerSuccessHaptic();
               closePostActions();
             } catch {
               setActionError("Unable to delete post right now.");
@@ -285,6 +290,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
 
   const handleStartVerification = async () => {
     if (isStartingVerification || user?.isVerified) return;
+    triggerSelectionHaptic();
     try {
       setIsStartingVerification(true);
       const response = await startDiditVerification();
@@ -303,8 +309,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
     return (
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={{ padding: 12 }}
-        className="w-full bg-ui-light"
+        contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
+        className="w-full flex-1 bg-ui-light"
       >
         <ProfileScreenSkeleton isOwner={isOwner} />
       </ScrollView>
@@ -314,8 +320,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
   return (
     <ScrollView
       ref={scrollRef}
-      contentContainerStyle={{ padding: 12 }}
-      className="w-full bg-ui-light"
+      contentContainerStyle={{ padding: 12, paddingBottom: isOwner ? 96 : 24 }}
+      className="w-full flex-1 bg-ui-light"
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
     >
       <View className="flex-1 w-full">
         <View className="rounded-3xl bg-white p-4 border border-ui-shade/10">
@@ -412,15 +420,23 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
           {isOwner ? (
             <View className="mt-4 flex-row gap-2">
               <Pressable
-                onPress={() => router.navigate("/(subpage)/edit-profile")}
-                className="flex-1 border border-ui-shade/20 p-2 rounded-xl flex flex-row items-center justify-center gap-2"
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  router.navigate("/(subpage)/edit-profile");
+                }}
+                className="flex min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-md border border-ui-shade/20 p-2"
+                accessibilityRole="button"
               >
                 <Text>Edit profile</Text>
                 <Ionicons name="pencil-outline" size={16} />
               </Pressable>
               <Pressable
-                onPress={() => router.navigate("/(subpage)/edit-preference")}
-                className="flex-1 border border-ui-shade/20 p-2 rounded-xl flex flex-row items-center justify-center gap-2"
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  router.navigate("/(subpage)/edit-preference");
+                }}
+                className="flex min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-md border border-ui-shade/20 p-2"
+                accessibilityRole="button"
               >
                 <Text>Edit preferences</Text>
                 <Ionicons name="options-outline" size={16} />
@@ -507,12 +523,18 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
                   isStartingVerification ||
                   user?.verificationStatus === "pending"
                 }
-                className={`mt-3 rounded-xl border border-ui-highlight/30 bg-ui-highlight/10 px-4 py-3 ${
+                className={`mt-3 min-h-12 rounded-md border border-ui-highlight/30 bg-ui-highlight/10 px-4 py-3 ${
                   isStartingVerification ||
                   user?.verificationStatus === "pending"
                     ? "opacity-70"
                     : ""
                 }`}
+                accessibilityRole="button"
+                accessibilityState={{
+                  disabled:
+                    isStartingVerification ||
+                    user?.verificationStatus === "pending",
+                }}
               >
                 <Text className="text-ui-highlight font-semibold">
                   {user?.verificationStatus === "pending"
@@ -578,7 +600,13 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
             <Text className="text-base font-semibold">This or That</Text>
             {isOwner ? (
               <Pressable
-                onPress={() => router.navigate("/(subpage)/games/this-or-that")}
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  router.navigate("/(subpage)/games/this-or-that");
+                }}
+                className="min-h-11 justify-center px-2"
+                hitSlop={8}
+                accessibilityRole="button"
               >
                 <Text className="text-xs text-ui-highlight">Play</Text>
               </Pressable>
@@ -629,7 +657,15 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
               {isOwner ? "Your posts" : "Posts"}
             </Text>
             {isOwner ? (
-              <Pressable onPress={() => router.navigate("/create-post")}>
+              <Pressable
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  router.navigate("/create-post");
+                }}
+                className="min-h-11 justify-center px-2"
+                hitSlop={8}
+                accessibilityRole="button"
+              >
                 <Text className="text-xs text-ui-highlight">Create new</Text>
               </Pressable>
             ) : null}
@@ -667,8 +703,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
           <View className="w-full p-4">
             <Text className="text-base font-semibold mb-2">Post actions</Text>
             <Pressable
-              onPress={handleDeletePost}
-              className="w-full py-3 px-4 rounded-xl bg-red-50 border border-red-200"
+              onPress={() => {
+                triggerSelectionHaptic();
+                handleDeletePost();
+              }}
+              className="min-h-12 w-full rounded-md border border-red-200 bg-red-50 px-4 py-3"
+              accessibilityRole="button"
             >
               <Text className="text-base font-medium text-red-600">
                 Delete post
@@ -796,8 +836,13 @@ const ActionPill = ({
   onPress: () => void;
 }) => (
   <Pressable
-    onPress={onPress}
-    className="flex-row items-center gap-2 rounded-full border border-ui-shade/10 px-3 py-2"
+    onPress={() => {
+      triggerSelectionHaptic();
+      onPress();
+    }}
+    className="min-h-11 flex-row items-center gap-2 rounded-full border border-ui-shade/10 px-3 py-2"
+    hitSlop={4}
+    accessibilityRole="button"
   >
     <Ionicons name={icon} size={14} className="text-ui-shade" />
     <Text className="text-sm text-ui-shade">{label}</Text>
@@ -834,8 +879,14 @@ const PostCard = ({
     <View className="border border-ui-shade/10 rounded-2xl bg-white overflow-hidden">
       {canEdit ? (
         <Pressable
-          onPress={onOpenActions}
-          className="absolute right-2 top-2 z-10 p-1 bg-white/80 rounded-full"
+          onPress={() => {
+            triggerSelectionHaptic();
+            onOpenActions();
+          }}
+          className="absolute right-2 top-2 z-10 h-11 w-11 items-center justify-center rounded-full bg-white/80"
+          hitSlop={4}
+          accessibilityRole="button"
+          accessibilityLabel="Open post actions"
         >
           <Icon type="Ionicons" name="ellipsis-vertical-outline" size={16} />
         </Pressable>

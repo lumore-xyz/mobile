@@ -76,7 +76,7 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
       <Select onValueChange={action} selectedValue={value}>
         <SelectTrigger
           size="lg"
-          className={`rounded-xl border px-1 ${
+          className={`rounded-md border px-1 ${
             isInvalid ? "border-red-500" : "border-ui-shade/20"
           }`}
         >
@@ -101,7 +101,7 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
             </SelectDragIndicatorWrapper>
             {options?.map((option) => (
               <SelectItem
-                className="rounded-xl px-4 py-4"
+                className="rounded-md px-4 py-4"
                 key={option.value}
                 label={option.label}
                 value={option.value}

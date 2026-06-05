@@ -15,6 +15,7 @@ import {
   ActionsheetDragIndicatorWrapper,
 } from "./actionsheet";
 import { TextInput } from "./TextInput";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
 export interface SelectOption {
   label: string;
@@ -72,6 +73,7 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
 
   const handleSelect = useCallback(
     (selectedValue: string) => {
+      triggerSelectionHaptic();
       if (selectedValueSet.has(selectedValue)) {
         onChange(safeValue.filter((itemValue) => itemValue !== selectedValue));
         return;
@@ -99,9 +101,11 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
       return (
         <TouchableOpacity
           onPress={() => handleSelect(item.value)}
-          className={`flex w-full flex-row items-center justify-between rounded-lg px-1 py-2 ${
+          className={`flex min-h-11 w-full flex-row items-center justify-between rounded-md px-1 py-2 ${
             index % 2 === 0 ? "bg-white" : "bg-ui-background/40"
           }`}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isSelected }}
         >
           <Text className="max-w-[80%] text-lg">{item.label}</Text>
           <View
@@ -122,8 +126,12 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
       </Text>
 
       <Pressable
-        onPress={() => setIsOpen(true)}
-        className="rounded-xl border border-gray-300 p-4"
+        onPress={() => {
+          triggerSelectionHaptic();
+          setIsOpen(true);
+        }}
+        className="min-h-12 rounded-md border border-gray-300 p-4"
+        accessibilityRole="button"
       >
         {safeValue.length === 0 ? (
           <Text className="text-gray-400">{placeholder}</Text>

@@ -1,3 +1,4 @@
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import clsxLib from "clsx"; // optional but great for conditional classNames
 import React from "react";
 import { GestureResponderEvent, Text, TouchableOpacity } from "react-native";
@@ -10,13 +11,14 @@ type ButtonProps = {
   className?: string; // optional additional classes
   disabled?: boolean;
   children?: React.ReactNode;
+  hapticFeedback?: boolean;
 };
 
 const sizeStyles = {
-  sm: "py-2 px-4",
-  md: "py-4 px-6",
-  lg: "py-6 px-8",
-  icon: "p-3 aspect-square",
+  sm: "min-h-11 py-2 px-3",
+  md: "min-h-12 py-3 px-5",
+  lg: "min-h-12 py-4 px-6",
+  icon: "min-h-11 min-w-11 p-2.5 aspect-square",
 };
 
 const sizeTextStyles = {
@@ -48,17 +50,25 @@ const Button: React.FC<ButtonProps> = ({
   className = "",
   disabled = false,
   children,
+  hapticFeedback = true,
 }) => {
+  const handlePress = (event: GestureResponderEvent) => {
+    if (hapticFeedback) {
+      triggerSelectionHaptic();
+    }
+    onClick?.(event);
+  };
+
   return (
     <TouchableOpacity
       className={clsxLib(
-        "flex items-center justify-center rounded-2xl",
+        "flex items-center justify-center rounded-md",
         sizeStyles[size],
         variantStyles[variant],
         disabled && "opacity-60",
         className,
       )}
-      onPress={onClick}
+      onPress={handlePress}
       disabled={disabled}
       activeOpacity={0.82}
       accessibilityRole="button"

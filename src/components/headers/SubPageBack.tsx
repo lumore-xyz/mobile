@@ -2,6 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Href, router } from "expo-router";
 import React, { useCallback } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
 const SubPageBack = ({
   title,
@@ -11,6 +12,7 @@ const SubPageBack = ({
   fallbackHref?: Href;
 }) => {
   const handleBack = useCallback(() => {
+    triggerSelectionHaptic();
     if (typeof router.canGoBack === "function" && router.canGoBack()) {
       router.back();
       return;
@@ -23,7 +25,13 @@ const SubPageBack = ({
 
   return (
     <View className="h-16 bg-ui-light flex flex-row items-center justify-start gap-3 w-full px-4">
-      <TouchableOpacity onPress={handleBack} hitSlop={8}>
+      <TouchableOpacity
+        onPress={handleBack}
+        className="h-11 w-11 items-center justify-center rounded-full"
+        hitSlop={4}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
         <MaterialCommunityIcons
           name="keyboard-backspace"
           className="text-ui-shade"

@@ -33,10 +33,12 @@ export const AuthScreenLayout: React.FC<AuthScreenLayoutProps> = ({
     >
       <KeyboardAvoidingView
         className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           showsVerticalScrollIndicator={false}
           contentContainerClassName="flex-grow items-center justify-end pt-10"
         >

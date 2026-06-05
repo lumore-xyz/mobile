@@ -75,7 +75,9 @@ export const ChatMessages = React.memo(function ChatMessages({
       className="flex-1 px-4 py-2"
       ref={scrollRef}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 12 }}
     >
       <View className="space-y-4">
         <MatchNoteBanner note={matchNote || ""} createdAt={matchCreatedAt} />

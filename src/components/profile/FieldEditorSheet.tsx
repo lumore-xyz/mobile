@@ -10,8 +10,17 @@ import Icon from "@/src/libs/Icon";
 import { preferenceSchema } from "@/src/schemas/preferenceSchema";
 import { createProfileSchema } from "@/src/schemas/profileSchema";
 import { useUsernameAvailability } from "@/src/hooks/useUsernameAvailability";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as z from "zod";
 import FieldEditorContent from "./FieldEditorContent";
 
@@ -36,6 +45,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
   schemaType = "profile",
   currentUsername,
 }) => {
+  const insets = useSafeAreaInsets();
   const [value, setValue] = useState(currentValue);
   const [errorMessage, setErrorMessage] = useState("");
   const isUsernameField = schemaType === "profile" && fieldType === "username";
@@ -122,6 +132,17 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
     setIsOpen(false);
   };
 
+  const handleCancelPress = () => {
+    triggerSelectionHaptic();
+    handleCancel();
+  };
+
+  const handleSubmitPress = () => {
+    if (isSubmitDisabled) return;
+    triggerSelectionHaptic();
+    void handleSubmit();
+  };
+
   return (
     <Actionsheet isOpen={isOpen} onClose={handleCancel}>
       <ActionsheetBackdrop />
@@ -130,51 +151,78 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
 
-        <View className="flex flex-row items-center justify-between p-3 gap-4 shadow-sm w-full">
-          <TouchableOpacity onPress={handleCancel}>
-            <Icon
-              type="Ionicons"
-              name="close-outline"
-              size={32}
-              className="text-xl text-ui-shade"
-            />
-          </TouchableOpacity>
+        <KeyboardAvoidingView
+          className="w-full flex-1"
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View className="flex flex-row items-center justify-between p-3 gap-4 shadow-sm w-full">
+            <TouchableOpacity
+              onPress={handleCancelPress}
+              className="h-11 w-11 items-center justify-center rounded-full"
+              hitSlop={4}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel edit"
+            >
+              <Icon
+                type="Ionicons"
+                name="close-outline"
+                size={32}
+                className="text-xl text-ui-shade"
+              />
+            </TouchableOpacity>
 
-          <View>
-            <Text className="capitalize text-xl font-semibold">
-              Edit {fieldType}
-            </Text>
+            <View>
+              <Text className="capitalize text-xl font-semibold">
+                Edit {fieldType}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleSubmitPress}
+              disabled={isSubmitDisabled}
+              className={`h-11 w-11 items-center justify-center rounded-full ${
+                isSubmitDisabled ? "opacity-40" : ""
+              }`}
+              hitSlop={4}
+              accessibilityRole="button"
+              accessibilityLabel="Save edit"
+              accessibilityState={{ disabled: isSubmitDisabled }}
+            >
+              <Icon
+                type="Ionicons"
+                name="checkmark-outline"
+                size={32}
+                className="text-xl !text-ui-highlight"
+              />
+            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            onPress={handleSubmit}
-            disabled={isSubmitDisabled}
-            className={isSubmitDisabled ? "opacity-40" : ""}
+          <ScrollView
+            className="w-full flex-1 p-3"
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+            contentContainerStyle={{
+              paddingBottom: Math.max(insets.bottom, 24),
+            }}
           >
-            <Icon
-              type="Ionicons"
-              name="checkmark-outline"
-              size={32}
-              className="text-xl !text-ui-highlight"
-            />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView className="w-full flex-1 p-3">
-          <View className="flex gap-2">
-            <FieldEditorContent
-              fieldType={fieldType}
-              value={value}
-              setValue={handleValueChange}
-              usernameAvailability={
-                isUsernameField ? usernameAvailability : undefined
-              }
-            />
-            {errorMessage ? (
-              <Text className="text-red-500 text-sm mt-1">{errorMessage}</Text>
-            ) : null}
-          </View>
-        </ScrollView>
+            <View className="flex gap-2">
+              <FieldEditorContent
+                fieldType={fieldType}
+                value={value}
+                setValue={handleValueChange}
+                usernameAvailability={
+                  isUsernameField ? usernameAvailability : undefined
+                }
+              />
+              {errorMessage ? (
+                <Text className="text-red-500 text-sm mt-1">
+                  {errorMessage}
+                </Text>
+              ) : null}
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </ActionsheetContent>
     </Actionsheet>
   );

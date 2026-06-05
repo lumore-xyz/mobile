@@ -1,5 +1,6 @@
 import VisibilityToggle from "@/src/components/VisibilityToggle";
 import Icon from "@/src/libs/Icon";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -33,8 +34,13 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
 
   return (
     <Pressable
-      onPress={() => onEdit(field)}
-      className="border border-ui-shade/10 rounded-xl p-3 mt-3 bg-white"
+      onPress={() => {
+        triggerSelectionHaptic();
+        onEdit(field);
+      }}
+      className="mt-3 min-h-12 rounded-xl border border-ui-shade/10 bg-white p-3"
+      android_ripple={{ color: "rgba(84,19,136,0.06)", borderless: false }}
+      accessibilityRole="button"
     >
       <View className="flex flex-row justify-between items-center">
         <View className="text-lg flex-1 pr-3">

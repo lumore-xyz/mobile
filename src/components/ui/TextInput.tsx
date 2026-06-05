@@ -68,7 +68,7 @@ export const TextInput: React.FC<TextInputProps> = ({
       <FormControlLabel>
         <FormControlLabelText>{label}</FormControlLabelText>
       </FormControlLabel>
-      <Input className="mt-1" size="xl">
+      <Input className="mt-1" size="md">
         <InputField
           type={isPasswordField && showPassword ? "text" : type}
           placeholder={placeholder}

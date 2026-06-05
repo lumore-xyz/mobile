@@ -19,9 +19,11 @@ const DATE_PLACEHOLDER = "DD/MM/YYYY";
 const parseTypedDate = (value: string): Date | null => {
   const trimmedValue = value.trim();
   const separatedDateMatch = trimmedValue.match(
-    /^([0-9]{1,2})[\/.-]([0-9]{1,2})[\/.-]([0-9]{4})$/
+    /^([0-9]{1,2})[\/.-]([0-9]{1,2})[\/.-]([0-9]{4})$/,
   );
-  const compactDateMatch = trimmedValue.match(/^([0-9]{2})([0-9]{2})([0-9]{4})$/);
+  const compactDateMatch = trimmedValue.match(
+    /^([0-9]{2})([0-9]{2})([0-9]{4})$/,
+  );
   const dateMatch = separatedDateMatch || compactDateMatch;
 
   if (!dateMatch) return null;
@@ -94,7 +96,7 @@ const DateInput: React.FC<DateInputProps> = ({
       <Text className="font-medium text-typography-900 text-xl mb-1">
         {label}
       </Text>
-      <View className="w-full flex flex-row justify-between items-center border border-ui-shade/10 rounded-xl p-3">
+      <View className="w-full flex flex-row justify-between items-center border border-ui-shade/10 rounded-md p-3">
         <RNTextInput
           value={typedDate}
           onChangeText={(text) => {
@@ -149,7 +151,9 @@ const DateInput: React.FC<DateInputProps> = ({
       {localErrorText ? (
         <Text className="text-red-500 mt-2">{localErrorText}</Text>
       ) : null}
-      {errorText ? <Text className="text-red-500 mt-2">{errorText}</Text> : null}
+      {errorText ? (
+        <Text className="text-red-500 mt-2">{errorText}</Text>
+      ) : null}
     </View>
   );
 };
@@ -166,7 +170,7 @@ export function getDateFromAge(age: number): Date {
   const birthDate = new Date(
     today.getFullYear() - age,
     today.getMonth(),
-    today.getDate()
+    today.getDate(),
   );
   return birthDate;
 }

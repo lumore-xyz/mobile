@@ -9,6 +9,7 @@ import { TextInput } from "../components/ui/TextInput";
 import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
+import { triggerSelectionHaptic } from "../utils/haptics";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -79,7 +80,7 @@ export default function LoginScreen() {
         Sign in with your email or username and password.
       </Text>
 
-      <View className="mt-4 gap-0">
+      <View className="mt-4 gap-3">
         <TextInput
           label="Email or Username"
           value={identifier}
@@ -115,15 +116,27 @@ export default function LoginScreen() {
           isInvalid={Boolean(passwordError)}
           errorText={passwordError}
         />
-        <View className="flex flex-row items-center justify-between mb-4">
+        <View className="mb-1 flex flex-row items-center justify-between">
           <TouchableOpacity
-            onPress={() => router.push("/forgot-password" as any)}
+            onPress={() => {
+              triggerSelectionHaptic();
+              router.push("/forgot-password" as any);
+            }}
+            className="min-h-11 justify-center"
+            hitSlop={8}
           >
             <Text className="text-sm font-medium text-ui-shade underline">
               Forgot Password?
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/signup" as any)}>
+          <TouchableOpacity
+            onPress={() => {
+              triggerSelectionHaptic();
+              router.push("/signup" as any);
+            }}
+            className="min-h-11 justify-center"
+            hitSlop={8}
+          >
             <Text className="text-sm font-medium text-ui-shade underline">
               New here? Create Account
             </Text>

@@ -7,6 +7,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
+import { triggerSelectionHaptic } from "../utils/haptics";
 
 const resolveQueryValue = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] || "" : String(value || "");
@@ -103,7 +104,7 @@ const ResetPasswordScreen = () => {
           : "Create a new password for your account."}
       </Text>
 
-      <View className="mt-4 gap-2">
+      <View className="mt-4 gap-3">
         <TextInput
           label="New Password"
           value={newPassword}
@@ -158,8 +159,12 @@ const ResetPasswordScreen = () => {
         />
 
         <TouchableOpacity
-          onPress={() => router.replace("/login")}
-          className="mt-1 self-center"
+          onPress={() => {
+            triggerSelectionHaptic();
+            router.replace("/login");
+          }}
+          className="mt-1 min-h-11 justify-center self-center"
+          hitSlop={8}
         >
           <Text className="text-sm font-medium text-ui-shade underline">
             Back to Sign In

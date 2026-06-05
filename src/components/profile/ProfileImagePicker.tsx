@@ -1,5 +1,6 @@
 import React from "react";
 import { Image, Pressable, Text, View } from "react-native";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
 interface ProfileImagePickerProps {
   selectedImage?: string;
@@ -22,9 +23,15 @@ const ProfileImagePicker = React.memo(function ProfileImagePicker({
   return (
     <View>
       <Pressable
-        onPress={onPickImage}
+        onPress={() => {
+          triggerSelectionHaptic();
+          onPickImage();
+        }}
         disabled={isUploading}
-        className="flex flex-row gap-4 items-center justify-start w-full p-3 rounded-2xl bg-ui-light border border-ui-shade/10"
+        className="flex min-h-12 w-full flex-row items-center justify-start gap-4 rounded-2xl border border-ui-shade/10 bg-ui-light p-3"
+        android_ripple={{ color: "rgba(84,19,136,0.06)", borderless: false }}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: isUploading }}
       >
         <View className="bg-ui-background border border-ui-shade/10 h-20 w-20 aspect-square rounded-full">
           <Image

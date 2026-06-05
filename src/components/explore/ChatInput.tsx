@@ -8,6 +8,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import {
+  triggerLightImpactHaptic,
+  triggerSelectionHaptic,
+} from "@/src/utils/haptics";
 
 interface ReplyingToPreview {
   _id: string;
@@ -62,6 +66,25 @@ const ChatInput = React.memo(function ChatInput({
   uploadError,
   onDismissUploadError,
 }: ChatInputProps) {
+  const canSend =
+    isConnected &&
+    isActive &&
+    !(isUploadingImage && (!pendingImage || pendingImage.uploading)) &&
+    Boolean(
+      value.trim() || isEditing || (pendingImage && !pendingImage.uploading),
+    );
+
+  const handleImageSelect = () => {
+    triggerSelectionHaptic();
+    onImageSelect();
+  };
+
+  const handleSend = () => {
+    if (!canSend) return;
+    triggerLightImpactHaptic();
+    onSend();
+  };
+
   if (!isActive) {
     return (
       <Text className="p-4 text-center text-sm text-ui-shade">
@@ -82,7 +105,14 @@ const ChatInput = React.memo(function ChatInput({
               ? "Photo"
               : replyingTo.message || "Message"}
           </Text>
-          <TouchableOpacity onPress={onCancelReply}>
+          <TouchableOpacity
+            onPress={() => {
+              triggerSelectionHaptic();
+              onCancelReply();
+            }}
+            className="min-h-11 justify-center"
+            hitSlop={8}
+          >
             <Text className="text-xs text-ui-shade/70">Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -91,7 +121,14 @@ const ChatInput = React.memo(function ChatInput({
       {isEditing ? (
         <View className="flex-row items-center justify-between rounded-xl px-3 py-2 bg-ui-highlight/5 mb-2">
           <Text className="text-xs text-ui-shade">Editing message</Text>
-          <TouchableOpacity onPress={onCancelEdit}>
+          <TouchableOpacity
+            onPress={() => {
+              triggerSelectionHaptic();
+              onCancelEdit();
+            }}
+            className="min-h-11 justify-center"
+            hitSlop={8}
+          >
             <Text className="text-xs text-ui-shade/70">Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -99,38 +136,42 @@ const ChatInput = React.memo(function ChatInput({
 
       <View className="bg-white border border-gray-200 w-full flex-row items-center gap-3 rounded-full px-3 py-2">
         <TouchableOpacity
-          className="h-9 w-9 items-center justify-center rounded-full border border-ui-shade/20"
-          onPress={onImageSelect}
+          className="h-11 w-11 items-center justify-center rounded-full border border-ui-shade/20"
+          onPress={handleImageSelect}
           disabled={!isConnected || !isActive || isUploadingImage}
+          hitSlop={4}
+          accessibilityRole="button"
+          accessibilityLabel="Add image"
         >
           <Ionicons name="add-circle-outline" size={20} color="#667085" />
         </TouchableOpacity>
 
         <TextInput
-          className="flex-1 py-3"
+          className="min-h-11 flex-1 py-2 text-base"
           placeholder={isEditing ? "Edit your message" : "Say Hi"}
           value={value}
           onChangeText={onChangeText}
           editable={isActive}
           returnKeyType="send"
+          blurOnSubmit={false}
           onSubmitEditing={() => {
-            if (isActive) onSend();
+            handleSend();
           }}
+          accessibilityLabel="Message input"
         />
 
         <TouchableOpacity
-          className="h-10 w-10"
-          onPress={onSend}
-          disabled={
-            !isConnected ||
-            !isActive ||
-            (isUploadingImage && (!pendingImage || pendingImage.uploading)) ||
-            (!value.trim() &&
-              !isEditing &&
-              (!pendingImage || pendingImage.uploading))
+          className="h-11 w-11"
+          onPress={handleSend}
+          disabled={!canSend}
+          hitSlop={4}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isEditing ? "Save edited message" : "Send message"
           }
+          accessibilityState={{ disabled: !canSend }}
         >
-          <View className="h-10 w-10 rounded-full items-center justify-center bg-ui-highlight">
+          <View className="h-11 w-11 rounded-full items-center justify-center bg-ui-highlight">
             <Ionicons name="paper-plane" size={16} color="white" />
           </View>
         </TouchableOpacity>
@@ -142,7 +183,14 @@ const ChatInput = React.memo(function ChatInput({
             <Text className="text-xs text-ui-shade">
               {pendingImage.uploading ? "Uploading..." : ""}
             </Text>
-            <TouchableOpacity onPress={onDiscardSelectedImage}>
+            <TouchableOpacity
+              onPress={() => {
+                triggerSelectionHaptic();
+                onDiscardSelectedImage();
+              }}
+              className="min-h-11 justify-center"
+              hitSlop={8}
+            >
               <Text className="text-xs text-ui-shade/80">Remove</Text>
             </TouchableOpacity>
           </View>
@@ -165,7 +213,14 @@ const ChatInput = React.memo(function ChatInput({
       {uploadError ? (
         <View className="flex-row items-start justify-between gap-2 px-1 mt-2">
           <Text className="text-xs text-red-500 flex-1">{uploadError}</Text>
-          <TouchableOpacity onPress={onDismissUploadError}>
+          <TouchableOpacity
+            onPress={() => {
+              triggerSelectionHaptic();
+              onDismissUploadError();
+            }}
+            className="min-h-11 justify-center"
+            hitSlop={8}
+          >
             <Text className="text-xs text-ui-shade/70">Dismiss</Text>
           </TouchableOpacity>
         </View>
