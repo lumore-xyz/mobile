@@ -6,6 +6,7 @@ import {
   ActionsheetDragIndicatorWrapper,
 } from "@/src/components/ui/actionsheet";
 import Skeleton from "@/src/components/ui/Skeleton";
+import ProfileNativeAd from "@/src/components/ads/ProfileNativeAd";
 import { useUser } from "@/src/hooks/useUser";
 import {
   deletePost,
@@ -594,6 +595,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
             </View>
           )}
         </View>
+
+        {!isOwner ? <ProfileNativeAd /> : null}
 
         <View className="mt-4 rounded-2xl bg-white border border-ui-shade/10 p-4">
           <View className="flex-row items-center justify-between">

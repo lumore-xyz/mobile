@@ -29,10 +29,10 @@ const SplashScreen = () => {
   }, [router]);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const frameId = requestAnimationFrame(() => {
       void tokenCheck();
-    }, 1500);
-    return () => clearTimeout(timeoutId);
+    });
+    return () => cancelAnimationFrame(frameId);
   }, [tokenCheck]);
 
   return (

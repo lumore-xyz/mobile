@@ -1,14 +1,12 @@
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
-import { useNsfw } from "../hooks/useNsfw";
 import { submitThisOrThatQuestion } from "../libs/apis";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
 const ThisOrThatSubmitScreen = () => {
-  const { assertImageIsSafe } = useNsfw();
   const [leftOption, setLeftOption] = useState("");
   const [rightOption, setRightOption] = useState("");
   const [category, setCategory] = useState("");
@@ -52,11 +50,6 @@ const ThisOrThatSubmitScreen = () => {
 
     try {
       setIsSubmitting(true);
-      await Promise.all([
-        assertImageIsSafe(leftImageUri),
-        assertImageIsSafe(rightImageUri),
-      ]);
-
       await submitThisOrThatQuestion({
         leftOption: leftOption.trim(),
         rightOption: rightOption.trim(),

@@ -9,7 +9,6 @@ import { SocketProvider } from "../context/SocketContext";
 import { queryClient } from "../query-client";
 import { AdProvider } from "./AdProvider";
 import { LocationProvider } from "./LocationProvider";
-import { NsfwProvider } from "./NsfwProvider";
 import { OptionsProvider } from "./OptionsProvider";
 import { ReferralAttributionProvider } from "./ReferralAttributionProvider";
 
@@ -17,21 +16,19 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={styles.root}>
-        <NsfwProvider>
-          <AdProvider>
-            <LocationProvider>
-              <OptionsProvider>
-                <ReferralAttributionProvider>
-                  <SocketProvider>
-                    <ConfettiProvider>
-                      <ExploreChatProvider>{children}</ExploreChatProvider>
-                    </ConfettiProvider>
-                  </SocketProvider>
-                </ReferralAttributionProvider>
-              </OptionsProvider>
-            </LocationProvider>
-          </AdProvider>
-        </NsfwProvider>
+        <AdProvider>
+          <LocationProvider>
+            <OptionsProvider>
+              <ReferralAttributionProvider>
+                <SocketProvider>
+                  <ConfettiProvider>
+                    <ExploreChatProvider>{children}</ExploreChatProvider>
+                  </ConfettiProvider>
+                </SocketProvider>
+              </ReferralAttributionProvider>
+            </OptionsProvider>
+          </LocationProvider>
+        </AdProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
   );

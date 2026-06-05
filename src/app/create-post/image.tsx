@@ -1,7 +1,6 @@
 import VisibilityToggle from "@/src/components/VisibilityToggle";
 import { TextAreaInput } from "@/src/components/ui/TextInput";
 import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
-import { useNsfw } from "@/src/hooks/useNsfw";
 import { createImagePost } from "@/src/libs/apis";
 import { queryClient } from "@/src/service/query-client";
 import { getUser } from "@/src/service/storage";
@@ -12,7 +11,6 @@ import SubPageBack from "../../components/headers/SubPageBack";
 
 const CreateImagePost = () => {
   const { pickImageAsync, selectedImage } = useMediaPermisions();
-  const { assertImageIsSafe } = useNsfw();
   const [caption, setCaption] = useState("");
   const [visibility, setVisibility] = useState("public");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,8 +24,6 @@ const CreateImagePost = () => {
     setIsSubmitting(true);
     setError("");
     try {
-      await assertImageIsSafe(selectedImage);
-
       await createImagePost({
         imageUri: selectedImage,
         caption: caption.trim(),

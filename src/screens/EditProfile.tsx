@@ -1,6 +1,5 @@
 import SubPageBack from "@/src/components/headers/SubPageBack";
 import Skeleton from "@/src/components/ui/Skeleton";
-import { useNsfw } from "@/src/hooks/useNsfw";
 import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
 import { useUser } from "@/src/hooks/useUser";
 import { uploadProfilePicture } from "@/src/libs/apis";
@@ -65,7 +64,6 @@ const EditProfileScreen = () => {
   const scrollRef = useRef<ScrollView>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const { assertImageIsSafe } = useNsfw();
   const { pickImageAsync, selectedImage } = useMediaPermisions();
 
   const { completionPercent, missingCount } = useMemo(() => {
@@ -125,8 +123,6 @@ const EditProfileScreen = () => {
     await pickImageAsync(async (asset: ImagePickerAsset) => {
       setIsUploadingImage(true);
       try {
-        await assertImageIsSafe(asset.uri);
-
         const response = await uploadProfilePicture({
           uri: asset.uri,
           name: asset.fileName || `profile-${Date.now()}.jpg`,

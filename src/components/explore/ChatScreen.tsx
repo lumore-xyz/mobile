@@ -1,6 +1,5 @@
 import { ChatReplyPreview, Message } from "@/src/domain/chat/types";
 import { messageSchema } from "@/src/domain/chat/validation";
-import { useNsfw } from "@/src/hooks/useNsfw";
 import { deleteTempChatImage, uploadChatImage } from "@/src/libs/apis";
 import Skeleton from "@/src/components/ui/Skeleton";
 import { trackAnalytic } from "@/src/service/analytics";
@@ -36,6 +35,8 @@ const DEFAULT_HEART_EMOJI = "\u2764\uFE0F";
 const DRAFT_KEY_PREFIX = "chat_draft_";
 const CLIENT_MESSAGE_ID_RANDOM_SLICE_START = 2;
 const CLIENT_MESSAGE_ID_RANDOM_SLICE_END = 8;
+const IMAGE_UNLOCK_REQUIRED_MESSAGE =
+  "You can share photos after your match unlocks you.";
 
 export const ChatScreen = () => {
   const [newMessage, setNewMessage] = useState("");
@@ -73,8 +74,13 @@ export const ChatScreen = () => {
     isLoading,
     isActive,
   } = useChat();
-  const { assertImageIsSafe } = useNsfw();
+  const canShareImages = Boolean(matchedUser?.isViewerUnlockedByUser);
 
+  useEffect(() => {
+    if (canShareImages && uploadError === IMAGE_UNLOCK_REQUIRED_MESSAGE) {
+      setUploadError(null);
+    }
+  }, [canShareImages, uploadError]);
   const matchNoteText = useMemo(() => {
     const note = roomData?.matchingNote;
     if (!note) return "";
@@ -232,6 +238,15 @@ export const ChatScreen = () => {
       return;
     }
 
+    if (pendingImage && !canShareImages) {
+      socketWarn("ChatScreen", "sendMessage blocked: image sharing locked", {
+        roomId,
+        matchedUserId: matchedUser?._id ?? null,
+      });
+      setUploadError(IMAGE_UNLOCK_REQUIRED_MESSAGE);
+      return;
+    }
+
     if (trimmed) {
       const messageResult = messageSchema.safeParse(trimmed);
       if (!messageResult.success) {
@@ -371,6 +386,16 @@ export const ChatScreen = () => {
       });
       return;
     }
+
+    if (!canShareImages) {
+      socketWarn("ChatScreen", "handleImageSelect blocked: match locked", {
+        roomId,
+        matchedUserId: matchedUser?._id ?? null,
+      });
+      setUploadError(IMAGE_UNLOCK_REQUIRED_MESSAGE);
+      return;
+    }
+
     let requestId = 0;
     let selectedImageUri: string | null = null;
 
@@ -409,19 +434,6 @@ export const ChatScreen = () => {
         imagePublicId: null,
         imageUrl: null,
         uploading: true,
-      });
-
-      socketDebug("ChatScreen", "nsfw check start", {
-        roomId,
-        requestId,
-      });
-      await assertImageIsSafe(asset.uri);
-      if (requestId !== uploadRequestIdRef.current) {
-        return;
-      }
-      socketDebug("ChatScreen", "nsfw check passed", {
-        roomId,
-        requestId,
       });
 
       socketDebug("ChatScreen", "uploadChatImage start", {
@@ -468,18 +480,11 @@ export const ChatScreen = () => {
       const status = Number(error?.response?.status || 0);
       const apiMessage = error?.response?.data?.message;
       const localMessage = error instanceof Error ? error.message : null;
-      const normalizedMessage = (localMessage || "").toLowerCase();
-      const isImageScanFormatError =
-        normalizedMessage.includes("valid jpeg image") ||
-        normalizedMessage.includes("unsupported image type");
-      const resolvedLocalMessage = isImageScanFormatError
-        ? "Unable to scan selected image. Please choose a different image."
-        : localMessage;
       const fallbackMessage =
         status === 413
           ? "Image is too large. Please choose a smaller image."
           : "Image upload failed. Please try again.";
-      setUploadError(apiMessage || resolvedLocalMessage || fallbackMessage);
+      setUploadError(apiMessage || localMessage || fallbackMessage);
       setPendingImage((prev) => {
         if (!prev || !prev.uploading) return prev;
         if (selectedImageUri && prev.previewUrl !== selectedImageUri)
@@ -493,7 +498,6 @@ export const ChatScreen = () => {
         apiMessage,
         localMessage,
       });
-      console.error("[ChatScreen] Image upload failed:", error);
     } finally {
       if (requestId === uploadRequestIdRef.current) {
         setIsUploadingImage(false);
@@ -713,6 +717,7 @@ export const ChatScreen = () => {
         onSend={sendMessage}
         onImageSelect={handleImageSelect}
         onDiscardSelectedImage={handleDiscardSelectedImage}
+        canShareImages={canShareImages}
         isConnected={isConnected}
         isActive={isActive}
         roomData={roomData}

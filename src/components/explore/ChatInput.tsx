@@ -33,6 +33,7 @@ interface ChatInputProps {
   onSend: () => void;
   onImageSelect: () => void;
   onDiscardSelectedImage: () => void;
+  canShareImages: boolean;
   isConnected: boolean;
   isActive: boolean;
   roomData: any;
@@ -53,6 +54,7 @@ const ChatInput = React.memo(function ChatInput({
   onSend,
   onImageSelect,
   onDiscardSelectedImage,
+  canShareImages,
   isConnected,
   isActive,
   roomData,
@@ -136,12 +138,19 @@ const ChatInput = React.memo(function ChatInput({
 
       <View className="bg-white border border-gray-200 w-full flex-row items-center gap-3 rounded-full px-3 py-2">
         <TouchableOpacity
-          className="h-11 w-11 items-center justify-center rounded-full border border-ui-shade/20"
+          className={`h-11 w-11 items-center justify-center rounded-full border border-ui-shade/20 ${
+            canShareImages ? "" : "opacity-50"
+          }`}
           onPress={handleImageSelect}
           disabled={!isConnected || !isActive || isUploadingImage}
           hitSlop={4}
           accessibilityRole="button"
           accessibilityLabel="Add image"
+          accessibilityHint={
+            canShareImages
+              ? "Select an image to share in chat"
+              : "Images are available after your match unlocks you"
+          }
         >
           <Ionicons name="add-circle-outline" size={20} color="#667085" />
         </TouchableOpacity>
@@ -211,17 +220,21 @@ const ChatInput = React.memo(function ChatInput({
       ) : null}
 
       {uploadError ? (
-        <View className="flex-row items-start justify-between gap-2 px-1 mt-2">
-          <Text className="text-xs text-red-500 flex-1">{uploadError}</Text>
+        <View className="mt-2 flex-row items-center gap-3 rounded-md bg-red-50 px-3 py-2">
+          <Text className="flex-1 text-xs leading-4 text-red-600">
+            {uploadError}
+          </Text>
           <TouchableOpacity
             onPress={() => {
               triggerSelectionHaptic();
               onDismissUploadError();
             }}
-            className="min-h-11 justify-center"
+            className="min-h-8 justify-center px-2"
             hitSlop={8}
           >
-            <Text className="text-xs text-ui-shade/70">Dismiss</Text>
+            <Text className="text-xs font-medium text-ui-shade/70">
+              Dismiss
+            </Text>
           </TouchableOpacity>
         </View>
       ) : null}
