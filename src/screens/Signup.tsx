@@ -3,9 +3,14 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { GoogleAuthButton } from "../components/auth/GoogleAuthButton";
 import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
+import {
+  getGoogleIdToken,
+  getGoogleSignInErrorMessage,
+} from "../service/google-signin";
 import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
@@ -13,7 +18,7 @@ import { triggerSelectionHaptic } from "../utils/haptics";
 
 const SignupScreen = () => {
   const router = useRouter();
-  const { signupWithCredentials } = useAuth();
+  const { loginWithGoogle, signupWithCredentials } = useAuth();
   const { checkNotificationPermission } = useOneSignal();
 
   const [email, setEmail] = useState("");
@@ -36,6 +41,26 @@ const SignupScreen = () => {
         error?.message ||
         "Unable to create account right now.";
       setApiError(message);
+    },
+  });
+
+  const googleSignupMutation = useMutation({
+    mutationFn: async () => {
+      const idToken = await getGoogleIdToken();
+      if (!idToken) return null;
+      return loginWithGoogle(idToken);
+    },
+    onSuccess: async (user) => {
+      if (!user) return;
+      await checkNotificationPermission(true);
+      const isOnboarded = Boolean(getIsOnboarded(user?._id || user?.id || ""));
+      router.replace(isOnboarded ? "/explore" : "/(onboarding)/onboarding");
+    },
+    onError: (error: unknown) => {
+      const message = getGoogleSignInErrorMessage(error);
+      if (message) {
+        setApiError(message);
+      }
     },
   });
 
@@ -69,6 +94,16 @@ const SignupScreen = () => {
       password,
     });
   };
+
+  const handleGoogleSignup = () => {
+    setEmailError("");
+    setPasswordError("");
+    setApiError("");
+    googleSignupMutation.mutate();
+  };
+
+  const isSubmitting =
+    signupMutation.isPending || googleSignupMutation.isPending;
 
   return (
     <AuthScreenLayout>
@@ -122,8 +157,21 @@ const SignupScreen = () => {
         ) : null}
 
         <Button
-          text={signupMutation.isPending ? "Creating..." : "Create Account"}
+          text={isSubmitting ? "Creating..." : "Create Account"}
           onClick={onSubmit}
+          disabled={isSubmitting}
+        />
+
+        <View className="flex-row items-center gap-3">
+          <View className="h-px flex-1 bg-ui-shade/10" />
+          <Text className="text-xs text-ui-shade/60">or</Text>
+          <View className="h-px flex-1 bg-ui-shade/10" />
+        </View>
+
+        <GoogleAuthButton
+          text="Sign up with Google"
+          onPress={handleGoogleSignup}
+          isLoading={googleSignupMutation.isPending}
           disabled={signupMutation.isPending}
         />
 

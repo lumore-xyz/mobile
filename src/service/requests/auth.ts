@@ -3,10 +3,8 @@ import { useCallback } from "react";
 import { OneSignal } from "react-native-onesignal";
 import { refreshAccessToken } from "../auth-session";
 import apiClient from "../api-client";
-import {
-  clearSession,
-  setSession,
-} from "../storage";
+import { signOutFromGoogle } from "../google-signin";
+import { clearSession, setSession } from "../storage";
 
 type User = {
   id?: string;
@@ -97,7 +95,9 @@ export default function useAuth() {
   const signupWithCredentials = useCallback(
     async ({ email, password }: CredentialSignupPayload): Promise<User> => {
       const payload = {
-        email: String(email || "").trim().toLowerCase(),
+        email: String(email || "")
+          .trim()
+          .toLowerCase(),
         password,
       };
 
@@ -129,6 +129,7 @@ export default function useAuth() {
     } catch (error) {
       console.warn("OneSignal logout failed", error);
     }
+    await signOutFromGoogle();
     clearSession();
     router.replace("/login");
   }, []);

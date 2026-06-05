@@ -25,7 +25,10 @@
       [
         "onesignal-expo-plugin",
         {
-          "mode": "production"
+          "mode": "production",
+          "smallIcons": ["./assets/images/logo-transparent.png"],
+          "largeIcons": ["./assets/images/logo-transparent.png"],
+          "smallIconAccentColor": "#541388"
         }
       ],
       [

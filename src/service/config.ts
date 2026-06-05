@@ -41,7 +41,7 @@ const developmentConfig = resolveAdMobConfig({
       ? "http://10.0.2.2:5000/api/chat"
       : "http://localhost:5000/api/chat",
   GOOGLE_WEB_CLIENT_ID:
-    "681858960345-qghtb8olrkb2oh6q05ki37i6p8k8f9ga.apps.googleusercontent.com",
+    "681858960345-ve9vanjcbhk293pj2niqnvme31m2kded.apps.googleusercontent.com",
   IOS_URL_SCHEMA:
     "com.googleusercontent.apps.681858960345-t8llre06pgn2pegq01kjgukhmuiu46kf",
   ADMOB_ANDROID_APP_ID: "ca-app-pub-5845343690682759~9095410597",
@@ -60,7 +60,7 @@ const productionConfig = resolveAdMobConfig({
   BASE_URL: "https://api.lumore.xyz",
   SOCKET_URL: "https://api.lumore.xyz/api/chat",
   GOOGLE_WEB_CLIENT_ID:
-    "681858960345-qghtb8olrkb2oh6q05ki37i6p8k8f9ga.apps.googleusercontent.com",
+    "681858960345-ve9vanjcbhk293pj2niqnvme31m2kded.apps.googleusercontent.com",
   IOS_URL_SCHEMA:
     "com.googleusercontent.apps.681858960345-t8llre06pgn2pegq01kjgukhmuiu46kf",
   ADMOB_ANDROID_APP_ID: "ca-app-pub-5845343690682759~9095410597",

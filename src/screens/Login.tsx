@@ -2,10 +2,15 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { GoogleAuthButton } from "../components/auth/GoogleAuthButton";
 import { LegalAgreementText } from "../components/auth/LegalAgreementText";
 import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
+import {
+  getGoogleIdToken,
+  getGoogleSignInErrorMessage,
+} from "../service/google-signin";
 import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
@@ -13,7 +18,7 @@ import { triggerSelectionHaptic } from "../utils/haptics";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { loginWithCredentials } = useAuth();
+  const { loginWithCredentials, loginWithGoogle } = useAuth();
   const { checkNotificationPermission } = useOneSignal();
 
   const [identifier, setIdentifier] = useState("");
@@ -41,6 +46,26 @@ export default function LoginScreen() {
         error?.message ||
         "Unable to login with credentials.";
       setApiError(message);
+    },
+  });
+
+  const googleLoginMutation = useMutation({
+    mutationFn: async () => {
+      const idToken = await getGoogleIdToken();
+      if (!idToken) return null;
+      return loginWithGoogle(idToken);
+    },
+    onSuccess: async (user) => {
+      if (!user) return;
+      await checkNotificationPermission(true);
+      const isOnboarded = Boolean(getIsOnboarded(user?._id || user?.id || ""));
+      router.replace(isOnboarded ? "/explore" : "/(onboarding)/onboarding");
+    },
+    onError: (error: unknown) => {
+      const message = getGoogleSignInErrorMessage(error);
+      if (message) {
+        setApiError(message);
+      }
     },
   });
 
@@ -72,6 +97,16 @@ export default function LoginScreen() {
       password,
     });
   };
+
+  const handleGoogleLogin = () => {
+    setIdentifierError("");
+    setPasswordError("");
+    setApiError("");
+    googleLoginMutation.mutate();
+  };
+
+  const isSubmitting =
+    credentialLoginMutation.isPending || googleLoginMutation.isPending;
 
   return (
     <AuthScreenLayout>
@@ -147,9 +182,21 @@ export default function LoginScreen() {
           <Text className="text-sm text-red-500">{apiError}</Text>
         ) : null}
         <Button
-          text={credentialLoginMutation.isPending ? "Signing in..." : "Sign In"}
+          text={isSubmitting ? "Signing in..." : "Sign In"}
           onClick={handleCredentialLogin}
-          disabled={credentialLoginMutation.isPending || !canSubmit}
+          disabled={isSubmitting || !canSubmit}
+        />
+
+        <View className="flex-row items-center gap-3">
+          <View className="h-px flex-1 bg-ui-shade/10" />
+          <Text className="text-xs text-ui-shade/60">or</Text>
+          <View className="h-px flex-1 bg-ui-shade/10" />
+        </View>
+
+        <GoogleAuthButton
+          onPress={handleGoogleLogin}
+          isLoading={googleLoginMutation.isPending}
+          disabled={credentialLoginMutation.isPending}
         />
       </View>
       <LegalAgreementText />

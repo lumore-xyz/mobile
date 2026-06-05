@@ -5,11 +5,14 @@ import { KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { GluestackUIProvider } from "../components/ui/gluestack-ui-provider";
 import { useGlobalScreenProtection } from "../hooks/useGlobalScreenProtection";
+import { configureGoogleSignIn } from "../service/google-signin";
 import Provider from "../service/providers";
 import { OneSignalProvider } from "../service/providers/OneSignalProvider";
 
 const stackScreenOptions = { headerShown: false };
 const keyboardAvoidingBehavior = Platform.OS === "ios" ? "padding" : undefined;
+
+configureGoogleSignIn();
 
 export default function RootLayout() {
   // Root-level mounting protects the entire Expo Router tree by default.
