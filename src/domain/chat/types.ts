@@ -6,9 +6,12 @@ export interface ChatReaction {
 export interface ChatReplyPreview {
   _id: string;
   senderId: string;
-  messageType: "text" | "image";
+  messageType: "text" | "image" | "audio";
   message: string;
   imageUrl?: string | null;
+  audioUrl?: string | null;
+  audioDurationMs?: number | null;
+  audioWaveform?: number[] | null;
 }
 
 export interface Message {
@@ -16,9 +19,13 @@ export interface Message {
   clientMessageId?: string;
   sender: string;
   message: string;
-  messageType?: "text" | "image";
+  messageType?: "text" | "image" | "audio";
   imageUrl?: string | null;
   imagePublicId?: string | null;
+  audioUrl?: string | null;
+  audioPublicId?: string | null;
+  audioDurationMs?: number | null;
+  audioWaveform?: number[] | null;
   timestamp: number;
   replyTo?: ChatReplyPreview | null;
   reactions?: ChatReaction[];

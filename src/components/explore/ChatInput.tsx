@@ -12,13 +12,16 @@ import {
   triggerLightImpactHaptic,
   triggerSelectionHaptic,
 } from "@/src/utils/haptics";
+import { AudioWaveform } from "./AudioWaveform";
 
 interface ReplyingToPreview {
   _id: string;
   senderId: string;
-  messageType: "text" | "image";
+  messageType: "text" | "image" | "audio";
   message: string;
   imageUrl?: string | null;
+  audioUrl?: string | null;
+  audioDurationMs?: number | null;
 }
 
 interface PendingImage {
@@ -39,6 +42,10 @@ interface ChatInputProps {
   roomData: any;
   userId: string;
   isUploadingImage: boolean;
+  isUploadingVoice: boolean;
+  isRecordingVoice: boolean;
+  recordingDurationMs: number;
+  recordingWaveform: number[];
   replyingTo: ReplyingToPreview | null;
   onCancelReply: () => void;
   isEditing: boolean;
@@ -46,7 +53,17 @@ interface ChatInputProps {
   pendingImage: PendingImage | null;
   uploadError?: string | null;
   onDismissUploadError: () => void;
+  onStartVoiceRecording: () => void;
+  onStopVoiceRecording: () => void;
+  onCancelVoiceRecording: () => void;
 }
+
+const formatVoiceDuration = (durationMs: number) => {
+  const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
 
 const ChatInput = React.memo(function ChatInput({
   value,
@@ -60,6 +77,10 @@ const ChatInput = React.memo(function ChatInput({
   roomData,
   userId,
   isUploadingImage,
+  isUploadingVoice,
+  isRecordingVoice,
+  recordingDurationMs,
+  recordingWaveform,
   replyingTo,
   onCancelReply,
   isEditing,
@@ -67,14 +88,27 @@ const ChatInput = React.memo(function ChatInput({
   pendingImage,
   uploadError,
   onDismissUploadError,
+  onStartVoiceRecording,
+  onStopVoiceRecording,
+  onCancelVoiceRecording,
 }: ChatInputProps) {
   const canSend =
     isConnected &&
     isActive &&
+    !isRecordingVoice &&
+    !isUploadingVoice &&
     !(isUploadingImage && (!pendingImage || pendingImage.uploading)) &&
     Boolean(
       value.trim() || isEditing || (pendingImage && !pendingImage.uploading),
     );
+  const canRecordVoice =
+    isConnected &&
+    isActive &&
+    !isEditing &&
+    !pendingImage &&
+    !isUploadingImage &&
+    !isUploadingVoice &&
+    !value.trim();
 
   const handleImageSelect = () => {
     triggerSelectionHaptic();
@@ -85,6 +119,17 @@ const ChatInput = React.memo(function ChatInput({
     if (!canSend) return;
     triggerLightImpactHaptic();
     onSend();
+  };
+
+  const handleVoicePress = () => {
+    if (isRecordingVoice) {
+      triggerLightImpactHaptic();
+      onStopVoiceRecording();
+      return;
+    }
+    if (!canRecordVoice) return;
+    triggerSelectionHaptic();
+    onStartVoiceRecording();
   };
 
   if (!isActive) {
@@ -105,6 +150,8 @@ const ChatInput = React.memo(function ChatInput({
             Replying:{" "}
             {replyingTo.messageType === "image"
               ? "Photo"
+              : replyingTo.messageType === "audio"
+                ? "Voice note"
               : replyingTo.message || "Message"}
           </Text>
           <TouchableOpacity
@@ -136,13 +183,62 @@ const ChatInput = React.memo(function ChatInput({
         </View>
       ) : null}
 
+      {isRecordingVoice ? (
+        <View className="mb-2 flex-row items-center gap-3 rounded-full bg-ui-highlight px-3 py-2">
+          <TouchableOpacity
+            onPress={() => {
+              triggerSelectionHaptic();
+              onCancelVoiceRecording();
+            }}
+            className="min-h-11 justify-center"
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel voice recording"
+          >
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
+              <Ionicons name="trash-outline" size={20} color="#541388" />
+            </View>
+          </TouchableOpacity>
+          <View className="flex-1">
+            <AudioWaveform
+              samples={recordingWaveform}
+              seed={`recording-${recordingDurationMs}`}
+              barCount={42}
+              height={38}
+              barWidth={3}
+              gap={4}
+              activeColor="#FFFFFF"
+              inactiveColor="rgba(255,255,255,0.9)"
+            />
+          </View>
+          <Text className="w-12 text-right text-base text-white">
+            {formatVoiceDuration(recordingDurationMs)}
+          </Text>
+        </View>
+      ) : null}
+
+      {isUploadingVoice ? (
+        <View className="mb-2 flex-row items-center gap-2 rounded-xl bg-ui-highlight/5 px-3 py-2">
+          <ActivityIndicator size="small" color="#541388" />
+          <Text className="text-xs text-ui-shade">
+            Uploading voice note...
+          </Text>
+        </View>
+      ) : null}
+
       <View className="bg-white border border-gray-200 w-full flex-row items-center gap-3 rounded-full px-3 py-2">
         <TouchableOpacity
           className={`h-11 w-11 items-center justify-center rounded-full border border-ui-shade/20 ${
             canShareImages ? "" : "opacity-50"
           }`}
           onPress={handleImageSelect}
-          disabled={!isConnected || !isActive || isUploadingImage}
+          disabled={
+            !isConnected ||
+            !isActive ||
+            isUploadingImage ||
+            isUploadingVoice ||
+            isRecordingVoice
+          }
           hitSlop={4}
           accessibilityRole="button"
           accessibilityLabel="Add image"
@@ -157,10 +253,16 @@ const ChatInput = React.memo(function ChatInput({
 
         <TextInput
           className="min-h-11 flex-1 py-2 text-base"
-          placeholder={isEditing ? "Edit your message" : "Say Hi"}
+          placeholder={
+            isRecordingVoice
+              ? "Recording voice note..."
+              : isEditing
+                ? "Edit your message"
+                : "Say Hi"
+          }
           value={value}
           onChangeText={onChangeText}
-          editable={isActive}
+          editable={isActive && !isRecordingVoice && !isUploadingVoice}
           returnKeyType="send"
           blurOnSubmit={false}
           onSubmitEditing={() => {
@@ -168,6 +270,34 @@ const ChatInput = React.memo(function ChatInput({
           }}
           accessibilityLabel="Message input"
         />
+
+        {!isEditing ? (
+          <TouchableOpacity
+            className="h-11 w-11"
+            onPress={handleVoicePress}
+            disabled={!isRecordingVoice && !canRecordVoice}
+            hitSlop={4}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isRecordingVoice ? "Stop and send voice note" : "Record voice note"
+            }
+            accessibilityState={{
+              disabled: !isRecordingVoice && !canRecordVoice,
+            }}
+          >
+            <View
+              className={`h-11 w-11 rounded-full items-center justify-center ${
+                isRecordingVoice ? "bg-red-500" : "bg-ui-highlight/10"
+              }`}
+            >
+              <Ionicons
+                name={isRecordingVoice ? "stop" : "mic-outline"}
+                size={18}
+                color={isRecordingVoice ? "white" : "#541388"}
+              />
+            </View>
+          </TouchableOpacity>
+        ) : null}
 
         <TouchableOpacity
           className="h-11 w-11"

@@ -204,6 +204,13 @@ const decodeLastMessage = (room: any) => {
     return "Photo";
   }
 
+  if (
+    lastMessage.previewType === "audio" ||
+    lastMessage.messageType === "audio"
+  ) {
+    return "Voice note";
+  }
+
   if (!lastMessage.message) return "New message";
   return lastMessage.message;
 };

@@ -1,7 +1,12 @@
+import Skeleton from "@/src/components/ui/Skeleton";
 import { ChatReplyPreview, Message } from "@/src/domain/chat/types";
 import { messageSchema } from "@/src/domain/chat/validation";
-import { deleteTempChatImage, uploadChatImage } from "@/src/libs/apis";
-import Skeleton from "@/src/components/ui/Skeleton";
+import {
+  deleteTempChatImage,
+  uploadChatAudio,
+  uploadChatImage,
+} from "@/src/libs/apis";
+import { getExpoAudioModule } from "@/src/libs/audio";
 import { trackAnalytic } from "@/src/service/analytics";
 import { useChat } from "@/src/service/context/ChatContext";
 import { useSocket } from "@/src/service/context/SocketContext";
@@ -11,6 +16,12 @@ import {
   socketWarn,
 } from "@/src/service/socket-debug";
 import { getUser, storage } from "@/src/service/storage";
+import {
+  createRecordingWaveformSample,
+  DEFAULT_WAVEFORM_BAR_COUNT,
+  normalizeWaveformSamples,
+} from "@/src/utils/audioWaveform";
+import { toUserFacingError } from "@/src/utils/userFacingError";
 import * as ImagePicker from "expo-image-picker";
 import React, {
   useCallback,
@@ -37,6 +48,10 @@ const CLIENT_MESSAGE_ID_RANDOM_SLICE_START = 2;
 const CLIENT_MESSAGE_ID_RANDOM_SLICE_END = 8;
 const IMAGE_UNLOCK_REQUIRED_MESSAGE =
   "You can share photos after your match unlocks you.";
+const VOICE_NOTES_UNAVAILABLE_MESSAGE =
+  "Voice notes aren’t available in this version of the app. Please update Lumore and try again.";
+const MIN_VOICE_NOTE_DURATION_MS = 800;
+const RECORDING_WAVEFORM_SAMPLE_LIMIT = 72;
 
 export const ChatScreen = () => {
   const [newMessage, setNewMessage] = useState("");
@@ -44,16 +59,45 @@ export const ChatScreen = () => {
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVoice, setIsUploadingVoice] = useState(false);
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const [recordingWaveform, setRecordingWaveform] = useState<number[]>([]);
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isPartnerTyping, setIsPartnerTyping] = useState(false);
 
   const pendingImageRef = useRef<PendingImage | null>(null);
   const uploadRequestIdRef = useRef(0);
+  const isRecordingVoiceRef = useRef(false);
+  const recordingWaveformRef = useRef<number[]>([]);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const partnerTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const expoAudio = useMemo(() => getExpoAudioModule(), []);
+  const voiceRecordingOptions = useMemo(
+    () =>
+      expoAudio
+        ? {
+            ...expoAudio.RecordingPresets.LOW_QUALITY,
+            isMeteringEnabled: true,
+          }
+        : null,
+    [expoAudio],
+  );
+  const voiceRecorder =
+    expoAudio && voiceRecordingOptions
+      ? expoAudio.useAudioRecorder(voiceRecordingOptions)
+      : null;
+  const voiceRecorderState =
+    expoAudio && voiceRecorder
+      ? expoAudio.useAudioRecorderState(voiceRecorder, 250)
+      : {
+          isRecording: false,
+          durationMillis: 0,
+          metering: undefined,
+          url: null,
+        };
 
   const userId = useMemo(() => {
     try {
@@ -99,15 +143,20 @@ export const ChatScreen = () => {
 
   const replyingToPreview = useMemo<ChatReplyPreview | null>(() => {
     if (!replyingTo?._id) return null;
+    const messageType = replyingTo.messageType || "text";
     return {
       _id: replyingTo._id,
       senderId: replyingTo.sender,
-      messageType: replyingTo.messageType || "text",
+      messageType,
       message:
-        replyingTo.messageType === "image"
+        messageType === "image"
           ? "Photo"
-          : (replyingTo.message || "").slice(0, 140),
+          : messageType === "audio"
+            ? "Voice note"
+            : (replyingTo.message || "").slice(0, 140),
       imageUrl: replyingTo.imageUrl || null,
+      audioUrl: replyingTo.audioUrl || null,
+      audioDurationMs: replyingTo.audioDurationMs || null,
     };
   }, [replyingTo]);
 
@@ -121,6 +170,26 @@ export const ChatScreen = () => {
         )}`,
     [userId],
   );
+
+  useEffect(() => {
+    if (!isRecordingVoice) return;
+
+    setRecordingWaveform((prev) => {
+      const nextSample = createRecordingWaveformSample(
+        voiceRecorderState.metering,
+        prev.length,
+      );
+      const next = [...prev, nextSample].slice(
+        -RECORDING_WAVEFORM_SAMPLE_LIMIT,
+      );
+      recordingWaveformRef.current = next;
+      return next;
+    });
+  }, [
+    isRecordingVoice,
+    voiceRecorderState.durationMillis,
+    voiceRecorderState.metering,
+  ]);
 
   const clearPendingImage = useCallback(() => {
     setPendingImage(null);
@@ -478,13 +547,11 @@ export const ChatScreen = () => {
     } catch (error: any) {
       if (requestId !== uploadRequestIdRef.current) return;
       const status = Number(error?.response?.status || 0);
-      const apiMessage = error?.response?.data?.message;
-      const localMessage = error instanceof Error ? error.message : null;
       const fallbackMessage =
         status === 413
           ? "Image is too large. Please choose a smaller image."
           : "Image upload failed. Please try again.";
-      setUploadError(apiMessage || localMessage || fallbackMessage);
+      setUploadError(toUserFacingError(error, fallbackMessage));
       setPendingImage((prev) => {
         if (!prev || !prev.uploading) return prev;
         if (selectedImageUri && prev.previewUrl !== selectedImageUri)
@@ -495,8 +562,7 @@ export const ChatScreen = () => {
         roomId,
         requestId,
         status,
-        apiMessage,
-        localMessage,
+        message: error instanceof Error ? error.message : null,
       });
     } finally {
       if (requestId === uploadRequestIdRef.current) {
@@ -533,9 +599,268 @@ export const ChatScreen = () => {
     }
   };
 
+  const stopRecorderSilently = useCallback(async () => {
+    try {
+      if (
+        voiceRecorder &&
+        (voiceRecorderState.isRecording || isRecordingVoiceRef.current)
+      ) {
+        await voiceRecorder.stop();
+      }
+    } catch (error) {
+      console.error("[ChatScreen] Failed to stop voice recorder:", error);
+    } finally {
+      isRecordingVoiceRef.current = false;
+      setIsRecordingVoice(false);
+      void expoAudio
+        ?.setAudioModeAsync({
+          allowsRecording: false,
+          playsInSilentMode: true,
+        })
+        .catch(() => {});
+    }
+  }, [expoAudio, voiceRecorder, voiceRecorderState.isRecording]);
+
+  const handleStartVoiceRecording = useCallback(async () => {
+    socketDebug("ChatScreen", "handleStartVoiceRecording called", {
+      roomId: roomId ?? null,
+      isActive,
+      hasSocket: Boolean(socket),
+      socketConnected: Boolean(socket?.connected),
+    });
+    if (!socket || !roomId || !matchedUser || !isActive) {
+      socketWarn("ChatScreen", "voice recording blocked", {
+        hasSocket: Boolean(socket),
+        roomId: roomId ?? null,
+        matchedUserId: matchedUser?._id ?? null,
+        isActive,
+      });
+      return;
+    }
+    if (!expoAudio || !voiceRecorder) {
+      Alert.alert(
+        "Voice notes unavailable",
+        VOICE_NOTES_UNAVAILABLE_MESSAGE,
+      );
+      return;
+    }
+    if (editingMessageId || pendingImage || newMessage.trim()) {
+      socketWarn("ChatScreen", "voice recording blocked: composer busy");
+      return;
+    }
+
+    try {
+      const permission = await expoAudio.requestRecordingPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert(
+          "Microphone permission required",
+          "Please enable microphone access to record voice notes.",
+        );
+        return;
+      }
+
+      setUploadError(null);
+      recordingWaveformRef.current = [];
+      setRecordingWaveform([]);
+      await expoAudio.setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
+      await voiceRecorder.prepareToRecordAsync();
+      voiceRecorder.record();
+      isRecordingVoiceRef.current = true;
+      setIsRecordingVoice(true);
+      socketDebug("ChatScreen", "voice recording started", { roomId });
+    } catch (error) {
+      console.error("[ChatScreen] Failed to start voice recording:", error);
+      setUploadError("Could not start voice recording. Please try again.");
+      isRecordingVoiceRef.current = false;
+      setIsRecordingVoice(false);
+      void expoAudio
+        ?.setAudioModeAsync({
+          allowsRecording: false,
+          playsInSilentMode: true,
+        })
+        .catch(() => {});
+    }
+  }, [
+    editingMessageId,
+    expoAudio,
+    isActive,
+    matchedUser,
+    newMessage,
+    pendingImage,
+    roomId,
+    socket,
+    voiceRecorder,
+  ]);
+
+  const handleCancelVoiceRecording = useCallback(async () => {
+    socketDebug("ChatScreen", "voice recording cancel requested", {
+      roomId: roomId ?? null,
+    });
+    recordingWaveformRef.current = [];
+    setRecordingWaveform([]);
+    await stopRecorderSilently();
+  }, [roomId, stopRecorderSilently]);
+
+  const handleStopVoiceRecording = useCallback(async () => {
+    socketDebug("ChatScreen", "handleStopVoiceRecording called", {
+      roomId: roomId ?? null,
+      durationMs: voiceRecorderState.durationMillis,
+    });
+    if (!socket || !roomId || !matchedUser || !isActive) {
+      await stopRecorderSilently();
+      socketWarn("ChatScreen", "voice send blocked", {
+        hasSocket: Boolean(socket),
+        roomId: roomId ?? null,
+        matchedUserId: matchedUser?._id ?? null,
+        isActive,
+      });
+      return;
+    }
+    if (!expoAudio || !voiceRecorder) {
+      Alert.alert(
+        "Voice notes unavailable",
+        VOICE_NOTES_UNAVAILABLE_MESSAGE,
+      );
+      return;
+    }
+
+    const recordedDurationMs = voiceRecorderState.durationMillis;
+    const finalWaveform = normalizeWaveformSamples(
+      recordingWaveformRef.current,
+      DEFAULT_WAVEFORM_BAR_COUNT,
+      `${roomId}-${recordedDurationMs}`,
+    );
+    try {
+      await voiceRecorder.stop();
+      isRecordingVoiceRef.current = false;
+      setIsRecordingVoice(false);
+      void expoAudio
+        .setAudioModeAsync({
+          allowsRecording: false,
+          playsInSilentMode: true,
+        })
+        .catch(() => {});
+
+      const audioUri = voiceRecorder.uri || voiceRecorderState.url;
+      if (!audioUri) {
+        setUploadError("Voice recording failed. Please try again.");
+        return;
+      }
+      if (recordedDurationMs < MIN_VOICE_NOTE_DURATION_MS) {
+        setUploadError("Voice note is too short. Try recording a bit longer.");
+        return;
+      }
+
+      setUploadError(null);
+      setIsUploadingVoice(true);
+      const uploaded = await uploadChatAudio(
+        roomId,
+        audioUri,
+        recordedDurationMs,
+      );
+      const audioClientMessageId = createClientMessageId();
+
+      socketDebug("ChatScreen", "emit send_message (audio)", {
+        roomId,
+        receiverId: matchedUser._id,
+        clientMessageId: audioClientMessageId,
+        replyTo: replyingToPreview?._id || null,
+        durationMs: uploaded.audioDurationMs || recordedDurationMs,
+      });
+      socket.emit("send_message", {
+        roomId,
+        receiverId: matchedUser._id,
+        messageType: "audio",
+        audioUrl: uploaded.audioUrl,
+        audioPublicId: uploaded.audioPublicId,
+        audioDurationMs: uploaded.audioDurationMs || recordedDurationMs,
+        audioWaveform: finalWaveform,
+        replyTo: replyingToPreview?._id || null,
+        clientMessageId: audioClientMessageId,
+      });
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          clientMessageId: audioClientMessageId,
+          sender: userId,
+          message: "",
+          messageType: "audio",
+          audioUrl: uploaded.audioUrl,
+          audioPublicId: uploaded.audioPublicId,
+          audioDurationMs: uploaded.audioDurationMs || recordedDurationMs,
+          audioWaveform: finalWaveform,
+          timestamp: Date.now(),
+          replyTo: replyingToPreview,
+          reactions: [],
+          pending: true,
+          deliveredAt: null,
+          readAt: null,
+        },
+      ]);
+      recordingWaveformRef.current = [];
+      setRecordingWaveform([]);
+      trackAnalytic({
+        activity: "voice_note_sent",
+        label: "Voice Note Sent",
+        value: roomId,
+      });
+      setReplyingTo(null);
+      socketDebug("ChatScreen", "voice note send completed");
+    } catch (error: any) {
+      isRecordingVoiceRef.current = false;
+      setIsRecordingVoice(false);
+      void expoAudio
+        ?.setAudioModeAsync({
+          allowsRecording: false,
+          playsInSilentMode: true,
+        })
+        .catch(() => {});
+      const status = Number(error?.response?.status || 0);
+      setUploadError(
+        toUserFacingError(
+          error,
+          "We couldn’t send that voice note. Please try again.",
+        ),
+      );
+      socketError("ChatScreen", "voice note upload/send failed", {
+        roomId,
+        status,
+        message: error instanceof Error ? error.message : null,
+      });
+    } finally {
+      setIsUploadingVoice(false);
+      if (!isRecordingVoiceRef.current) {
+        recordingWaveformRef.current = [];
+        setRecordingWaveform([]);
+      }
+    }
+  }, [
+    createClientMessageId,
+    expoAudio,
+    isActive,
+    matchedUser,
+    replyingToPreview,
+    roomId,
+    setMessages,
+    socket,
+    stopRecorderSilently,
+    userId,
+    voiceRecorder,
+    voiceRecorderState.durationMillis,
+    voiceRecorderState.url,
+  ]);
+
   useEffect(() => {
     pendingImageRef.current = pendingImage;
   }, [pendingImage]);
+
+  useEffect(() => {
+    isRecordingVoiceRef.current = isRecordingVoice;
+  }, [isRecordingVoice]);
 
   useEffect(() => {
     return () => {
@@ -543,8 +868,11 @@ export const ChatScreen = () => {
       if (pending?.imagePublicId) {
         void deleteTempChatImage(pending.imagePublicId).catch(() => {});
       }
+      if (isRecordingVoiceRef.current) {
+        void voiceRecorder?.stop().catch(() => {});
+      }
     };
-  }, []);
+  }, [voiceRecorder]);
 
   const handleToggleLike = useCallback(
     (messageId: string, emoji = DEFAULT_HEART_EMOJI) => {
@@ -723,6 +1051,10 @@ export const ChatScreen = () => {
         roomData={roomData}
         userId={userId}
         isUploadingImage={isUploadingImage}
+        isUploadingVoice={isUploadingVoice}
+        isRecordingVoice={isRecordingVoice}
+        recordingDurationMs={voiceRecorderState.durationMillis}
+        recordingWaveform={recordingWaveform}
         replyingTo={replyingToPreview}
         onCancelReply={cancelReply}
         isEditing={Boolean(editingMessageId)}
@@ -730,6 +1062,9 @@ export const ChatScreen = () => {
         pendingImage={pendingImage}
         uploadError={uploadError}
         onDismissUploadError={dismissUploadError}
+        onStartVoiceRecording={handleStartVoiceRecording}
+        onStopVoiceRecording={handleStopVoiceRecording}
+        onCancelVoiceRecording={handleCancelVoiceRecording}
       />
     </KeyboardAvoidingView>
   );

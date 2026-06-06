@@ -36,16 +36,16 @@ const resolveAdMobConfig = <
 });
 
 const developmentConfig = resolveAdMobConfig({
-  // BASE_URL: "https://api.lumore.xyz",
-  // SOCKET_URL: "https://api.lumore.xyz/api/chat",
-  BASE_URL:
-    Platform.OS === "android"
-      ? "http://10.0.2.2:5000"
-      : "http://localhost:5000",
-  SOCKET_URL:
-    Platform.OS === "android"
-      ? "http://10.0.2.2:5000/api/chat"
-      : "http://localhost:5000/api/chat",
+  BASE_URL: "https://api.lumore.xyz",
+  SOCKET_URL: "https://api.lumore.xyz/api/chat",
+  // BASE_URL:
+  //   Platform.OS === "android"
+  //     ? "http://10.0.2.2:5000"
+  //     : "http://localhost:5000",
+  // SOCKET_URL:
+  //   Platform.OS === "android"
+  //     ? "http://10.0.2.2:5000/api/chat"
+  //     : "http://localhost:5000/api/chat",
   GOOGLE_WEB_CLIENT_ID:
     "681858960345-ve9vanjcbhk293pj2niqnvme31m2kded.apps.googleusercontent.com",
   IOS_URL_SCHEMA:

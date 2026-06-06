@@ -15,6 +15,7 @@ import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
 import { triggerSelectionHaptic } from "../utils/haptics";
+import { toUserFacingError } from "../utils/userFacingError";
 
 const SignupScreen = () => {
   const router = useRouter();
@@ -36,10 +37,10 @@ const SignupScreen = () => {
       router.replace(isOnboarded ? "/explore" : "/(onboarding)/onboarding");
     },
     onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Unable to create account right now.";
+      const message = toUserFacingError(
+        error,
+        "We couldn’t create your account right now. Please try again.",
+      );
       setApiError(message);
     },
   });

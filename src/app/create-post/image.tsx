@@ -4,6 +4,7 @@ import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
 import { createImagePost } from "@/src/libs/apis";
 import { queryClient } from "@/src/service/query-client";
 import { getUser } from "@/src/service/storage";
+import { toUserFacingError } from "@/src/utils/userFacingError";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
@@ -37,11 +38,12 @@ const CreateImagePost = () => {
       }
       router.push("/profile");
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        (err instanceof Error ? err.message : null) ||
-        "Upload failed. Please try again.";
-      setError(message);
+      setError(
+        toUserFacingError(
+          err,
+          "We couldn’t upload that image. Please try again.",
+        ),
+      );
     } finally {
       setIsSubmitting(false);
     }

@@ -9,6 +9,7 @@ import { TextInput } from "../components/ui/TextInput";
 import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
+import { toUserFacingError } from "../utils/userFacingError";
 
 export default function GuestLoginScreen() {
   const router = useRouter();
@@ -35,10 +36,10 @@ export default function GuestLoginScreen() {
       router.replace(isOnboarded ? "/explore" : "/(onboarding)/onboarding");
     },
     onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Unable to login with credentials.";
+      const message = toUserFacingError(
+        error,
+        "We couldn’t sign you in. Please check your details and try again.",
+      );
       setApiError(message);
     },
   });

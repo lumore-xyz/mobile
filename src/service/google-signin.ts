@@ -32,14 +32,12 @@ export const getGoogleIdToken = async () => {
   }
 
   if (!isSuccessResponse(response)) {
-    throw new Error("Google sign in was not completed.");
+    throw new Error("Google sign-in was not completed.");
   }
 
   const idToken = response.data.idToken;
   if (!idToken) {
-    throw new Error(
-      "Google did not return an ID token. Please check the Web client ID configuration.",
-    );
+    throw new Error("Google sign-in could not be completed.");
   }
 
   return idToken;
@@ -48,19 +46,19 @@ export const getGoogleIdToken = async () => {
 export const getGoogleSignInErrorMessage = (error: unknown) => {
   if (!isErrorWithCode(error)) {
     return error instanceof Error
-      ? error.message
-      : "Google sign in failed. Please try again.";
+      ? "We couldn’t sign you in with Google. Please try again."
+      : "We couldn’t sign you in with Google. Please try again.";
   }
 
   switch (error.code) {
     case statusCodes.IN_PROGRESS:
-      return "Google sign in is already in progress.";
+      return "Google sign-in is already open. Please finish that first.";
     case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-      return "Google Play Services is unavailable or needs an update.";
+      return "Please update Google Play Services, then try again.";
     case statusCodes.SIGN_IN_CANCELLED:
       return "";
     default:
-      return "Google sign in failed. Please check your Google configuration.";
+      return "We couldn’t sign you in with Google. Please try again.";
   }
 };
 

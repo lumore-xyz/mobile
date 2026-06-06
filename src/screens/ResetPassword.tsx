@@ -8,6 +8,7 @@ import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
 import { triggerSelectionHaptic } from "../utils/haptics";
+import { toUserFacingError } from "../utils/userFacingError";
 
 const resolveQueryValue = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] || "" : String(value || "");
@@ -48,10 +49,10 @@ const ResetPasswordScreen = () => {
       }, 1200);
     },
     onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Unable to reset password right now. Please try again.";
+      const message = toUserFacingError(
+        error,
+        "We couldn’t reset your password right now. Please try again.",
+      );
       setApiError(message);
       setSuccessMessage("");
     },
@@ -64,7 +65,7 @@ const ResetPasswordScreen = () => {
     setSuccessMessage("");
 
     if (!token) {
-      setApiError("Reset token is missing or invalid.");
+      setApiError("This reset link is missing or expired. Please request a new one.");
       return false;
     }
 

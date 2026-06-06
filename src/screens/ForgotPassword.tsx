@@ -8,6 +8,7 @@ import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
 import { triggerSelectionHaptic } from "../utils/haptics";
+import { toUserFacingError } from "../utils/userFacingError";
 
 const ForgotPasswordScreen = () => {
   const router = useRouter();
@@ -26,10 +27,10 @@ const ForgotPasswordScreen = () => {
       );
     },
     onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Unable to send reset email right now. Please try again.";
+      const message = toUserFacingError(
+        error,
+        "We couldn’t send the reset email right now. Please try again.",
+      );
       setApiError(message);
       setSuccessMessage("");
     },

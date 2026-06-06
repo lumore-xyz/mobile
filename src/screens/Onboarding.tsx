@@ -25,6 +25,7 @@ import {
   setIsOnboarded,
   setPendingReferralCode,
 } from "@/src/service/storage";
+import { toUserFacingError } from "@/src/utils/userFacingError";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -41,6 +42,12 @@ const extractApiMessage = (error: any) =>
     error?.response?.data?.message ||
       error?.message ||
       "Unable to save this step right now. Please try again.",
+  );
+
+const getFriendlyOnboardingError = (error: unknown) =>
+  toUserFacingError(
+    error,
+    "We couldn’t save this step right now. Please try again.",
   );
 
 const extractDuplicateField = (message: string) => {
@@ -212,9 +219,10 @@ const OnboardingScreen = ({
         await applyReferralCode(referralCode);
         removePendingReferralCode();
       } catch (error: any) {
-        const message =
-          error?.response?.data?.message ||
-          "Invalid referral code. Please check and try again.";
+        const message = toUserFacingError(
+          error,
+          "That referral code didn’t work. Please check it and try again.",
+        );
         setErrors((prev) => ({ ...prev, referralCode: message }));
         throw error;
       }
@@ -239,7 +247,7 @@ const OnboardingScreen = ({
       if (fieldError) {
         setErrors((prev) => ({ ...prev, [fieldError.fieldName]: fieldError.message }));
       } else {
-        setSubmitError(apiMessage);
+        setSubmitError(getFriendlyOnboardingError(error));
       }
       return;
     }

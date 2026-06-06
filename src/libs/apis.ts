@@ -450,6 +450,52 @@ export const deleteTempChatImage = async (publicId: string) => {
   return response.data as { message: string };
 };
 
+const getAudioUploadMetadata = (audioUri: string) => {
+  const extension = audioUri.split("?")[0]?.split(".").pop()?.toLowerCase();
+  if (extension === "webm") {
+    return { name: "voice-note.webm", type: "audio/webm" };
+  }
+  if (extension === "3gp") {
+    return { name: "voice-note.3gp", type: "audio/3gpp" };
+  }
+  if (extension === "wav") {
+    return { name: "voice-note.wav", type: "audio/wav" };
+  }
+  return { name: "voice-note.m4a", type: "audio/mp4" };
+};
+
+export const uploadChatAudio = async (
+  roomId: string,
+  audioUri: string,
+  durationMs: number,
+) => {
+  const metadata = getAudioUploadMetadata(audioUri);
+  const formData = new FormData();
+  formData.append("audio", {
+    uri: audioUri,
+    name: metadata.name,
+    type: metadata.type,
+  } as any);
+  formData.append("durationMs", String(Math.max(0, Math.round(durationMs))));
+
+  const response = await apiClient.post(`/messages/${roomId}/audio`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data as {
+    message: string;
+    audioUrl: string;
+    audioPublicId: string;
+    audioDurationMs: number;
+  };
+};
+
+export const deleteTempChatAudio = async (publicId: string) => {
+  const response = await apiClient.delete(`/messages/audio-temp`, {
+    data: { publicId },
+  });
+  return response.data as { message: string };
+};
+
 /* -------------------------------------------------------------------------- */
 /*                                  Posts                                     */
 /* -------------------------------------------------------------------------- */

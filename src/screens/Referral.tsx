@@ -11,6 +11,7 @@ import {
   removePendingReferralCode,
   setPendingReferralCode,
 } from "../service/storage";
+import { toUserFacingError } from "../utils/userFacingError";
 import { ReferralSummary } from "../utils/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
@@ -92,7 +93,12 @@ const ReferralScreen = () => {
       setCode("");
       removePendingReferralCode();
     } catch (error: any) {
-      setCodeError(error?.response?.data?.message || "Could not apply referral code");
+      setCodeError(
+        toUserFacingError(
+          error,
+          "We couldn’t apply that referral code. Please check it and try again.",
+        ),
+      );
     }
   };
 

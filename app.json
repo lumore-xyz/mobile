@@ -69,7 +69,14 @@
           "locationWhenInUsePermission": "Allow Lumore to use your location for better matches."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Lumore to record and share voice notes.",
+          "enableBackgroundRecording": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

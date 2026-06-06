@@ -3,6 +3,7 @@ import Skeleton from "@/src/components/ui/Skeleton";
 import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
 import { useUser } from "@/src/hooks/useUser";
 import { uploadProfilePicture } from "@/src/libs/apis";
+import { toUserFacingError } from "@/src/utils/userFacingError";
 import {
   ProfileFormValues,
   createProfileSchema,
@@ -131,12 +132,14 @@ const EditProfileScreen = () => {
         setUploadedImage(response?.profilePicture || null);
         await queryClient.invalidateQueries({ queryKey: ["user", userId] });
       } catch (error: any) {
-        const message =
-          error?.response?.data?.message ||
-          (error instanceof Error ? error.message : null) ||
-          "Image upload failed. Please try again.";
         setUploadedImage(null);
-        Alert.alert("Upload failed", message);
+        Alert.alert(
+          "Upload failed",
+          toUserFacingError(
+            error,
+            "We couldn’t upload that photo. Please try again.",
+          ),
+        );
       } finally {
         setIsUploadingImage(false);
       }

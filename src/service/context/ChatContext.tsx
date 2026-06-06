@@ -53,9 +53,13 @@ const getSenderId = (sender: any): string => {
 const mapReplyPreview = (replyTo: any) => {
   if (!replyTo?._id) return null;
 
-  const replyType: "text" | "image" = replyTo.messageType || "text";
+  const replyType: "text" | "image" | "audio" = replyTo.messageType || "text";
   const replyMessage =
-    replyType === "image" ? "Photo" : replyTo.message || "Message";
+    replyType === "image"
+      ? "Photo"
+      : replyType === "audio"
+        ? "Voice note"
+        : replyTo.message || "Message";
 
   return {
     _id: replyTo._id,
@@ -63,6 +67,11 @@ const mapReplyPreview = (replyTo: any) => {
     messageType: replyType,
     message: replyMessage,
     imageUrl: replyTo.imageUrl || null,
+    audioUrl: replyTo.audioUrl || null,
+    audioDurationMs: Number(replyTo.audioDurationMs || 0) || null,
+    audioWaveform: Array.isArray(replyTo.audioWaveform)
+      ? replyTo.audioWaveform
+      : null,
   } as ChatReplyPreview;
 };
 
@@ -167,7 +176,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   }, [revalidateUser]);
 
   const mapIncomingMessage = useCallback((rawMessage: any): Message | null => {
-    const messageType: "text" | "image" = rawMessage?.messageType || "text";
+    const messageType: "text" | "image" | "audio" =
+      rawMessage?.messageType || "text";
     const text = messageType === "text" ? rawMessage?.message || "" : "";
     const sender =
       getSenderId(rawMessage?.sender) || rawMessage?.senderId || "";
@@ -180,6 +190,12 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       messageType,
       imageUrl: rawMessage?.imageUrl || null,
       imagePublicId: rawMessage?.imagePublicId || null,
+      audioUrl: rawMessage?.audioUrl || null,
+      audioPublicId: rawMessage?.audioPublicId || null,
+      audioDurationMs: Number(rawMessage?.audioDurationMs || 0) || null,
+      audioWaveform: Array.isArray(rawMessage?.audioWaveform)
+        ? rawMessage.audioWaveform.map(Number).filter(Number.isFinite)
+        : null,
       timestamp:
         rawMessage?.timestamp ||
         (rawMessage?.createdAt

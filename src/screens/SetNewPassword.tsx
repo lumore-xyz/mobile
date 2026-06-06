@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
+import { toUserFacingError } from "../utils/userFacingError";
 
 const SetNewPasswordScreen = () => {
   const insets = useSafeAreaInsets();
@@ -28,9 +29,10 @@ const SetNewPasswordScreen = () => {
       router.replace("/explore");
     },
     onError: (error: any) => {
-      const message =
-        error?.response?.data?.message ||
-        "Unable to set password right now. Please try again.";
+      const message = toUserFacingError(
+        error,
+        "We couldn’t set your password right now. Please try again.",
+      );
       setApiError(message);
     },
   });

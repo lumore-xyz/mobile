@@ -2,6 +2,7 @@ import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
 import { submitThisOrThatQuestion } from "../libs/apis";
+import { toUserFacingError } from "../utils/userFacingError";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
@@ -65,9 +66,10 @@ const ThisOrThatSubmitScreen = () => {
       setError("Submitted! Your question is pending review.");
     } catch (err: any) {
       setError(
-        err?.response?.data?.message ||
-          (err instanceof Error ? err.message : null) ||
-          "Submission failed.",
+        toUserFacingError(
+          err,
+          "We couldn’t submit your question right now. Please try again.",
+        ),
       );
     } finally {
       setIsSubmitting(false);
