@@ -19,6 +19,42 @@ export interface LocationWritePayload {
   formattedAddress?: string | null;
 }
 
+export interface LocationRoomUserState {
+  isPinned: boolean;
+  inPool: boolean;
+  poolStatus: string;
+  lastMatchedAt?: string | null;
+  lastMatchedCycle?: string | null;
+  lastMatchRoom?: string | null;
+  lastPoolError?: string;
+}
+
+export interface LocationRoomSummary {
+  _id: string;
+  title: string;
+  description?: string;
+  location?: {
+    type: "Point";
+    coordinates: number[];
+    formattedAddress?: string;
+  };
+  distanceKm?: number | null;
+  nextMatchAt?: string;
+  secondsUntilNextMatch?: number;
+  pinnedCount?: number;
+  poolCount?: number;
+  userState?: LocationRoomUserState;
+}
+
+export interface LocationRoomMember {
+  _id: string;
+  username?: string;
+  nickname?: string;
+  profilePicture?: string;
+  dob?: string | null;
+  gender?: string;
+}
+
 /* -------------------------------------------------------------------------- */
 /*                               Auth & Profile                               */
 /* -------------------------------------------------------------------------- */
@@ -114,6 +150,71 @@ export const updateSlot = async (
 ) => {
   const response = await apiClient.patch(`/slots/${slotId}`, data);
   return response.data.data.slot;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                   Rooms                                    */
+/* -------------------------------------------------------------------------- */
+export const fetchNearbyRooms = async (params?: {
+  latitude?: number | null;
+  longitude?: number | null;
+  radiusKm?: number;
+}) => {
+  const response = await apiClient.get<{ rooms: LocationRoomSummary[] }>(
+    "/rooms/nearby",
+    {
+      params: {
+        latitude: params?.latitude ?? undefined,
+        longitude: params?.longitude ?? undefined,
+        radiusKm: params?.radiusKm ?? undefined,
+      },
+    },
+  );
+  return response.data.rooms;
+};
+
+export const fetchLocationRoomDetail = async (roomId: string) => {
+  const response = await apiClient.get<{
+    room: LocationRoomSummary;
+    members: LocationRoomMember[];
+    userState: LocationRoomUserState;
+  }>(`/rooms/${roomId}`);
+  return response.data;
+};
+
+export const createLocationRoom = async (data: {
+  title: string;
+  description?: string;
+  latitude: number;
+  longitude: number;
+  formattedAddress?: string | null;
+}) => {
+  const response = await apiClient.post<{
+    room: LocationRoomSummary;
+    userState: LocationRoomUserState;
+  }>("/rooms", data);
+  return response.data;
+};
+
+export const pinLocationRoom = async (roomId: string) => {
+  const response = await apiClient.post<{ userState: LocationRoomUserState }>(
+    `/rooms/${roomId}/pin`,
+  );
+  return response.data;
+};
+
+export const rejoinLocationRoom = async (roomId: string) => {
+  const response = await apiClient.post<{ userState: LocationRoomUserState }>(
+    `/rooms/${roomId}/rejoin`,
+  );
+  return response.data;
+};
+
+export const unpinLocationRoom = async (roomId: string) => {
+  const response = await apiClient.post<{ userState: LocationRoomUserState }>(
+    `/rooms/${roomId}/unpin`,
+  );
+  return response.data;
 };
 /* -------------------------------------------------------------------------- */
 /*                                   Inbox                                    */

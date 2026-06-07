@@ -4,6 +4,7 @@ import type {
   MatchFoundPayload,
   MatchmakingErrorPayload,
   ProfileLockPayload,
+  RoomMatchFoundPayload,
 } from "@/src/domain/chat/types";
 import { useConfetti } from "@/src/hooks/useConfetti";
 import { useUser } from "@/src/hooks/useUser";
@@ -182,6 +183,28 @@ export const ExploreChatProvider = ({
     [fireSideCannons, router],
   );
 
+  const onRoomMatchFound = useCallback(
+    ({ roomId, matchedUserId, locationRoom }: RoomMatchFoundPayload) => {
+      socketDebug("ExploreChatContext", "roomMatchFound received", {
+        roomId,
+        matchedUserId,
+        locationRoomId: locationRoom?._id || null,
+      });
+      setMatchId(roomId);
+      setIsMatching(false);
+      fireSideCannons();
+      trackAnalytic({
+        activity: "room_match_found",
+        label: "Room Match Found",
+      });
+      queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      router.push(`/chat/${roomId}`);
+    },
+    [fireSideCannons, router],
+  );
+
   useEffect(() => {
     if (!socket) {
       socketWarn(
@@ -205,6 +228,13 @@ export const ExploreChatProvider = ({
         onMatchFound(roomId, matchedUser);
       },
     );
+
+    socket.on(EXPLORE_SOCKET_EVENTS.roomMatchFound, onRoomMatchFound);
+
+    socket.on(EXPLORE_SOCKET_EVENTS.roomPoolUpdated, () => {
+      socketDebug("ExploreChatContext", "event roomPoolUpdated");
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    });
 
     socket.on(
       EXPLORE_SOCKET_EVENTS.matchmakingError,
@@ -271,6 +301,8 @@ export const ExploreChatProvider = ({
         socketId: socket.id,
       });
       socket.off(EXPLORE_SOCKET_EVENTS.matchFound);
+      socket.off(EXPLORE_SOCKET_EVENTS.roomMatchFound);
+      socket.off(EXPLORE_SOCKET_EVENTS.roomPoolUpdated);
       socket.off(EXPLORE_SOCKET_EVENTS.profileLocked);
       socket.off(EXPLORE_SOCKET_EVENTS.profileUnlocked);
       socket.off(EXPLORE_SOCKET_EVENTS.matchmakingError);
@@ -278,7 +310,7 @@ export const ExploreChatProvider = ({
       socket.off(EXPLORE_SOCKET_EVENTS.creditsUpdated);
       socket.off(EXPLORE_SOCKET_EVENTS.chatEnded);
     };
-  }, [socket, onMatchFound]);
+  }, [socket, onMatchFound, onRoomMatchFound]);
 
   const value = useMemo(
     () => ({

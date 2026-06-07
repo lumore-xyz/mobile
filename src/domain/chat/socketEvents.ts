@@ -16,6 +16,8 @@ export const CHAT_SOCKET_EVENTS = {
 
 export const EXPLORE_SOCKET_EVENTS = {
   matchFound: "matchFound",
+  roomMatchFound: "roomMatchFound",
+  roomPoolUpdated: "room_pool_updated",
   matchmakingError: "matchmakingError",
   insufficientCredits: "insufficientCredits",
   creditsUpdated: "creditsUpdated",

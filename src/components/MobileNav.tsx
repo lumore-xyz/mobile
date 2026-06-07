@@ -17,6 +17,17 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "Rooms",
+    path: "/rooms",
+    icon: (active: boolean, color: string) => (
+      <Ionicons
+        name={active ? "location" : "location-outline"}
+        size={24}
+        color={color}
+      />
+    ),
+  },
+  {
     label: "Chats",
     path: "/chat",
     icon: (active: boolean, color: string) => (

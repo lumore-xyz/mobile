@@ -58,6 +58,18 @@ export interface MatchFoundPayload {
   matchedUser: unknown;
 }
 
+export interface RoomMatchFoundPayload {
+  roomId: string;
+  chatRoomId?: string;
+  matchedUser?: unknown;
+  matchedUserId?: string;
+  locationRoom?: {
+    _id: string;
+    title: string;
+  };
+  matchingNote?: unknown;
+}
+
 export interface MatchmakingErrorPayload {
   message?: string;
 }

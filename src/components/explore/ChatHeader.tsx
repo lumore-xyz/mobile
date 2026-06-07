@@ -5,11 +5,11 @@ import {
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
 } from "@/src/components/ui/actionsheet";
+import { TextAreaInput } from "@/src/components/ui/TextInput";
 import {
   chatFeedbackSchema,
   chatReportSchema,
 } from "@/src/domain/chat/validation";
-import { TextAreaInput } from "@/src/components/ui/TextInput";
 import { reportChatUser, submitChatFeedback } from "@/src/libs/apis";
 import Icon from "@/src/libs/Icon";
 import { useChat } from "@/src/service/context/ChatContext";
@@ -43,9 +43,18 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   onEndChat,
   currentUserId,
 }) => {
-  const { roomId, matchedUser, lockProfile, unlockProfile, isActive } =
-    useChat();
+  const {
+    roomId,
+    matchedUser,
+    lockProfile,
+    unlockProfile,
+    isActive,
+    roomData,
+  } = useChat();
   const insets = useSafeAreaInsets();
+  const isRoomMatch = roomData?.source === "location_room";
+  const roomMatchTitle =
+    roomData?.sourceMetadata?.title || roomData?.locationRoom?.title || "Room";
 
   const [isUnlocked, setisUnlocked] = useState(
     user?.isViewerUnlockedUser || false,
@@ -222,17 +231,26 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           </View>
         </View>
         <View>
-          <Pressable
-            onPress={navigateToProfile}
-            className="min-h-8 justify-center"
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="View profile"
-          >
-            <Text className="text-lg font-medium">
-              {user?.realName || user?.nickname || user?.username}
-            </Text>
-          </Pressable>
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={navigateToProfile}
+              className="justify-center"
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="View profile"
+            >
+              <Text className="text-lg font-medium">
+                {user?.realName || user?.nickname || user?.username}
+              </Text>
+            </Pressable>
+            {isRoomMatch ? (
+              <View className="self-start rounded-full bg-ui-highlight/10 px-2 py-0.5 mt-0.5">
+                <Text className="text-xs font-semibold text-ui-highlight">
+                  {roomMatchTitle}
+                </Text>
+              </View>
+            ) : null}
+          </View>
           <View className="flex flex-row items-center justify-start gap-2 mt-1 text-sm">
             {user?.dob ? (
               <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
@@ -403,7 +421,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                               setReportCategory(option.value);
                               setErrorText("");
                             }}
-                            className={`min-h-11 rounded-full border px-3 py-2 ${
+                            className={` rounded-full border px-3 py-2 ${
                               reportCategory === option.value
                                 ? "bg-ui-highlight border-ui-highlight"
                                 : "bg-white border-ui-shade/20"

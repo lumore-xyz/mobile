@@ -6,8 +6,8 @@ import { fetchIbox } from "@/src/libs/apis";
 import Icon from "@/src/libs/Icon";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
-import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import { calculateAge } from "@/src/utils";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo } from "react";
@@ -223,6 +223,9 @@ export const UserChat = React.memo(function UserChat({
   const unreadCount = Number(room?.unreadCount || 0);
   const lastMessagePreview = useMemo(() => decodeLastMessage(room), [room]);
   const finalPreview = lastMessagePreview;
+  const isRoomMatch = room?.source === "location_room";
+  const roomMatchTitle =
+    room?.sourceMetadata?.title || room?.locationRoom?.title || "Room";
   const isUserUnavailable = Boolean(error);
   const displayName = isUserUnavailable
     ? "Lumore User"
@@ -274,10 +277,20 @@ export const UserChat = React.memo(function UserChat({
         </View>
       </View>
 
-      <View className="flex-1">
-        <Text className="font-semibold text-base mb-1">{displayName}</Text>
+        <View className="flex-1">
+          <View className="mb-1 flex-row items-center gap-2">
+            <Text className="font-semibold text-base">{displayName}</Text>
 
-        {finalPreview ? (
+            {isRoomMatch ? (
+              <View className="self-start rounded-full bg-ui-highlight/10 px-2 py-0.5">
+                <Text className="text-xs font-semibold text-ui-highlight">
+                  {roomMatchTitle}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+          {finalPreview ? (
           <Text className="text-sm text-ui-shade/70" numberOfLines={1}>
             {finalPreview}
           </Text>
