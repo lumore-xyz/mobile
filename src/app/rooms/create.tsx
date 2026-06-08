@@ -1,5 +1,6 @@
 import Button from "@/src/components/ui/Button";
 import { TextInput } from "@/src/components/ui/TextInput";
+import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
 import {
   createLocationRoom,
   getFormattedAddress,
@@ -8,13 +9,22 @@ import Icon from "@/src/libs/Icon";
 import { useLocation } from "@/src/service/providers/LocationProvider";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function CreateRoomScreen() {
   const { latitude, longitude, error } = useLocation();
+  const { pickImageAsync } = useMediaPermisions();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [coverImageUri, setCoverImageUri] = useState("");
   const hasLocation = latitude != null && longitude != null;
   const { data: address } = useQuery({
     queryKey: ["rooms", "create-address", latitude, longitude],
@@ -28,6 +38,14 @@ export default function CreateRoomScreen() {
     if (!hasLocation) return "Waiting for location...";
     return `${latitude?.toFixed(5)}, ${longitude?.toFixed(5)}`;
   }, [hasLocation, latitude, longitude]);
+  const handlePickCoverImage = useCallback(() => {
+    pickImageAsync(
+      (asset) => {
+        setCoverImageUri(asset.uri);
+      },
+      { aspect: [4, 3], quality: 0.85 },
+    );
+  }, [pickImageAsync]);
   const mutation = useMutation({
     mutationFn: () =>
       createLocationRoom({
@@ -36,6 +54,7 @@ export default function CreateRoomScreen() {
         latitude: latitude as number,
         longitude: longitude as number,
         formattedAddress: address,
+        imageUri: coverImageUri || undefined,
       }),
     onSuccess: (data) => {
       router.replace(`/rooms/${data.room._id}` as any);
@@ -85,6 +104,42 @@ export default function CreateRoomScreen() {
             action={setDescription}
             placeholder="Who should join this room?"
           />
+        </View>
+
+        <View className="mt-5 rounded-2xl border border-ui-shade/10 bg-ui-shade/5 p-4">
+          <View className="flex-row items-center justify-between gap-3">
+            <View className="flex-1">
+              <Text className="font-semibold text-ui-dark">Cover image</Text>
+              <Text className="mt-1 text-sm text-ui-shade/70">
+                Optional, but it helps your room stand out nearby.
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={handlePickCoverImage}
+              className="rounded-full border border-ui-shade/15 bg-white px-4 py-2"
+            >
+              <Text className="font-semibold text-ui-dark">
+                {coverImageUri ? "Change" : "Upload"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity onPress={handlePickCoverImage} className="mt-4">
+            {coverImageUri ? (
+              <Image
+                source={{ uri: coverImageUri }}
+                className="h-48 w-full rounded-2xl bg-ui-background"
+                style={{ resizeMode: "cover" }}
+              />
+            ) : (
+              <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-shade/20 bg-white px-4">
+                <Icon type="Ionicons" name="image-outline" size={28} />
+                <Text className="mt-2 text-center text-sm text-ui-shade/70">
+                  Tap to upload a room cover image
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
         <View className="mt-5 rounded-2xl bg-ui-shade/5 p-4">

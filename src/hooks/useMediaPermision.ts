@@ -2,6 +2,12 @@ import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Alert, Linking, Platform } from "react-native";
 
+type PickImageOptions = {
+  aspect?: [number, number];
+  quality?: number;
+  allowsEditing?: boolean;
+};
+
 export const useMediaPermisions = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [mediaLibraryPermission, requestMediaLibraryPermission] =
@@ -33,11 +39,20 @@ export const useMediaPermisions = () => {
   };
 
   const pickImageAsync = async (
-    onPicked?:
+    onPickedOrOptions?:
       | ((asset: ImagePicker.ImagePickerAsset) => void | Promise<void>)
+      | PickImageOptions
       | unknown,
+    maybeOptions?: PickImageOptions,
   ) => {
     try {
+      const onPicked =
+        typeof onPickedOrOptions === "function" ? onPickedOrOptions : undefined;
+      const pickerOptions =
+        typeof onPickedOrOptions === "function"
+          ? maybeOptions
+          : (onPickedOrOptions as PickImageOptions | undefined);
+
       if (Platform.OS !== "web") {
         if (
           mediaLibraryPermission?.status !==
@@ -55,9 +70,9 @@ export const useMediaPermisions = () => {
       // Launch the image library
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
-        allowsEditing: true, // Allows the user to crop the image
-        aspect: [1, 1], // Maintenance of aspect ratio on Android
-        quality: 0.8, // Maximum quality
+        allowsEditing: pickerOptions?.allowsEditing ?? true,
+        aspect: pickerOptions?.aspect ?? [1, 1],
+        quality: pickerOptions?.quality ?? 0.8,
       });
       if (!result.canceled) {
         const selectedAsset = result.assets[0];

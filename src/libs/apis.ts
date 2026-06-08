@@ -33,6 +33,8 @@ export interface LocationRoomSummary {
   _id: string;
   title: string;
   description?: string;
+  creator?: string | { _id?: string };
+  imageUrl?: string;
   location?: {
     type: "Point";
     coordinates: number[];
@@ -53,6 +55,64 @@ export interface LocationRoomMember {
   profilePicture?: string;
   dob?: string | null;
   gender?: string;
+}
+
+export interface MatchRoomParticipantSummary {
+  _id: string;
+  username?: string;
+  nickname?: string;
+  profilePicture?: string;
+}
+
+export interface MatchRoomSummary {
+  _id: string;
+  participants?: MatchRoomParticipantSummary[];
+  source?: "explore" | "location_room";
+  locationRoom?:
+    | string
+    | {
+        _id?: string;
+        title?: string;
+      }
+    | null;
+  sourceMetadata?: {
+    title?: string;
+    subtitle?: string;
+  };
+  status?: "active" | "archive";
+  lastMessageAt?: string;
+  unreadCount?: number;
+}
+
+const getImageUploadMetadata = (imageUri: string) => {
+  const extension = imageUri.split("?")[0]?.split(".").pop()?.toLowerCase();
+  if (extension === "png") {
+    return { name: "room-cover.png", type: "image/png" };
+  }
+  if (extension === "webp") {
+    return { name: "room-cover.webp", type: "image/webp" };
+  }
+  return { name: "room-cover.jpg", type: "image/jpeg" };
+};
+
+const appendRoomCoverImage = (formData: FormData, imageUri?: string | null) => {
+  const normalizedImageUri = String(imageUri || "").trim();
+  if (!normalizedImageUri) return;
+
+  const metadata = getImageUploadMetadata(normalizedImageUri);
+  formData.append("image", {
+    uri: normalizedImageUri,
+    name: metadata.name,
+    type: metadata.type,
+  } as any);
+};
+
+export interface StartLocationRoomMatchResult {
+  roomId: string;
+  nextMatchAt?: string | null;
+  matchCount: number;
+  matchedUserCount: number;
+  skippedUserCount: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -188,11 +248,50 @@ export const createLocationRoom = async (data: {
   latitude: number;
   longitude: number;
   formattedAddress?: string | null;
+  imageUri?: string | null;
 }) => {
+  const formData = new FormData();
+  formData.append("title", data.title);
+  formData.append("description", data.description || "");
+  formData.append("latitude", String(data.latitude));
+  formData.append("longitude", String(data.longitude));
+  if (data.formattedAddress) {
+    formData.append("formattedAddress", data.formattedAddress);
+  }
+  appendRoomCoverImage(formData, data.imageUri);
+
   const response = await apiClient.post<{
     room: LocationRoomSummary;
     userState: LocationRoomUserState;
-  }>("/rooms", data);
+  }>("/rooms", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+export const updateLocationRoom = async (
+  roomId: string,
+  data: {
+    title?: string;
+    description?: string;
+    imageUri?: string | null;
+  },
+) => {
+  const formData = new FormData();
+  if (data.title !== undefined) {
+    formData.append("title", data.title);
+  }
+  if (data.description !== undefined) {
+    formData.append("description", data.description);
+  }
+  appendRoomCoverImage(formData, data.imageUri);
+
+  const response = await apiClient.patch<{
+    room: LocationRoomSummary;
+    userState: LocationRoomUserState;
+  }>(`/rooms/${roomId}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
   return response.data;
 };
 
@@ -216,11 +315,20 @@ export const unpinLocationRoom = async (roomId: string) => {
   );
   return response.data;
 };
+
+export const startLocationRoomMatchNow = async (roomId: string) => {
+  const response = await apiClient.post<StartLocationRoomMatchResult>(
+    `/rooms/${roomId}/start-match`,
+  );
+  return response.data;
+};
 /* -------------------------------------------------------------------------- */
 /*                                   Inbox                                    */
 /* -------------------------------------------------------------------------- */
 export const fetchIbox = async (status = "active") => {
-  const response = await apiClient.get(`/inbox?status=${status}`);
+  const response = await apiClient.get<MatchRoomSummary[]>(
+    `/inbox?status=${status}`,
+  );
   return response.data;
 };
 export const fetchRoomData = async (roomId: string) => {

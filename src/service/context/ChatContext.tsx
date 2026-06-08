@@ -10,7 +10,7 @@ import type {
 } from "@/src/domain/chat/types";
 import { fetchRoomChat, fetchRoomData } from "@/src/libs/apis";
 import { useUser } from "@/src/hooks/useUser";
-import { useGlobalSearchParams, useRouter } from "expo-router";
+import { useGlobalSearchParams, usePathname, useRouter } from "expo-router";
 import {
   createContext,
   Dispatch,
@@ -131,8 +131,10 @@ const mergeIncomingMessage = (messages: Message[], incoming: Message) => {
 };
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
+  const pathname = usePathname();
   const params = useGlobalSearchParams<{ roomId: string }>();
-  const roomId = params?.roomId ?? null;
+  const isChatThreadRoute = /^\/chat\/[^/]+$/.test(pathname || "");
+  const roomId = isChatThreadRoute ? params?.roomId ?? null : null;
   const queryClient = useQueryClient();
   const { socket, revalidateSocket } = useSocket();
   const [userId, setUserId] = useState<string | null>(null);
@@ -174,6 +176,13 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     revalidateUser();
   }, [revalidateUser]);
+
+  useEffect(() => {
+    if (roomId) return;
+    setMatchedUserId(null);
+    setMessages([]);
+    setIsActive(false);
+  }, [roomId]);
 
   const mapIncomingMessage = useCallback((rawMessage: any): Message | null => {
     const messageType: "text" | "image" | "audio" =
