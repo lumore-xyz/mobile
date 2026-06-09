@@ -17,6 +17,7 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
+  ImageBackground,
   ListRenderItem,
   Platform,
   RefreshControl,
@@ -41,6 +42,9 @@ const useTick = () => {
   }, []);
   return tick;
 };
+
+const ROOM_COVER_IMAGE_URL =
+  "https://cdn.pixabay.com/photo/2022/11/13/12/42/building-7589141_1280.jpg";
 
 export default function RoomsScreen() {
   const { latitude, longitude, error: locationError } = useLocation();
@@ -168,55 +172,69 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
 
   return (
     <TouchableOpacity
-      className="mb-3 rounded-3xl border border-ui-shade/10 bg-white p-4 active:bg-ui-shade/5"
+      className="mb-3 rounded-3xl border border-ui-shade/10 bg-white active:bg-ui-shade/5 overflow-hidden"
       onPress={openRoom}
     >
-      <View className="flex-row items-start justify-between gap-3">
-        <View className="flex-1">
-          <Text className="text-xl font-bold text-ui-dark">{room.title}</Text>
-          {room.description ? (
-            <Text className="mt-1 text-sm text-ui-shade/70" numberOfLines={2}>
-              {room.description}
+      <ImageBackground
+        source={{ uri: room.imageUrl || ROOM_COVER_IMAGE_URL }}
+        style={{
+          width: "100%",
+          height: 120,
+          overflow: "hidden",
+        }}
+        imageStyle={{ resizeMode: "cover" }}
+      />
+      <View className="p-4">
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-ui-dark">{room.title}</Text>
+            {room.description ? (
+              <Text className="mt-1 text-sm text-ui-shade/70" numberOfLines={2}>
+                {room.description}
+              </Text>
+            ) : null}
+          </View>
+          <View className="rounded-full bg-ui-highlight/10 px-3 py-1">
+            <Text className="text-sm font-semibold text-ui-highlight">
+              {countdown}
             </Text>
+          </View>
+        </View>
+
+        <View className="mt-4 flex-row flex-wrap items-center gap-3">
+          <RoomMeta
+            icon="people-outline"
+            text={`${room.poolCount || 0} in pool`}
+          />
+          <RoomMeta
+            icon="pin-outline"
+            text={`${room.pinnedCount || 0} pinned`}
+          />
+          {room.distanceKm != null ? (
+            <RoomMeta icon="navigate-outline" text={`${room.distanceKm}km`} />
           ) : null}
         </View>
-        <View className="rounded-full bg-ui-highlight/10 px-3 py-1">
-          <Text className="text-sm font-semibold text-ui-highlight">
-            {countdown}
+
+        <View className="mt-4 flex-row items-center justify-between">
+          <Text className="text-sm text-ui-shade">
+            {inPool
+              ? "You are waiting for this cycle."
+              : canRejoin
+                ? "Matched before. Rejoin when ready."
+                : "Pin to join the matching pool."}
           </Text>
+          <Button
+            text={ctaText}
+            size="sm"
+            variant={inPool ? "secondary" : "primary"}
+            disabled={inPool || pinMutation.isPending}
+            className="rounded-xl"
+            onClick={(event) => {
+              event?.stopPropagation?.();
+              pinMutation.mutate();
+            }}
+          />
         </View>
-      </View>
-
-      <View className="mt-4 flex-row flex-wrap items-center gap-3">
-        <RoomMeta
-          icon="people-outline"
-          text={`${room.poolCount || 0} in pool`}
-        />
-        <RoomMeta icon="pin-outline" text={`${room.pinnedCount || 0} pinned`} />
-        {room.distanceKm != null ? (
-          <RoomMeta icon="navigate-outline" text={`${room.distanceKm}km`} />
-        ) : null}
-      </View>
-
-      <View className="mt-4 flex-row items-center justify-between">
-        <Text className="text-sm text-ui-shade">
-          {inPool
-            ? "You are waiting for this cycle."
-            : canRejoin
-              ? "Matched before. Rejoin when ready."
-              : "Pin to join the matching pool."}
-        </Text>
-        <Button
-          text={ctaText}
-          size="sm"
-          variant={inPool ? "secondary" : "primary"}
-          disabled={inPool || pinMutation.isPending}
-          className="rounded-xl"
-          onClick={(event) => {
-            event?.stopPropagation?.();
-            pinMutation.mutate();
-          }}
-        />
       </View>
     </TouchableOpacity>
   );

@@ -36,8 +36,10 @@ const resolveAdMobConfig = <
 });
 
 const developmentConfig = resolveAdMobConfig({
-  BASE_URL: "https://lumore-test.onrender.com",
-  SOCKET_URL: "https://lumore-test.onrender.com/api/chat",
+  BASE_URL: "https://api.lumore.xyz",
+  SOCKET_URL: "https://api.lumore.xyz/api/chat",
+  // BASE_URL: "https://lumore-test.onrender.com",
+  // SOCKET_URL: "https://lumore-test.onrender.com/api/chat",
   // BASE_URL:
   //   Platform.OS === "android"
   //     ? "http://10.0.2.2:5000"
