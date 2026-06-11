@@ -1,16 +1,16 @@
 import MobileNav from "@/src/components/MobileNav";
 import Skeleton from "@/src/components/ui/Skeleton";
+import Tabs, { TabItem } from "@/src/components/ui/Tabs";
 import { CHAT_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
 import { useUser } from "@/src/hooks/useUser";
 import { fetchIbox } from "@/src/libs/apis";
 import Icon from "@/src/libs/Icon";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
-import { calculateAge } from "@/src/utils";
-import { triggerSelectionHaptic } from "@/src/utils/haptics";
+import { calculateAge, triggerSelectionHaptic } from "@/src/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Image,
@@ -42,6 +42,7 @@ interface MetaProps {
 }
 
 const ChatInbox = () => {
+  const [activeTab, setActiveTab] = useState<InboxTab>("active");
   const currentUser = getUser();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -49,14 +50,28 @@ const ChatInbox = () => {
   const { user, isLoading: gettingUser } = useUser(currentUser?._id);
 
   const {
-    data: rooms = [],
-    isLoading,
-    error,
+    data: activeRooms = [],
+    isLoading: isLoadingActive,
+    error: activeError,
   } = useQuery<any[]>({
     queryKey: ["inbox", "active"],
     queryFn: () => fetchIbox("active"),
     enabled: !!currentUser,
   });
+
+  const {
+    data: archiveRooms = [],
+    isLoading: isLoadingArchive,
+    error: archiveError,
+  } = useQuery<any[]>({
+    queryKey: ["inbox", "archive"],
+    queryFn: () => fetchIbox("archive"),
+    enabled: !!currentUser,
+  });
+
+  const rooms = activeTab === "active" ? activeRooms : archiveRooms;
+  const isLoading = activeTab === "active" ? isLoadingActive : isLoadingArchive;
+  const error = activeTab === "active" ? activeError : archiveError;
 
   useEffect(() => {
     revalidateSocket();
@@ -93,7 +108,7 @@ const ChatInbox = () => {
           </TouchableOpacity>
         </View>
 
-        <InboxTabs activeTab="active" />
+        <InboxTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         <Inbox
           user={user}
@@ -111,42 +126,27 @@ export default ChatInbox;
 
 export const InboxTabs = React.memo(function InboxTabs({
   activeTab,
+  onTabChange,
 }: {
   activeTab: InboxTab;
+  onTabChange: (tab: InboxTab) => void;
 }) {
-  const router = useRouter();
-
-  const goToTab = useCallback(
-    (tab: InboxTab) => {
-      if (tab === activeTab) return;
-      triggerSelectionHaptic();
-      router.push(tab === "active" ? "/chat" : "/chat/archive");
-    },
-    [activeTab, router],
+  const tabs: TabItem[] = useMemo(
+    () => [
+      { key: "active", label: "Active" },
+      { key: "archive", label: "Archived" },
+    ],
+    [],
   );
 
   return (
-    <View className="mb-3 flex-row rounded-xl bg-ui-shade/5 p-2">
-      {(["active", "archive"] as InboxTab[]).map((tab) => {
-        const isActive = tab === activeTab;
-        return (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => goToTab(tab)}
-            disabled={isActive}
-            className={`min-h-11 flex-1 justify-center rounded-lg py-2 ${
-              isActive ? "bg-ui-light shadow-sm" : ""
-            }`}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: isActive }}
-          >
-            <Text className="text-center font-medium text-ui-shade">
-              {tab === "active" ? "Active" : "Archived"}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+    <Tabs
+      tabs={tabs}
+      activeTab={activeTab}
+      onSelect={(key) => onTabChange(key as InboxTab)}
+      showBadges={false}
+      hapticFeedback={true}
+    />
   );
 });
 
@@ -225,7 +225,7 @@ export const UserChat = React.memo(function UserChat({
   const finalPreview = lastMessagePreview;
   const isRoomMatch = room?.source === "location_room";
   const roomMatchTitle =
-    room?.sourceMetadata?.title || room?.locationRoom?.title || "Room";
+    room?.sourceMetadata?.title || room?.locationRoom?.title || "Community";
   const isUserUnavailable = Boolean(error);
   const displayName = isUserUnavailable
     ? "Lumore User"
@@ -277,20 +277,20 @@ export const UserChat = React.memo(function UserChat({
         </View>
       </View>
 
-        <View className="flex-1">
-          <View className="mb-1 flex-row items-center gap-2">
-            <Text className="font-semibold text-base">{displayName}</Text>
+      <View className="flex-1">
+        <View className="mb-1 flex-row items-center gap-2">
+          <Text className="font-semibold text-base">{displayName}</Text>
 
-            {isRoomMatch ? (
-              <View className="self-start rounded-full bg-ui-highlight/10 px-2 py-0.5">
-                <Text className="text-xs font-semibold text-ui-highlight">
-                  {roomMatchTitle}
-                </Text>
-              </View>
-            ) : null}
-          </View>
+          {isRoomMatch ? (
+            <View className="self-start rounded-full bg-ui-highlight/10 px-2 py-0.5">
+              <Text className="text-xs font-semibold text-ui-highlight">
+                {roomMatchTitle}
+              </Text>
+            </View>
+          ) : null}
+        </View>
 
-          {finalPreview ? (
+        {finalPreview ? (
           <Text className="text-sm text-ui-shade/70" numberOfLines={1}>
             {finalPreview}
           </Text>

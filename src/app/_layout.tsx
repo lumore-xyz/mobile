@@ -9,7 +9,10 @@ import { configureGoogleSignIn } from "../service/google-signin";
 import Provider from "../service/providers";
 import { OneSignalProvider } from "../service/providers/OneSignalProvider";
 
-const stackScreenOptions = { headerShown: false };
+const screenOptions = {
+  headerShown: false,
+  animation: "none",
+};
 const keyboardAvoidingBehavior = Platform.OS === "ios" ? "padding" : undefined;
 
 configureGoogleSignIn();
@@ -28,7 +31,7 @@ export default function RootLayout() {
                 style={{ flex: 1 }}
                 behavior={keyboardAvoidingBehavior}
               >
-                <Stack screenOptions={stackScreenOptions} />
+                <Stack screenOptions={screenOptions as any} />
               </KeyboardAvoidingView>
             </Provider>
             <StatusBar style="dark" backgroundColor="#E6F4FE" />

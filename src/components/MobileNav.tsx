@@ -17,8 +17,8 @@ const NAV_ITEMS = [
     ),
   },
   {
-    label: "Rooms",
-    path: "/rooms",
+    label: "Community",
+    path: "/community",
     icon: (active: boolean, color: string) => (
       <Ionicons
         name={active ? "location" : "location-outline"}

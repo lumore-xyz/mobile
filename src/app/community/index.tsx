@@ -2,12 +2,7 @@ import MobileNav from "@/src/components/MobileNav";
 import Button from "@/src/components/ui/Button";
 import Skeleton from "@/src/components/ui/Skeleton";
 import { EXPLORE_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
-import {
-  fetchNearbyRooms,
-  pinLocationRoom,
-  rejoinLocationRoom,
-  type LocationRoomSummary,
-} from "@/src/libs/apis";
+import { fetchNearbyRooms, type LocationRoomSummary } from "@/src/libs/apis";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { useLocation } from "@/src/service/providers/LocationProvider";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
@@ -91,7 +86,7 @@ export default function RoomsScreen() {
       <View className="flex-1 bg-ui-light px-4 pt-6">
         <View className="mb-4 flex-row items-center justify-between">
           <View>
-            <Text className="text-3xl font-bold tracking-tight">Rooms</Text>
+            <Text className="text-3xl font-bold tracking-tight">Community</Text>
             <Text className="mt-1 text-ui-shade/70">
               Find your vibe near you.
             </Text>
@@ -100,7 +95,7 @@ export default function RoomsScreen() {
             text="Create"
             size="sm"
             className="rounded-xl"
-            onClick={() => router.push("/rooms/create")}
+            onClick={() => router.push("/community/create")}
           />
         </View>
 
@@ -114,7 +109,7 @@ export default function RoomsScreen() {
           <RoomsSkeleton />
         ) : error ? (
           <Text className="mt-10 text-center text-ui-shade">
-            Unable to load rooms right now.
+            Unable to load communities right now.
           </Text>
         ) : !rooms.length ? (
           <EmptyRooms />
@@ -146,7 +141,6 @@ export default function RoomsScreen() {
 }
 
 function RoomCard({ room }: { room: LocationRoomSummary }) {
-  const queryClient = useQueryClient();
   const state = room.userState;
   const isPinned = Boolean(state?.isPinned);
   const inPool = Boolean(state?.inPool);
@@ -155,19 +149,12 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
     () => formatCountdown(room.secondsUntilNextMatch),
     [room.secondsUntilNextMatch],
   );
-  const pinMutation = useMutation({
-    mutationFn: () =>
-      canRejoin ? rejoinLocationRoom(room._id) : pinLocationRoom(room._id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rooms"] });
-    },
-  });
 
   const ctaText = inPool ? "In pool" : canRejoin ? "Rejoin" : "Pin";
 
   const openRoom = () => {
     triggerSelectionHaptic();
-    router.push(`/rooms/${room._id}` as any);
+    router.push(`/community/${room._id}` as any);
   };
 
   return (
@@ -215,26 +202,15 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
           ) : null}
         </View>
 
-        <View className="mt-4 flex-row items-center justify-between">
-          <Text className="text-sm text-ui-shade">
+        {/* <View className="mt-4 flex-row items-center justify-between">
+          <Text className="text-sm text-ui-highlight">
             {inPool
               ? "You are waiting for this cycle."
               : canRejoin
                 ? "Matched before. Rejoin when ready."
                 : "Pin to join the matching pool."}
           </Text>
-          <Button
-            text={ctaText}
-            size="sm"
-            variant={inPool ? "secondary" : "primary"}
-            disabled={inPool || pinMutation.isPending}
-            className="rounded-xl"
-            onClick={(event) => {
-              event?.stopPropagation?.();
-              pinMutation.mutate();
-            }}
-          />
-        </View>
+        </View> */}
       </View>
     </TouchableOpacity>
   );
@@ -255,16 +231,18 @@ function EmptyRooms() {
       <View className="mb-3 h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
         <Ionicons name="location-outline" size={28} color="#6D3FD1" />
       </View>
-      <Text className="text-center text-xl font-bold">No rooms nearby yet</Text>
+      <Text className="text-center text-xl font-bold">
+        No communities nearby yet
+      </Text>
       <Text className="mt-2 text-center text-ui-shade/70">
         Start one for your campus, cafe, event, or neighborhood.
       </Text>
       <Button
-        text="Create a room"
+        text="Create a community"
         className="mt-5 rounded-2xl"
         onClick={() => {
           triggerSelectionHaptic();
-          router.push("/rooms/create");
+          router.push("/community/create");
         }}
       />
     </View>

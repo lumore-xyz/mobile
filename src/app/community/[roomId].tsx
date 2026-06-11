@@ -1,3 +1,4 @@
+import { UserChat } from "@/src/app/chat";
 import {
   Actionsheet,
   ActionsheetBackdrop,
@@ -7,16 +8,18 @@ import {
 } from "@/src/components/ui/actionsheet";
 import Button from "@/src/components/ui/Button";
 import Skeleton from "@/src/components/ui/Skeleton";
+import Tabs from "@/src/components/ui/Tabs";
 import { TextAreaInput, TextInput } from "@/src/components/ui/TextInput";
 import { EXPLORE_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
 import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
 import {
   fetchIbox,
   fetchLocationRoomDetail,
-  pinLocationRoom,
+  followLocationRoom,
+  leaveLocationRoomPool,
   rejoinLocationRoom,
   startLocationRoomMatchNow,
-  unpinLocationRoom,
+  unfollowLocationRoom,
   updateLocationRoom,
   type LocationRoomMember,
   type MatchRoomSummary,
@@ -29,7 +32,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -42,6 +45,34 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+type RoomSection = "pool" | "chats";
+
+const RoomSectionTabs = React.memo(function RoomSectionTabs({
+  activeSection,
+  poolCount,
+  chatCount,
+  onSelect,
+}: {
+  activeSection: RoomSection;
+  poolCount: number;
+  chatCount: number;
+  onSelect: (section: RoomSection) => void;
+}) {
+  const tabs = [
+    { key: "pool", label: "Matching pool", count: poolCount },
+    { key: "chats", label: "Matched chats", count: chatCount },
+  ];
+
+  return (
+    <Tabs
+      tabs={tabs}
+      activeTab={activeSection}
+      onSelect={(key) => onSelect(key as RoomSection)}
+      showBadges={true}
+    />
+  );
+});
 
 const ROOM_COVER_IMAGE_URL =
   "https://cdn.pixabay.com/photo/2022/11/13/12/42/building-7589141_1280.jpg";
@@ -116,32 +147,6 @@ const buildStartMatchMessage = ({
   return "The cycle ran, but no matches were created this time.";
 };
 
-const getRoomChatParticipant = ({
-  chat,
-  currentUserId,
-}: {
-  chat: MatchRoomSummary;
-  currentUserId?: string | null;
-}) =>
-  (chat.participants || []).find(
-    (participant) => !isSameId(participant?._id, currentUserId),
-  );
-
-const getRoomChatLabel = ({
-  chat,
-  currentUserId,
-}: {
-  chat: MatchRoomSummary;
-  currentUserId?: string | null;
-}) => {
-  const matchedUser = getRoomChatParticipant({ chat, currentUserId });
-  const displayName =
-    matchedUser?.nickname || matchedUser?.username || "Lumore User";
-  return chat.status === "archive"
-    ? `We lost connection with ${displayName}`
-    : `Open chat with ${displayName}`;
-};
-
 function RoomCountdown({
   nextMatchAt,
   fallbackSeconds,
@@ -183,39 +188,43 @@ export default function RoomDetailScreen() {
   const [editedTitle, setEditedTitle] = useState("");
   const [editedDescription, setEditedDescription] = useState("");
   const [editedCoverImageUri, setEditedCoverImageUri] = useState("");
+  const [activeSection, setActiveSection] = useState<RoomSection>("pool");
   const query = useQuery({
     queryKey: ["rooms", roomId],
     queryFn: () => fetchLocationRoomDetail(roomId),
     enabled: Boolean(roomId),
   });
-  const { data: activeInboxRooms = [] } = useQuery<MatchRoomSummary[]>({
-    queryKey: ["inbox", "active"],
-    queryFn: () => fetchIbox("active"),
-    enabled: Boolean(currentUser?._id),
-  });
-  const { data: archivedInboxRooms = [] } = useQuery<MatchRoomSummary[]>({
-    queryKey: ["inbox", "archive"],
-    queryFn: () => fetchIbox("archive"),
-    enabled: Boolean(currentUser?._id),
+  const { data: roomChats = [] } = useQuery<MatchRoomSummary[]>({
+    queryKey: ["inbox", "location_room", roomId, "active"],
+    queryFn: () =>
+      fetchIbox({
+        status: "active",
+        source: "location_room",
+        locationRoom: roomId,
+      }),
+    enabled: Boolean(currentUser?._id && roomId),
   });
   const room = query.data?.room;
   const userState = query.data?.userState;
   const members = query.data?.members || [];
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["rooms"] });
-    queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-    queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
+    queryClient.invalidateQueries({ queryKey: ["inbox"] });
   }, [queryClient]);
-  const pinMutation = useMutation({
-    mutationFn: () => pinLocationRoom(roomId),
+  const followMutation = useMutation({
+    mutationFn: () => followLocationRoom(roomId),
     onSuccess: invalidate,
   });
   const rejoinMutation = useMutation({
     mutationFn: () => rejoinLocationRoom(roomId),
     onSuccess: invalidate,
   });
-  const unpinMutation = useMutation({
-    mutationFn: () => unpinLocationRoom(roomId),
+  const leavePoolMutation = useMutation({
+    mutationFn: () => leaveLocationRoomPool(roomId),
+    onSuccess: invalidate,
+  });
+  const unfollowMutation = useMutation({
+    mutationFn: () => unfollowLocationRoom(roomId),
     onSuccess: invalidate,
   });
   const trimmedEditedTitle = editedTitle.trim();
@@ -232,11 +241,14 @@ export default function RoomDetailScreen() {
       setIsCreatorSheetOpen(false);
       setIsEditingRoom(false);
       setEditedCoverImageUri("");
-      Alert.alert("Room updated", "Your room details have been updated.");
+      Alert.alert(
+        "Community updated",
+        "Your community details have been updated.",
+      );
     },
     onError: (roomError: any) => {
       Alert.alert(
-        "Could not update room",
+        "Could not update community",
         roomError?.response?.data?.message || "Please try again in a moment.",
       );
     },
@@ -291,7 +303,7 @@ export default function RoomDetailScreen() {
     if (!valueToCopy) {
       Alert.alert(
         "No address yet",
-        "This room does not have an address to copy.",
+        "This community does not have an address to copy.",
       );
       return;
     }
@@ -302,7 +314,10 @@ export default function RoomDetailScreen() {
 
   const handleOpenMap = useCallback(async () => {
     if (!mapQuery) {
-      Alert.alert("No location yet", "This room does not have a map location.");
+      Alert.alert(
+        "No location yet",
+        "This community does not have a map location.",
+      );
       return;
     }
 
@@ -346,18 +361,18 @@ export default function RoomDetailScreen() {
     );
   }, [pickImageAsync]);
 
-  const roomChats = useMemo(() => {
-    if (!room?._id) return [];
-
-    return [...activeInboxRooms, ...archivedInboxRooms].filter(
-      (chat) =>
-        chat?.source === "location_room" &&
-        isSameId(chat?.locationRoom, room._id),
-    );
-  }, [activeInboxRooms, archivedInboxRooms, room?._id]);
-
   const renderMember: ListRenderItem<LocationRoomMember> = ({ item }) => (
     <MemberCard member={item} />
+  );
+
+  const renderRoomChat = useCallback<ListRenderItem<MatchRoomSummary>>(
+    ({ item: chat }) => {
+      const matchedUser = (chat?.participants || []).find(
+        (participant: any) => !isSameId(participant?._id, currentUser?._id),
+      );
+      return <UserChat room={chat} matchedUser={matchedUser} />;
+    },
+    [currentUser?._id],
   );
 
   if (query.isLoading) {
@@ -367,9 +382,9 @@ export default function RoomDetailScreen() {
   if (!room) {
     return (
       <View className="flex-1 items-center justify-center bg-ui-light px-6">
-        <Text className="text-center text-ui-shade">Room not found.</Text>
+        <Text className="text-center text-ui-shade">Community not found.</Text>
         <Button
-          text="Back to rooms"
+          text="Back to community"
           className="mt-4"
           onClick={() => router.replace("/rooms" as any)}
         />
@@ -378,31 +393,38 @@ export default function RoomDetailScreen() {
   }
 
   const inPool = Boolean(userState?.inPool);
-  const isPinned = Boolean(userState?.isPinned);
+  const isFollowed = Boolean(userState?.isPinned);
   const canManageRoom = Boolean(
     room && (currentUser?.isAdmin || isSameId(room.creator, currentUser?._id)),
   );
-  const canLeaveRoom = Boolean(isPinned || inPool);
+  const canLeaveRoom = Boolean(isFollowed || inPool);
   const canSaveRoomEdits =
     trimmedEditedTitle.length >= 3 &&
     trimmedEditedTitle.length <= 80 &&
     trimmedEditedDescription.length <= 500;
 
   const handleConfirmLeaveRoom = () => {
+    const isLeavingActivePool = Boolean(inPool);
     Alert.alert(
-      "Leave room?",
-      "You will stop following this room and leave its matching pool.",
+      isLeavingActivePool ? "Exit matching pool?" : "Leave community?",
+      isLeavingActivePool
+        ? "You will leave this matching pool and stop following this community."
+        : "You will stop following this community and leave its matching pool.",
       [
         {
           text: "Cancel",
           style: "cancel",
         },
         {
-          text: "Leave room",
+          text: isLeavingActivePool ? "Exit pool" : "Leave community",
           style: "destructive",
           onPress: () => {
             closeCreatorSheet();
-            unpinMutation.mutate();
+            if (isLeavingActivePool) {
+              leavePoolMutation.mutate();
+            } else {
+              unfollowMutation.mutate();
+            }
           },
         },
       ],
@@ -500,67 +522,53 @@ export default function RoomDetailScreen() {
           <Text className="font-semibold text-ui-dark">
             {inPool
               ? "You are in this matching pool."
-              : isPinned
-                ? "You follow this room."
-                : "Pin this room to join the next cycle."}
+              : isFollowed
+                ? "You follow this community."
+                : "Pin this community to join the next cycle."}
           </Text>
           {userState?.poolStatus === "matched" ? (
             <Text className="mt-1 text-sm text-ui-shade/70">
-              You matched in this room. Rejoin when you want another cycle.
+              You matched in this community. Rejoin when you want another cycle.
             </Text>
           ) : null}
           {userState?.poolStatus === "insufficient_credits" ? (
             <Text className="mt-1 text-sm text-red-500">
-              Add credits, then rejoin this room.
+              Add credits, then rejoin this community.
             </Text>
           ) : null}
         </View>
 
         <View className="mx-5 mb-5 gap-3">
-          {roomChats.length ? (
-            <View className="rounded-2xl bg-ui-shade/5 p-4">
-              <Text className="font-semibold text-ui-dark">
-                {roomChats.length === 1 ? "Room chat" : "Room chats"}
-              </Text>
-              <Text className="mt-1 text-sm text-ui-shade/70">
-                {roomChats.length === 1
-                  ? "Your authorized chat from this room is ready."
-                  : `You have ${roomChats.length} chats from this room. Pick the one you want to open.`}
-              </Text>
-              <View className="mt-3 gap-2">
-                {roomChats.map((chat) => (
-                  <Button
-                    key={chat._id}
-                    text={getRoomChatLabel({
-                      chat,
-                      currentUserId: currentUser?._id,
-                    })}
-                    variant={chat.status === "archive" ? "outline" : "primary"}
-                    className="rounded-2xl"
-                    onClick={() => router.push(`/chat/${chat._id}`)}
-                  />
-                ))}
-              </View>
-            </View>
-          ) : null}
-          {!inPool ? (
+          {inPool ? (
             <Button
               text={
-                isPinned
+                leavePoolMutation.isPending
+                  ? "Exiting..."
+                  : "Exit matching pool"
+              }
+              variant="outline"
+              className="rounded-2xl"
+              disabled={leavePoolMutation.isPending}
+              onClick={handleConfirmLeaveRoom}
+            />
+          ) : (
+            <Button
+              text={
+                isFollowed
                   ? rejoinMutation.isPending
                     ? "Rejoining..."
                     : "Rejoin pool"
-                  : pinMutation.isPending
+                  : followMutation.isPending
                     ? "Pinning..."
                     : "Pin and join pool"
               }
               className="rounded-2xl"
-              disabled={pinMutation.isPending || rejoinMutation.isPending}
+              disabled={followMutation.isPending || rejoinMutation.isPending}
               onClick={() =>
-                isPinned ? rejoinMutation.mutate() : pinMutation.mutate()
+                isFollowed ? rejoinMutation.mutate() : followMutation.mutate()
               }
             />
-          ) : null}
+          )}
         </View>
       </View>
 
@@ -594,7 +602,8 @@ export default function RoomDetailScreen() {
                         Cover image
                       </Text>
                       <Text className="mt-1 text-sm text-ui-shade/70">
-                        Upload a fresh image to update this room&apos;s cover.
+                        Upload a fresh image to update this community&apos;s
+                        cover.
                       </Text>
                     </View>
                     <TouchableOpacity
@@ -625,14 +634,14 @@ export default function RoomDetailScreen() {
                       <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-shade/20 bg-white px-4">
                         <Icon type="Ionicons" name="image-outline" size={28} />
                         <Text className="mt-2 text-center text-sm text-ui-shade/70">
-                          Tap to upload a room cover image
+                          Tap to upload a community cover image
                         </Text>
                       </View>
                     )}
                   </TouchableOpacity>
                 </View>
                 <TextInput
-                  label="Room name"
+                  label="Community name"
                   value={editedTitle}
                   action={setEditedTitle}
                   placeholder="e.g. Indiranagar Evenings"
@@ -650,7 +659,7 @@ export default function RoomDetailScreen() {
                   label="Description"
                   value={editedDescription}
                   action={setEditedDescription}
-                  placeholder="Who should join this room?"
+                  placeholder="Who should join this community?"
                   errorText={
                     trimmedEditedDescription.length > 500
                       ? "Keep it under 500 characters."
@@ -661,7 +670,7 @@ export default function RoomDetailScreen() {
                   text={
                     updateRoomMutation.isPending
                       ? "Saving..."
-                      : "Save room changes"
+                      : "Save community changes"
                   }
                   className="rounded-2xl"
                   disabled={!canSaveRoomEdits || updateRoomMutation.isPending}
@@ -685,10 +694,10 @@ export default function RoomDetailScreen() {
                     <Ionicons name="create-outline" size={18} color="#111827" />
                     <View className="flex-1">
                       <Text className="font-semibold text-ui-dark">
-                        Edit room details
+                        Edit community details
                       </Text>
                       <Text className="text-sm text-ui-shade/70">
-                        Update the room name, description, and cover image.
+                        Update the community name, description, and cover image.
                       </Text>
                     </View>
                   </View>
@@ -709,8 +718,8 @@ export default function RoomDetailScreen() {
                           : "Start match now"}
                       </Text>
                       <Text className="text-sm text-ui-shade/70">
-                        Run this room&apos;s next cycle before the countdown
-                        ends.
+                        Run this community&apos;s next cycle before the
+                        countdown ends.
                       </Text>
                     </View>
                   </View>
@@ -722,25 +731,42 @@ export default function RoomDetailScreen() {
       </Actionsheet>
 
       <View className="mb-6 mt-6">
-        <View className="mb-3 flex-row items-center gap-2">
-          <Text className="text-xl font-bold">Matching pool</Text>
-          <View className="rounded-full bg-ui-highlight/10 px-2.5 py-1">
-            <Text className="text-sm font-semibold text-ui-highlight">
-              {room.poolCount || 0}
-            </Text>
+        <RoomSectionTabs
+          activeSection={activeSection}
+          poolCount={room.poolCount || 0}
+          chatCount={roomChats.length}
+          onSelect={setActiveSection}
+        />
+        {activeSection === "pool" ? (
+          <View>
+            {!members.length ? (
+              <Text className="rounded-2xl bg-white p-4 text-center text-ui-shade">
+                Nobody is in the pool yet.
+              </Text>
+            ) : (
+              <FlatList
+                data={members}
+                keyExtractor={(member) => member._id}
+                renderItem={renderMember}
+                scrollEnabled={false}
+              />
+            )}
           </View>
-        </View>
-        {!members.length ? (
-          <Text className="rounded-2xl bg-white p-4 text-center text-ui-shade">
-            Nobody is in the pool yet.
-          </Text>
         ) : (
-          <FlatList
-            data={members}
-            keyExtractor={(member) => member._id}
-            renderItem={renderMember}
-            scrollEnabled={false}
-          />
+          <View>
+            {!roomChats.length ? (
+              <Text className="rounded-2xl bg-white p-4 text-center text-ui-shade">
+                No matched chats yet.
+              </Text>
+            ) : (
+              <FlatList
+                data={roomChats}
+                keyExtractor={(chat) => chat._id}
+                renderItem={renderRoomChat}
+                scrollEnabled={false}
+              />
+            )}
+          </View>
         )}
       </View>
     </ScrollView>

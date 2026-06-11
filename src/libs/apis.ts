@@ -295,7 +295,7 @@ export const updateLocationRoom = async (
   return response.data;
 };
 
-export const pinLocationRoom = async (roomId: string) => {
+export const followLocationRoom = async (roomId: string) => {
   const response = await apiClient.post<{ userState: LocationRoomUserState }>(
     `/rooms/${roomId}/pin`,
   );
@@ -309,7 +309,14 @@ export const rejoinLocationRoom = async (roomId: string) => {
   return response.data;
 };
 
-export const unpinLocationRoom = async (roomId: string) => {
+export const leaveLocationRoomPool = async (roomId: string) => {
+  const response = await apiClient.post<{ userState: LocationRoomUserState }>(
+    `/rooms/${roomId}/leave-pool`,
+  );
+  return response.data;
+};
+
+export const unfollowLocationRoom = async (roomId: string) => {
   const response = await apiClient.post<{ userState: LocationRoomUserState }>(
     `/rooms/${roomId}/unpin`,
   );
@@ -325,9 +332,24 @@ export const startLocationRoomMatchNow = async (roomId: string) => {
 /* -------------------------------------------------------------------------- */
 /*                                   Inbox                                    */
 /* -------------------------------------------------------------------------- */
-export const fetchIbox = async (status = "active") => {
+export interface InboxFilters {
+  status?: string;
+  source?: string;
+  locationRoom?: string;
+}
+
+export const fetchIbox = async (filters: InboxFilters | string = {}) => {
+  const params: InboxFilters =
+    typeof filters === "string" ? { status: filters } : filters;
+
+  const query = new URLSearchParams();
+  if (params.status) query.set("status", params.status);
+  if (params.source) query.set("source", params.source);
+  if (params.locationRoom) query.set("locationRoom", params.locationRoom);
+
+  const search = query.toString();
   const response = await apiClient.get<MatchRoomSummary[]>(
-    `/inbox?status=${status}`,
+    `/inbox${search ? `?${search}` : ""}`,
   );
   return response.data;
 };

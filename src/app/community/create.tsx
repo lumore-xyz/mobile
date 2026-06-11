@@ -61,7 +61,7 @@ export default function CreateRoomScreen() {
     },
     onError: (roomError: any) => {
       Alert.alert(
-        "Could not create room",
+        "Could not create community",
         roomError?.response?.data?.message || "Please try again in a moment.",
       );
     },
@@ -77,14 +77,16 @@ export default function CreateRoomScreen() {
           <Icon type="Ionicons" name="arrow-back-outline" size={22} />
         </TouchableOpacity>
         <View>
-          <Text className="text-3xl font-bold tracking-tight">Create Room</Text>
+          <Text className="text-3xl font-bold tracking-tight">
+            Create Community
+          </Text>
           <Text className="text-ui-shade/70">Start a 24-hour local pool.</Text>
         </View>
       </View>
 
       <View className="rounded-3xl border border-ui-shade/10 bg-white p-4">
         <TextInput
-          label="Room name"
+          label="Community name"
           value={title}
           action={setTitle}
           placeholder="e.g. Koramangala Café Hop"
@@ -102,7 +104,7 @@ export default function CreateRoomScreen() {
             label="Description"
             value={description}
             action={setDescription}
-            placeholder="Who should join this room?"
+            placeholder="Who should join this community?"
           />
         </View>
 
@@ -111,7 +113,7 @@ export default function CreateRoomScreen() {
             <View className="flex-1">
               <Text className="font-semibold text-ui-dark">Cover image</Text>
               <Text className="mt-1 text-sm text-ui-shade/70">
-                Optional, but it helps your room stand out nearby.
+                Optional, but it helps your community stand out nearby.
               </Text>
             </View>
             <TouchableOpacity
@@ -135,7 +137,7 @@ export default function CreateRoomScreen() {
               <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-shade/20 bg-white px-4">
                 <Icon type="Ionicons" name="image-outline" size={28} />
                 <Text className="mt-2 text-center text-sm text-ui-shade/70">
-                  Tap to upload a room cover image
+                  Tap to upload a community cover image
                 </Text>
               </View>
             )}
@@ -145,7 +147,9 @@ export default function CreateRoomScreen() {
         <View className="mt-5 rounded-2xl bg-ui-shade/5 p-4">
           <View className="flex-row items-center gap-2">
             <Icon type="Ionicons" name="location-outline" size={18} />
-            <Text className="font-semibold text-ui-dark">Room location</Text>
+            <Text className="font-semibold text-ui-dark">
+              Community location
+            </Text>
           </View>
           <Text className="mt-2 text-sm text-ui-shade/70">
             {address || coordinatesLabel}

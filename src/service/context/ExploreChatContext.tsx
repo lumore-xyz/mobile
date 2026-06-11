@@ -195,7 +195,7 @@ export const ExploreChatProvider = ({
       fireSideCannons();
       trackAnalytic({
         activity: "room_match_found",
-        label: "Room Match Found",
+        label: "Community Match Found",
       });
       queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
       queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });

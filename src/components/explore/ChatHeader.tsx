@@ -54,7 +54,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   const insets = useSafeAreaInsets();
   const isRoomMatch = roomData?.source === "location_room";
   const roomMatchTitle =
-    roomData?.sourceMetadata?.title || roomData?.locationRoom?.title || "Room";
+    roomData?.sourceMetadata?.title ||
+    roomData?.locationRoom?.title ||
+    "Community";
 
   const [isUnlocked, setisUnlocked] = useState(
     user?.isViewerUnlockedUser || false,
@@ -83,9 +85,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     lockProfile(matchedUser?._id);
   };
 
-  const navigateToInbox = () => {
+  const navigateBack = () => {
     triggerSelectionHaptic();
-    router.push("/chat");
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/chat");
+    }
   };
 
   const navigateToProfile = () => {
@@ -175,7 +181,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     >
       <View className="flex flex-row items-center gap-2">
         <Pressable
-          onPress={navigateToInbox}
+          onPress={navigateBack}
           className="flex h-11 w-11 items-center justify-center rounded-full"
           hitSlop={4}
           accessibilityRole="button"
