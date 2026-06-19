@@ -7,6 +7,7 @@ import Skeleton from "../components/ui/Skeleton";
 import { UserPreferences, useUserPrefrence } from "../hooks/useUserPrefrence";
 import { updateUserPreferences } from "../libs/apis";
 import { queryClient } from "../service/query-client";
+import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "../service/query-keys";
 import { getUser } from "../service/storage";
 
 const EditPreferenceScreen = () => {
@@ -54,7 +55,14 @@ const EditPreferenceScreen = () => {
         : { [field]: value };
 
       await updateUserPreferences(updateData);
-      queryClient.invalidateQueries({ queryKey: ["user-profile", userId] });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["user-profile", userId],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
+        }),
+      ]);
       setIsEditFieldOpen(false);
     } catch (error) {
       console.error("Error updating field:", error);

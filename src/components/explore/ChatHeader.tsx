@@ -23,8 +23,6 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Image,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -320,15 +318,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             <ActionsheetDragIndicator />
           </ActionsheetDragIndicatorWrapper>
 
-          <KeyboardAvoidingView
-            className="w-full flex-1"
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
+          <View className="w-full flex-1">
             <ScrollView
               className="w-full"
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
-              automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
               contentContainerStyle={{
                 paddingBottom: Math.max(insets.bottom, 16),
               }}
@@ -488,7 +482,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                 </View>
               )}
             </ScrollView>
-          </KeyboardAvoidingView>
+          </View>
         </ActionsheetContent>
       </Actionsheet>
     </View>

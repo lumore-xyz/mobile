@@ -38,9 +38,6 @@ const useTick = () => {
   return tick;
 };
 
-const ROOM_COVER_IMAGE_URL =
-  "https://cdn.pixabay.com/photo/2022/11/13/12/42/building-7589141_1280.jpg";
-
 export default function RoomsScreen() {
   const { latitude, longitude, error: locationError } = useLocation();
   const { socket, revalidateSocket } = useSocket();
@@ -126,6 +123,8 @@ export default function RoomsScreen() {
                 onRefresh={() => {
                   void refetch();
                 }}
+                tintColor="#541388"
+                colors={["#541388"]}
               />
             }
             initialNumToRender={8}
@@ -163,7 +162,7 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
       onPress={openRoom}
     >
       <ImageBackground
-        source={{ uri: room.imageUrl || ROOM_COVER_IMAGE_URL }}
+        source={{ uri: room.imageUrl }}
         style={{
           width: "100%",
           height: 120,

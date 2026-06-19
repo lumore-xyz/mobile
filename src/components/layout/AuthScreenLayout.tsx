@@ -2,8 +2,6 @@ import React from "react";
 import {
   Image,
   ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   View,
 } from "react-native";
@@ -31,14 +29,10 @@ export const AuthScreenLayout: React.FC<AuthScreenLayoutProps> = ({
       resizeMode="cover"
       className="flex-1 overflow-hidden bg-ui-shade"
     >
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
+      <View className="flex-1">
         <ScrollView
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
           showsVerticalScrollIndicator={false}
           contentContainerClassName="flex-grow items-center justify-end pt-10"
         >
@@ -60,7 +54,7 @@ export const AuthScreenLayout: React.FC<AuthScreenLayoutProps> = ({
 
           {footer ? <View className="px-6 pb-4">{footer}</View> : null}
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </ImageBackground>
   );
 };

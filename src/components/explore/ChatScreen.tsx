@@ -30,7 +30,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert, KeyboardAvoidingView, Platform, View } from "react-native";
+import { Alert, View } from "react-native";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
@@ -1019,11 +1019,7 @@ export const ChatScreen = () => {
   }
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={0}
-    >
+    <View className="bg-ui-light" style={{ flex: 1 }}>
       <ChatHeader
         user={matchedUser}
         onEndChat={cancelChat}
@@ -1066,16 +1062,12 @@ export const ChatScreen = () => {
         onStopVoiceRecording={handleStopVoiceRecording}
         onCancelVoiceRecording={handleCancelVoiceRecording}
       />
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
 const ChatScreenSkeleton = () => (
-  <KeyboardAvoidingView
-    className="flex-1 bg-ui-light"
-    behavior={Platform.OS === "ios" ? "padding" : "height"}
-    keyboardVerticalOffset={0}
-  >
+  <View className="bg-ui-light" style={{ flex: 1 }}>
     <View className="border-b border-ui-shade/10 bg-white px-4 py-3">
       <View className="flex-row items-center">
         <Skeleton width={40} height={40} radius={999} />
@@ -1101,5 +1093,5 @@ const ChatScreenSkeleton = () => (
     <View className="border-t border-ui-shade/10 bg-white px-3 py-3">
       <Skeleton width="100%" height={48} radius={16} />
     </View>
-  </KeyboardAvoidingView>
+  </View>
 );

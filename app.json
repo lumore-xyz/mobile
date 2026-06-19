@@ -63,6 +63,7 @@
           "cameraPermission": "The app needs access to your camera"
         }
       ],
+      "./plugins/with-expo-image-picker-crop-theme",
       [
         "expo-location",
         {

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { RefreshControl, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import { useAd } from "../hooks/useAd";
@@ -46,7 +46,15 @@ const creditUses = [
   "Credits can be used in future Lumore features and game mechanics.",
 ];
 
-const EarnCreditsScreen = () => {
+interface EarnCreditsScreenProps {
+  isRefreshing?: boolean;
+  onRefresh?: () => void;
+}
+
+const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
+  isRefreshing = false,
+  onRefresh,
+}) => {
   const { showRewarded, isRewardedLoaded } = useAd();
   const [isWatchingAd, setIsWatchingAd] = useState(false);
   const [pendingClaimId, setPendingClaimId] = useState<string | null>(null);
@@ -162,7 +170,20 @@ const EarnCreditsScreen = () => {
   return (
     <View className="flex-1 bg-ui-light">
       <SubPageBack title="Earn Credits" />
-      <ScrollView className="p-4" contentContainerClassName="pb-10 gap-4">
+      <ScrollView
+        className="p-4"
+        contentContainerClassName="pb-10 gap-4"
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor="#541388"
+              colors={["#541388"]}
+            />
+          ) : undefined
+        }
+      >
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <View className="flex-row items-center gap-2">
             <Icon name="videocam-outline" type="Ionicons" size={16} />
@@ -188,7 +209,9 @@ const EarnCreditsScreen = () => {
             </Text>
           ) : null}
           {statusMessage ? (
-            <Text className="mt-2 text-sm text-ui-highlight">{statusMessage}</Text>
+            <Text className="mt-2 text-sm text-ui-highlight">
+              {statusMessage}
+            </Text>
           ) : null}
           <View className="mt-3">
             <Button
@@ -200,8 +223,12 @@ const EarnCreditsScreen = () => {
         </View>
 
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-sm text-ui-shade/70">How credits are earned</Text>
-          <Text className="mt-1 text-2xl font-bold">Ways to earn on Lumore</Text>
+          <Text className="text-sm text-ui-shade/70">
+            How credits are earned
+          </Text>
+          <Text className="mt-1 text-2xl font-bold">
+            Ways to earn on Lumore
+          </Text>
           <View className="mt-4 gap-2">
             {earnWays.map((item) => (
               <View
@@ -225,17 +252,20 @@ const EarnCreditsScreen = () => {
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <View className="flex-row items-center gap-2">
             <Icon name="cash-outline" type="Ionicons" size={16} />
-            <Text className="text-lg font-semibold">How credits are distributed</Text>
+            <Text className="text-lg font-semibold">
+              How credits are distributed
+            </Text>
           </View>
           <Text className="mt-2 text-sm text-ui-shade/70">
             Credit distribution is based on completed actions and approved
             contributions. Rewards are awarded only when each condition is fully
-            satisfied and are protected against duplicate payouts where applicable.
+            satisfied and are protected against duplicate payouts where
+            applicable.
           </Text>
           <View className="mt-3 gap-2">
             <Text className="text-sm text-ui-shade/80">
-              - Rewarded ad grants +1 credit, up to 3 successful claims per rolling
-              hour.
+              - Rewarded ad grants +1 credit, up to 3 successful claims per
+              rolling hour.
             </Text>
             <Text className="text-sm text-ui-shade/80">
               - Daily reward can be claimed once per UTC day.
@@ -255,7 +285,9 @@ const EarnCreditsScreen = () => {
         </View>
 
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-lg font-semibold">What credits are used for</Text>
+          <Text className="text-lg font-semibold">
+            What credits are used for
+          </Text>
           <View className="mt-3 gap-2">
             {creditUses.map((item) => (
               <Text key={item} className="text-sm text-ui-shade/80">
@@ -270,11 +302,13 @@ const EarnCreditsScreen = () => {
         </View>
 
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-lg font-semibold">Future plan: Lumore Token</Text>
+          <Text className="text-lg font-semibold">
+            Future plan: Lumore Token
+          </Text>
           <Text className="mt-2 text-sm text-ui-shade/80">
-            We plan to launch a Lumore token in the future. The target model is 1
-            credit = 1 Lumore token, designed to be tradable on the open market
-            after launch.
+            We plan to launch a Lumore token in the future. The target model is
+            1 credit = 1 Lumore token, designed to be tradable on the open
+            market after launch.
           </Text>
           <Text className="mt-2 text-xs text-ui-shade/60">
             Note: Token launch, conversion, and market availability are future

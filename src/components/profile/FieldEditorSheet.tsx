@@ -13,8 +13,6 @@ import { useUsernameAvailability } from "@/src/hooks/useUsernameAvailability";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import React, { useEffect, useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -151,10 +149,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
 
-        <KeyboardAvoidingView
-          className="w-full flex-1"
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
+        <View className="w-full flex-1">
           <View className="flex flex-row items-center justify-between p-3 gap-4 shadow-sm w-full">
             <TouchableOpacity
               onPress={handleCancelPress}
@@ -201,7 +196,6 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
             className="w-full flex-1 p-3"
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
-            automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
             contentContainerStyle={{
               paddingBottom: Math.max(insets.bottom, 24),
             }}
@@ -222,7 +216,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
               ) : null}
             </View>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </View>
       </ActionsheetContent>
     </Actionsheet>
   );

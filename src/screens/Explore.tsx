@@ -3,11 +3,12 @@ import LogoPrefrence from "@/src/components/headers/LogoPrefrence";
 import { useQuery } from "@tanstack/react-query";
 import { ImageBackground, Text, View } from "react-native";
 import { fetchPreferenceMatchCount } from "../libs/apis";
+import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "../service/query-keys";
 import { formatNumber } from "../utils";
 
 export default function ExploreScreen() {
   const { data: availableUsersCount = 0 } = useQuery({
-    queryKey: ["preference-match-count"],
+    queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
     queryFn: async () => {
       const response = await fetchPreferenceMatchCount();
       return response?.success ? response.data?.availableUsers || 0 : 0;

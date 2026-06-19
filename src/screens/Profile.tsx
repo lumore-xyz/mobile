@@ -1,3 +1,4 @@
+import ProfileNativeAd from "@/src/components/ads/ProfileNativeAd";
 import {
   Actionsheet,
   ActionsheetBackdrop,
@@ -6,7 +7,6 @@ import {
   ActionsheetDragIndicatorWrapper,
 } from "@/src/components/ui/actionsheet";
 import Skeleton from "@/src/components/ui/Skeleton";
-import ProfileNativeAd from "@/src/components/ads/ProfileNativeAd";
 import { useUser } from "@/src/hooks/useUser";
 import {
   deletePost,
@@ -19,23 +19,33 @@ import { extractFullAddressParts } from "@/src/service/providers/LocationProvide
 import { queryClient } from "@/src/service/query-client";
 import { getUser } from "@/src/service/storage";
 import { calculateAge, convertHeight, distanceDisplay } from "@/src/utils";
-import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
 import {
   triggerSelectionHaptic,
   triggerSuccessHaptic,
 } from "@/src/utils/haptics";
+import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
 import { ThisOrThatAnswer } from "@/src/utils/types";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useMemo, useRef, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  Image,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useUserPosts } from "../hooks/useUserPosts";
 import { useUserPrefrence } from "../hooks/useUserPrefrence";
 
 interface ProfileScreenProps {
   profileUserId?: string;
+  isRefreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 const hasDisplayValue = (value: unknown) => {
@@ -43,7 +53,11 @@ const hasDisplayValue = (value: unknown) => {
   return value !== undefined && value !== null && String(value).trim() !== "";
 };
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({
+  profileUserId,
+  isRefreshing = false,
+  onRefresh,
+}) => {
   const currentUser = getUser();
   const currentUserId = currentUser?._id;
   const targetUserId = profileUserId || currentUserId;
@@ -312,6 +326,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
         ref={scrollRef}
         contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
         className="w-full flex-1 bg-ui-light"
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor="#541388"
+              colors={["#541388"]}
+            />
+          ) : undefined
+        }
       >
         <ProfileScreenSkeleton isOwner={isOwner} />
       </ScrollView>
@@ -325,6 +349,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ profileUserId }) => {
       className="w-full flex-1 bg-ui-light"
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor="#541388"
+            colors={["#541388"]}
+          />
+        ) : undefined
+      }
     >
       <View className="flex-1 w-full">
         <View className="rounded-3xl bg-white p-4 border border-ui-shade/10">

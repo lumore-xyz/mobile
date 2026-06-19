@@ -9,6 +9,7 @@ import {
   createProfileSchema,
 } from "@/src/schemas/profileSchema";
 import { queryClient } from "@/src/service/query-client";
+import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "@/src/service/query-keys";
 import { getUser } from "@/src/service/storage";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ImagePickerAsset } from "expo-image-picker";
@@ -130,7 +131,12 @@ const EditProfileScreen = () => {
           type: asset.mimeType || "image/jpeg",
         });
         setUploadedImage(response?.profilePicture || null);
-        await queryClient.invalidateQueries({ queryKey: ["user", userId] });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["user", userId] }),
+          queryClient.invalidateQueries({
+            queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
+          }),
+        ]);
       } catch (error: any) {
         setUploadedImage(null);
         Alert.alert(

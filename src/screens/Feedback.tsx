@@ -1,12 +1,20 @@
+import { useQuery } from "@tanstack/react-query";
+import React from "react";
+import { RefreshControl, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Skeleton from "../components/ui/Skeleton";
 import { fetchReceivedFeedbacks } from "../libs/apis";
 import { FeedbackItem } from "../utils/types";
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
-import { ScrollView, Text, View } from "react-native";
 
-const FeedbackScreen = () => {
+interface FeedbackScreenProps {
+  isRefreshing?: boolean;
+  onRefresh?: () => void;
+}
+
+const FeedbackScreen: React.FC<FeedbackScreenProps> = ({
+  isRefreshing = false,
+  onRefresh,
+}) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["feedback", "received"],
     queryFn: fetchReceivedFeedbacks,
@@ -17,7 +25,20 @@ const FeedbackScreen = () => {
   return (
     <View className="flex-1 bg-ui-light">
       <SubPageBack title="Feedback" />
-      <ScrollView className="p-4" contentContainerClassName="pb-10">
+      <ScrollView
+        className="p-4"
+        contentContainerClassName="pb-10"
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor="#541388"
+              colors={["#541388"]}
+            />
+          ) : undefined
+        }
+      >
         <View className="mb-4">
           <Text className="text-2xl font-bold">Received Feedback</Text>
           <Text className="text-sm text-ui-shade/70">
@@ -40,7 +61,9 @@ const FeedbackScreen = () => {
         ) : null}
 
         {!isLoading && !isError && (!items || items.length === 0) ? (
-          <Text className="text-sm text-ui-shade/70">No feedback received yet.</Text>
+          <Text className="text-sm text-ui-shade/70">
+            No feedback received yet.
+          </Text>
         ) : null}
 
         {!isLoading && !isError && items?.length ? (
@@ -90,4 +113,3 @@ const FeedbackSkeletonCard = () => (
 );
 
 export default FeedbackScreen;
-

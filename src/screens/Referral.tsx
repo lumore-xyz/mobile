@@ -1,9 +1,13 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
+import * as Clipboard from "expo-clipboard";
+import React, { useEffect, useMemo, useState } from "react";
+import { RefreshControl, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
-import { referralCodeSchema } from "../schemas/referralSchema";
 import { applyReferralCode, fetchReferralSummary } from "../libs/apis";
+import { referralCodeSchema } from "../schemas/referralSchema";
 import { queryClient } from "../service/query-client";
 import { buildReferralShareLink } from "../service/referralAttribution";
 import {
@@ -11,14 +15,18 @@ import {
   removePendingReferralCode,
   setPendingReferralCode,
 } from "../service/storage";
-import { toUserFacingError } from "../utils/userFacingError";
 import { ReferralSummary } from "../utils/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import * as Clipboard from "expo-clipboard";
-import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { toUserFacingError } from "../utils/userFacingError";
 
-const ReferralScreen = () => {
+interface ReferralScreenProps {
+  isRefreshing?: boolean;
+  onRefresh?: () => void;
+}
+
+const ReferralScreen: React.FC<ReferralScreenProps> = ({
+  isRefreshing = false,
+  onRefresh,
+}) => {
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -105,7 +113,20 @@ const ReferralScreen = () => {
   return (
     <View className="flex-1 bg-ui-light">
       <SubPageBack title="Referral" />
-      <ScrollView className="p-4" contentContainerClassName="pb-10">
+      <ScrollView
+        className="p-4"
+        contentContainerClassName="pb-10"
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor="#541388"
+              colors={["#541388"]}
+            />
+          ) : undefined
+        }
+      >
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <Text className="text-sm text-ui-shade/70">Your referral code</Text>
           <View className="mt-2">
@@ -145,7 +166,9 @@ const ReferralScreen = () => {
               />
             </View>
           </View>
-          {copied ? <Text className="mt-2 text-xs text-green-600">Copied</Text> : null}
+          {copied ? (
+            <Text className="mt-2 text-xs text-green-600">Copied</Text>
+          ) : null}
         </View>
 
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
@@ -171,7 +194,9 @@ const ReferralScreen = () => {
                 Already applied: {referredBy}
               </Text>
             ) : null}
-            {codeError ? <Text className="text-sm text-red-500 mt-2">{codeError}</Text> : null}
+            {codeError ? (
+              <Text className="text-sm text-red-500 mt-2">{codeError}</Text>
+            ) : null}
             <View className="mt-3">
               <Button
                 text={applyMutation.isPending ? "Applying..." : "Apply code"}

@@ -4,8 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Text,
   View,
@@ -69,14 +67,10 @@ const SetNewPasswordScreen = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-ui-light"
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View className="flex-1 bg-ui-light">
       <ScrollView
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: "center",
@@ -141,7 +135,7 @@ const SetNewPasswordScreen = () => {
           </View>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

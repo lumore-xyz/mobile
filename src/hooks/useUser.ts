@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
 import apiClient from "../service/api-client";
+import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "../service/query-keys";
 import { clearSession, getUser } from "../service/storage";
 
 const fetchUser = async (userId: string) => {
@@ -82,6 +83,9 @@ export const useUser = (userId: string) => {
       updateUserField({ userId, field, value }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
+      queryClient.invalidateQueries({
+        queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
+      });
     },
   });
 
@@ -95,6 +99,9 @@ export const useUser = (userId: string) => {
     }) => updateFieldVisibility({ userId, field, visibility }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
+      queryClient.invalidateQueries({
+        queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
+      });
     },
   });
 

@@ -1,7 +1,7 @@
 import "@/global.css";
+import { KeyboardDodgingView } from "@/src/components/layout/KeyboardDodgingView";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { GluestackUIProvider } from "../components/ui/gluestack-ui-provider";
 import { useGlobalScreenProtection } from "../hooks/useGlobalScreenProtection";
@@ -13,8 +13,6 @@ const screenOptions = {
   headerShown: false,
   animation: "none",
 };
-const keyboardAvoidingBehavior = Platform.OS === "ios" ? "padding" : undefined;
-
 configureGoogleSignIn();
 
 export default function RootLayout() {
@@ -23,21 +21,18 @@ export default function RootLayout() {
 
   return (
     <OneSignalProvider>
-      <GluestackUIProvider mode="light">
-        <SafeAreaProvider>
-          <SafeAreaView className="flex-1 bg-ui-light">
-            <Provider>
-              <KeyboardAvoidingView
-                style={{ flex: 1 }}
-                behavior={keyboardAvoidingBehavior}
-              >
+      <SafeAreaProvider>
+        <KeyboardDodgingView>
+          <GluestackUIProvider mode="light">
+            <SafeAreaView className="flex-1 bg-ui-light">
+              <Provider>
                 <Stack screenOptions={screenOptions as any} />
-              </KeyboardAvoidingView>
-            </Provider>
-            <StatusBar style="dark" backgroundColor="#E6F4FE" />
-          </SafeAreaView>
-        </SafeAreaProvider>
-      </GluestackUIProvider>
+              </Provider>
+              <StatusBar style="dark" backgroundColor="#E6F4FE" />
+            </SafeAreaView>
+          </GluestackUIProvider>
+        </KeyboardDodgingView>
+      </SafeAreaProvider>
     </OneSignalProvider>
   );
 }

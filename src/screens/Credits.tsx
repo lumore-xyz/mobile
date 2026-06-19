@@ -1,3 +1,7 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
+import React, { useState } from "react";
+import { RefreshControl, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
@@ -8,10 +12,11 @@ import {
 } from "../libs/apis";
 import { queryClient } from "../service/query-client";
 import { CreditHistoryItem } from "../utils/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { router } from "expo-router";
-import React, { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+
+interface CreditsScreenProps {
+  isRefreshing?: boolean;
+  onRefresh?: () => void;
+}
 
 const TYPE_LABELS: Record<string, string> = {
   signup_bonus: "Signup bonus",
@@ -23,7 +28,10 @@ const TYPE_LABELS: Record<string, string> = {
   admin_adjustment: "Admin adjustment",
 };
 
-const CreditsScreen = () => {
+const CreditsScreen: React.FC<CreditsScreenProps> = ({
+  isRefreshing = false,
+  onRefresh,
+}) => {
   const [page, setPage] = useState(1);
 
   const { data: balanceRes, isLoading: isBalanceLoading } = useQuery({
@@ -53,27 +61,44 @@ const CreditsScreen = () => {
   return (
     <View className="flex-1 bg-ui-light">
       <SubPageBack title="Credits" />
-      <ScrollView className="p-4" contentContainerClassName="pb-10">
+      <ScrollView
+        className="p-4"
+        contentContainerClassName="pb-10"
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor="#541388"
+              colors={["#541388"]}
+            />
+          ) : undefined
+        }
+      >
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <Text className="text-sm text-ui-shade/70">Available credits</Text>
           <View className="flex-row items-center justify-between mt-2">
             {isBalanceLoading ? (
               <Skeleton width={108} height={36} />
             ) : (
-              <Text className="text-3xl font-bold text-ui-shade">{balance}</Text>
+              <Text className="text-3xl font-bold text-ui-shade">
+                {balance}
+              </Text>
             )}
           </View>
           <View className="mt-4 gap-2">
             <Button
               disabled={
-                isBalanceLoading || rewardGrantedToday || claimMutation.isPending
+                isBalanceLoading ||
+                rewardGrantedToday ||
+                claimMutation.isPending
               }
               text={
                 isBalanceLoading
                   ? "Checking daily reward..."
                   : rewardGrantedToday
-                  ? "Daily reward already claimed"
-                  : `Claim daily +${dailyRewardAmount}`
+                    ? "Daily reward already claimed"
+                    : `Claim daily +${dailyRewardAmount}`
               }
               onClick={() => claimMutation.mutate()}
             />
@@ -99,31 +124,31 @@ const CreditsScreen = () => {
 
             {!isHistoryLoading && !isBalanceLoading
               ? items.map((item) => (
-              <View
-                key={item._id}
-                className="mt-3 flex-row items-center justify-between border border-ui-shade/10 rounded-lg p-3"
-              >
-                <View>
-                  <Text className="font-medium text-ui-shade">
-                    {TYPE_LABELS[item.type] || item.type}
-                  </Text>
-                  <Text className="text-xs text-ui-shade/60 mt-1">
-                    {new Date(item.createdAt).toLocaleString()}
-                  </Text>
-                </View>
-                <View className="items-end">
-                  <Text
-                    className={
-                      item.amount >= 0 ? "text-green-600" : "text-red-600"
-                    }
+                  <View
+                    key={item._id}
+                    className="mt-3 flex-row items-center justify-between border border-ui-shade/10 rounded-lg p-3"
                   >
-                    {item.amount >= 0 ? `+${item.amount}` : item.amount}
-                  </Text>
-                  <Text className="text-xs text-ui-shade/60 mt-1">
-                    Balance: {item.balanceAfter}
-                  </Text>
-                </View>
-              </View>
+                    <View>
+                      <Text className="font-medium text-ui-shade">
+                        {TYPE_LABELS[item.type] || item.type}
+                      </Text>
+                      <Text className="text-xs text-ui-shade/60 mt-1">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </Text>
+                    </View>
+                    <View className="items-end">
+                      <Text
+                        className={
+                          item.amount >= 0 ? "text-green-600" : "text-red-600"
+                        }
+                      >
+                        {item.amount >= 0 ? `+${item.amount}` : item.amount}
+                      </Text>
+                      <Text className="text-xs text-ui-shade/60 mt-1">
+                        Balance: {item.balanceAfter}
+                      </Text>
+                    </View>
+                  </View>
                 ))
               : null}
           </View>
