@@ -3,6 +3,7 @@ import { KeyboardDodgingView } from "@/src/components/layout/KeyboardDodgingView
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import AppUpdatePrompt from "../components/ui/AppUpdatePrompt";
 import { GluestackUIProvider } from "../components/ui/gluestack-ui-provider";
 import { useGlobalScreenProtection } from "../hooks/useGlobalScreenProtection";
 import { configureGoogleSignIn } from "../service/google-signin";
@@ -28,6 +29,7 @@ export default function RootLayout() {
               <Provider>
                 <Stack screenOptions={screenOptions as any} />
               </Provider>
+              <AppUpdatePrompt />
               <StatusBar style="dark" backgroundColor="#E6F4FE" />
             </SafeAreaView>
           </GluestackUIProvider>
