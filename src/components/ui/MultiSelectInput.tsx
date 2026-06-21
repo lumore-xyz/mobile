@@ -14,13 +14,12 @@ import {
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
 } from "./actionsheet";
+import OptionIcon from "@/src/libs/OptionIcon";
+import type { SelectOption } from "@/src/libs/options";
 import { TextInput } from "./TextInput";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
-export interface SelectOption {
-  label: string;
-  value: string;
-}
+export type { SelectOption } from "@/src/libs/options";
 
 interface MultiSelectInputProps {
   label: string;
@@ -101,13 +100,31 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
       return (
         <TouchableOpacity
           onPress={() => handleSelect(item.value)}
-          className={`flex min-h-11 w-full flex-row items-center justify-between rounded-md px-1 py-2 ${
+          className={`flex min-h-11 w-full flex-row items-center justify-between rounded-lg px-3 py-2 ${
             index % 2 === 0 ? "bg-white" : "bg-ui-background/40"
           }`}
           accessibilityRole="button"
           accessibilityState={{ selected: isSelected }}
         >
-          <Text className="max-w-[80%] text-lg">{item.label}</Text>
+          <View className="flex-1 flex-row items-center gap-3">
+            <View
+              className={`h-8 w-8 items-center justify-center rounded-full ${
+                isSelected ? "bg-ui-highlight/15" : "bg-ui-shade/5"
+              }`}
+            >
+              <OptionIcon
+                icon={item.icon}
+                size={16}
+                color={isSelected ? "#541388" : "#111827"}
+              />
+            </View>
+            <Text
+              className={`max-w-[80%] text-lg ${isSelected ? "font-semibold text-ui-highlight" : "text-ui-dark"}`}
+              numberOfLines={1}
+            >
+              {item.label}
+            </Text>
+          </View>
           <View
             className={`h-5 w-5 rounded-full border border-black ${
               isSelected ? "bg-black" : "bg-white"
@@ -130,11 +147,13 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
           triggerSelectionHaptic();
           setIsOpen(true);
         }}
-        className="min-h-12 rounded-md border border-gray-300 p-4"
+        className="min-h-12 rounded-lg border border-gray-300 p-4"
         accessibilityRole="button"
       >
         {safeValue.length === 0 ? (
-          <Text className="text-gray-400">{placeholder}</Text>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-gray-400">{placeholder}</Text>
+          </View>
         ) : (
           <View className="flex flex-row flex-wrap gap-2">
             {safeValue.map((selectedValue) => {
@@ -145,6 +164,7 @@ const MultiSelectInput: React.FC<MultiSelectInputProps> = ({
                   onPress={(event) => removeItem(selectedValue, event)}
                   className="flex-row items-center gap-1 rounded-full bg-ui-highlight/10 px-3 py-1"
                 >
+                  <OptionIcon icon={item?.icon} size={14} color="#541388" />
                   <Text className="text-ui-highlight">{item?.label}</Text>
                   <Text className="ml-1 font-bold text-ui-highlight">×</Text>
                 </TouchableOpacity>

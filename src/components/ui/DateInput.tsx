@@ -96,7 +96,7 @@ const DateInput: React.FC<DateInputProps> = ({
       <Text className="font-medium text-typography-900 text-xl mb-1">
         {label}
       </Text>
-      <View className="w-full flex flex-row justify-between items-center border border-ui-shade/10 rounded-md p-3">
+      <View className="w-full flex flex-row justify-between items-center border border-ui-shade/10 rounded-lg p-3">
         <RNTextInput
           value={typedDate}
           onChangeText={(text) => {

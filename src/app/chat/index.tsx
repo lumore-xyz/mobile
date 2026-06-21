@@ -1,7 +1,9 @@
 import MobileNav from "@/src/components/MobileNav";
+import NotificationBell from "@/src/components/notifications/NotificationBell";
 import Skeleton from "@/src/components/ui/Skeleton";
 import Tabs, { TabItem } from "@/src/components/ui/Tabs";
 import { CHAT_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
+import { useNotificationSocketSync } from "@/src/hooks/useNotifications";
 import { useUser } from "@/src/hooks/useUser";
 import { fetchIbox } from "@/src/libs/apis";
 import Icon from "@/src/libs/Icon";
@@ -91,21 +93,26 @@ const ChatInbox = () => {
     };
   }, [socket, queryClient]);
 
+  useNotificationSocketSync();
+
   return (
     <>
       <View className="flex-1 pt-6 px-4">
         <View className="mb-6 flex-row items-center justify-between">
           <Text className="text-3xl font-bold tracking-tight">Inbox</Text>
-          <TouchableOpacity
-            onPress={() => {
-              triggerSelectionHaptic();
-              router.push("/feedback");
-            }}
-            className="min-h-11 justify-center"
-            hitSlop={8}
-          >
-            <Text className="text-ui-highlight">Feedback</Text>
-          </TouchableOpacity>
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity
+              onPress={() => {
+                triggerSelectionHaptic();
+                router.push("/feedback");
+              }}
+              className="min-h-11 justify-center px-2"
+              hitSlop={8}
+            >
+              <Text className="text-ui-highlight">Feedback</Text>
+            </TouchableOpacity>
+            <NotificationBell />
+          </View>
         </View>
 
         <InboxTabs activeTab={activeTab} onTabChange={setActiveTab} />

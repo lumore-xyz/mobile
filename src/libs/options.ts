@@ -4,7 +4,22 @@ import allLanguages from "./languages.json";
 export interface SelectOption {
   label: string;
   value: string;
+  icon?: SelectOptionIcon | null;
 }
+
+export interface SelectOptionIcon {
+  library: string;
+  name: string;
+}
+
+export const ICON_LIBRARIES = Object.freeze(["Ionicons"] as const);
+export type IconLibrary = (typeof ICON_LIBRARIES)[number];
+
+export const isSupportedOptionIconLibrary = (
+  library: string | null | undefined,
+): library is IconLibrary =>
+  Boolean(library) &&
+  (ICON_LIBRARIES as readonly string[]).includes(String(library));
 
 export const DYNAMIC_OPTIONS_CACHE_KEY = "lumore:dynamic-options";
 export const DYNAMIC_OPTIONS_VERSION_KEY = "lumore:dynamic-options-version";
@@ -235,6 +250,22 @@ const dynamicOptionRegistry: Record<DynamicOptionKey, SelectOption[]> = {
   visibilityOptions,
 };
 
+const isOptionIcon = (value: unknown): value is SelectOptionIcon =>
+  Boolean(value) &&
+  typeof value === "object" &&
+  typeof (value as SelectOptionIcon).library === "string" &&
+  typeof (value as SelectOptionIcon).name === "string" &&
+  isSupportedOptionIconLibrary((value as SelectOptionIcon).library);
+
+const normalizeOptionIcon = (
+  value: unknown,
+): SelectOptionIcon | null | undefined => {
+  if (value === null) return null;
+  if (value === undefined) return undefined;
+  if (!isOptionIcon(value)) return undefined;
+  return { library: value.library, name: value.name };
+};
+
 const isOptionArray = (value: unknown): value is SelectOption[] =>
   Array.isArray(value) &&
   value.every(
@@ -242,7 +273,10 @@ const isOptionArray = (value: unknown): value is SelectOption[] =>
       Boolean(option) &&
       typeof option === "object" &&
       typeof (option as SelectOption).label === "string" &&
-      typeof (option as SelectOption).value === "string",
+      typeof (option as SelectOption).value === "string" &&
+      ((option as SelectOption).icon === undefined ||
+        (option as SelectOption).icon === null ||
+        isOptionIcon((option as SelectOption).icon)),
   );
 
 const normalizeOptionArray = (options: SelectOption[]) => {
@@ -251,7 +285,10 @@ const normalizeOptionArray = (options: SelectOption[]) => {
     const value = option.value.trim();
     const label = option.label.trim();
     if (!value || !label) return;
-    unique.set(value, { value, label });
+    const icon = normalizeOptionIcon(option.icon);
+    const entry: SelectOption = { value, label };
+    if (icon) entry.icon = icon;
+    unique.set(value, entry);
   });
   return Array.from(unique.values());
 };

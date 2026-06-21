@@ -62,7 +62,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <TouchableOpacity
       className={clsxLib(
-        "flex items-center justify-center rounded-md",
+        "flex items-center justify-center rounded-lg",
         sizeStyles[size],
         variantStyles[variant],
         disabled && "opacity-60",

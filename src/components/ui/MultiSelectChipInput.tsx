@@ -1,11 +1,10 @@
 import React, { useCallback, useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import OptionIcon from "@/src/libs/OptionIcon";
+import type { SelectOption } from "@/src/libs/options";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
-export interface MultiSelectChipOption {
-  label: string;
-  value: string;
-}
+export type MultiSelectChipOption = SelectOption;
 
 interface MultiSelectChipInputProps {
   label: string;
@@ -115,7 +114,7 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
 
   return (
     <View
-      className={`rounded-md border p-3 ${errorText ? "border-red-500" : "border-ui-shade/10"}`}
+      className={`rounded-lg border p-3 ${errorText ? "border-red-500" : "border-ui-shade/10"}`}
     >
       <View className="flex-row items-center justify-between gap-2">
         <Text className="font-medium text-typography-900 text-xl">{label}</Text>
@@ -145,12 +144,13 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
                   key={option.value}
                   onPress={() => toggleOption(option.value)}
                   disabled={isDisabled}
-                  className={`min-h-11 justify-center rounded-full border px-3 py-2 ${
+                  className={`min-h-11 flex-row items-center gap-2 justify-center rounded-full border px-3 py-2 ${
                     isSelected ? palette.active : palette.idle
                   } ${isDisabled ? "opacity-45" : ""} self-start`}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
                 >
+                  <OptionIcon icon={option.icon} size={14} />
                   <Text
                     className={`text-xs ${isSelected ? "font-semibold" : "font-medium"}`}
                   >

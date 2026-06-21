@@ -550,6 +550,11 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 icon="settings-outline"
                 onPress={() => router.navigate("/(subpage)/settings")}
               />
+              <ActionPill
+                label="Notifications"
+                icon="notifications-outline"
+                onPress={() => router.navigate("/(subpage)/notifications")}
+              />
             </View>
             {!user?.isVerified ? (
               <Pressable

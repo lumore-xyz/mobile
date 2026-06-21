@@ -7,6 +7,7 @@ import { ConfettiProvider } from "../context/Confetti";
 import { ExploreChatProvider } from "../context/ExploreChatContext";
 import { SocketProvider } from "../context/SocketContext";
 import { queryClient } from "../query-client";
+import NotificationSyncProvider from "./NotificationSyncProvider";
 import { AdProvider } from "./AdProvider";
 import { LocationProvider } from "./LocationProvider";
 import { OptionsProvider } from "./OptionsProvider";
@@ -21,9 +22,11 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
             <OptionsProvider>
               <ReferralAttributionProvider>
                 <SocketProvider>
-                  <ConfettiProvider>
-                    <ExploreChatProvider>{children}</ExploreChatProvider>
-                  </ConfettiProvider>
+                  <NotificationSyncProvider>
+                    <ConfettiProvider>
+                      <ExploreChatProvider>{children}</ExploreChatProvider>
+                    </ConfettiProvider>
+                  </NotificationSyncProvider>
                 </SocketProvider>
               </ReferralAttributionProvider>
             </OptionsProvider>

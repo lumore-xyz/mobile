@@ -50,7 +50,7 @@ const SingleSlider: React.FC<SingleSliderProps> = ({
   );
 
   return (
-    <View className="border rounded-md px-6 py-4 border-ui-shade/20">
+    <View className="border rounded-lg px-6 py-4 border-ui-shade/20">
       {/* Label */}
       <Text className="font-medium text-typography-900 text-xl mb-2">
         {label}
