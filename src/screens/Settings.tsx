@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useMemo, useState } from "react";
@@ -7,6 +6,7 @@ import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import { useUser } from "../hooks/useUser";
 import { startDiditVerification } from "../libs/apis";
+import Icon from "../libs/Icon";
 import { getUser } from "../service/storage";
 
 const SettingsScreen = () => {
@@ -43,12 +43,12 @@ const SettingsScreen = () => {
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <Text className="text-base font-semibold">Profile</Text>
           <SettingsItem
-            icon="person-outline"
+            icon="UserRound"
             label="Edit profile"
             onPress={() => router.navigate("/(subpage)/edit-profile")}
           />
           <SettingsItem
-            icon="options-outline"
+            icon="SlidersHorizontal"
             label="Edit preferences"
             onPress={() => router.navigate("/(subpage)/edit-preference")}
           />
@@ -57,7 +57,7 @@ const SettingsScreen = () => {
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
           <Text className="text-base font-semibold">Account</Text>
           <SettingsItem
-            icon="settings-outline"
+            icon="Settings"
             label="User settings"
             onPress={() => router.navigate("/(subpage)/edit-user-settings")}
           />
@@ -71,12 +71,12 @@ const SettingsScreen = () => {
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
           <Text className="text-base font-semibold">Rewards</Text>
           <SettingsItem
-            icon="cash-outline"
+            icon="Wallet"
             label="Credits"
             onPress={() => router.navigate("/(subpage)/credits")}
           />
           <SettingsItem
-            icon="gift-outline"
+            icon="Gift"
             label="Referral"
             onPress={() => router.navigate("/(subpage)/referral")}
           />
@@ -85,12 +85,12 @@ const SettingsScreen = () => {
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
           <Text className="text-base font-semibold">Community</Text>
           <SettingsItem
-            icon="game-controller-outline"
+            icon="Gamepad2"
             label="Games"
             onPress={() => router.navigate("/(subpage)/games")}
           />
           <SettingsItem
-            icon="chatbox-ellipses-outline"
+            icon="MessageCircleMore"
             label="Feedback"
             onPress={() => router.navigate("/(subpage)/feedback")}
           />
@@ -130,7 +130,7 @@ const SettingsItem = ({
   label,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   label: string;
   onPress: () => void;
 }) => (
@@ -139,10 +139,10 @@ const SettingsItem = ({
     className="mt-3 flex-row items-center justify-between rounded-xl border border-ui-shade/10 px-4 py-3"
   >
     <View className="flex-row items-center gap-3">
-      <Ionicons name={icon} size={18} className="text-ui-shade" />
+      <Icon name={icon} size={18} className="text-ui-shade" />
       <Text className="text-ui-shade font-medium">{label}</Text>
     </View>
-    <Ionicons name="chevron-forward" size={16} className="text-ui-shade/60" />
+    <Icon name="ChevronRight" size={16} className="text-ui-shade/60" />
   </Pressable>
 );
 

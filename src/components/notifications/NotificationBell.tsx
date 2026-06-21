@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
+import Icon from "@/src/libs/Icon";
 import {
   useNotificationUnreadCount,
 } from "../../hooks/useNotifications";
@@ -37,7 +37,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
       hitSlop={8}
       className={`relative h-11 w-11 items-center justify-center rounded-full ${className}`}
     >
-      <Ionicons name="notifications-outline" size={size} color="#111827" />
+      <Icon name="Bell" size={size} color="#111827" />
       {display ? (
         <View
           className="absolute -right-0.5 -top-0.5 min-w-[18px] items-center justify-center rounded-full px-1.5"

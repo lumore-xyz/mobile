@@ -20,7 +20,7 @@ import {
   smokingOptions,
   zodiacOptions,
 } from "@/src/libs/options";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "@/src/libs/Icon";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import RangeInput from "../ui/RangeInput";
@@ -41,16 +41,16 @@ const usernameStatusStyles: Record<
   UsernameAvailabilityStatus,
   {
     color: string;
-    icon?: keyof typeof Ionicons.glyphMap;
+    icon?: string;
   }
 > = {
-  idle: { color: "#667085", icon: "information-circle-outline" },
-  invalid: { color: "#EF4444", icon: "alert-circle-outline" },
-  current: { color: "#667085", icon: "person-circle-outline" },
+  idle: { color: "#667085", icon: "Info" },
+  invalid: { color: "#EF4444", icon: "CircleAlert" },
+  current: { color: "#667085", icon: "CircleUserRound" },
   checking: { color: "#541388" },
-  available: { color: "#15803D", icon: "checkmark-circle-outline" },
-  taken: { color: "#EF4444", icon: "close-circle-outline" },
-  error: { color: "#B45309", icon: "warning-outline" },
+  available: { color: "#15803D", icon: "CircleCheck" },
+  taken: { color: "#EF4444", icon: "CircleX" },
+  error: { color: "#B45309", icon: "TriangleAlert" },
 };
 
 type HeightUnit = "cm" | "ft";
@@ -108,7 +108,7 @@ const UsernameAvailabilityFeedback = ({
       {isChecking ? (
         <ActivityIndicator size="small" color={style.color} />
       ) : style.icon ? (
-        <Ionicons name={style.icon} size={16} color={style.color} />
+        <Icon name={style.icon} size={16} color={style.color} />
       ) : null}
       <Text className="text-sm" style={{ color: style.color }}>
         {message}

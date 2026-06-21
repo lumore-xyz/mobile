@@ -1,323 +1,55 @@
-// Mirror of the backend iconCatalog.js so the mobile app can render icons
-// even before the admin endpoint is fetched, and so the admin UI and the
-// mobile renderer stay in sync without round-tripping every icon lookup.
+import type { LucideIcon } from "lucide-react-native";
+import * as LucideIcons from "lucide-react-native";
 
-import { ICON_LIBRARIES } from "./options";
+export const toLucideIconName = (componentName: string) =>
+  componentName
+    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .replace(/([A-Za-z])([0-9])/g, (_match, letter, digit) =>
+      letter === "x" ? `${letter}${digit}` : `${letter}-${digit}`,
+    )
+    .replace(/([0-9])([A-Z])/g, "$1-$2")
+    .toLowerCase();
 
-export const ICON_CATEGORY_ORDER = Object.freeze([
-  "People & Relationships",
-  "Feelings & Status",
-  "Communication",
-  "Places & Travel",
-  "Food & Drink",
-  "Activities & Hobbies",
-  "Work & Lifestyle",
-  "Tech & Media",
-  "Nature & Weather",
-  "Objects",
-  "Symbols & Shapes",
-  "Arrows & Navigation",
-  "System",
-]);
+const lucideIconMap = new Map<string, LucideIcon>();
 
-export interface OptionIconEntry {
-  library: (typeof ICON_LIBRARIES)[number];
-  name: string;
+for (const [exportName, component] of Object.entries(LucideIcons)) {
+  const isIconExport =
+    /^[A-Z]/.test(exportName) &&
+    exportName !== "Icon" &&
+    !exportName.startsWith("Lucide") &&
+    !exportName.endsWith("Icon");
+
+  if (!isIconExport) continue;
+  lucideIconMap.set(
+    toLucideIconName(exportName),
+    component as LucideIcon,
+  );
 }
 
-const def = (name: OptionIconEntry["name"]): OptionIconEntry => ({
-  library: "Ionicons",
-  name,
-});
+const canonicalNameAliases: Record<string, string> = {
+  "arrow-down-0-1": "arrow-down-01",
+  "arrow-down-1-0": "arrow-down-10",
+  "arrow-down-a-z": "arrow-down-az",
+  "arrow-down-z-a": "arrow-down-za",
+  "arrow-up-0-1": "arrow-up-01",
+  "arrow-up-1-0": "arrow-up-10",
+  "arrow-up-a-z": "arrow-up-az",
+  "arrow-up-z-a": "arrow-up-za",
+};
 
-export const ICON_CATALOG: Record<string, OptionIconEntry[]> = Object.freeze({
-  "People & Relationships": [
-    def("person-outline"),
-    def("person-circle-outline"),
-    def("people-outline"),
-    def("people-circle-outline"),
-    def("man-outline"),
-    def("woman-outline"),
-    def("heart-outline"),
-    def("heart-circle-outline"),
-    def("heart-half-outline"),
-    def("heart-dislike-outline"),
-    def("ribbon-outline"),
-    def("rose-outline"),
-    def("gift-outline"),
-    def("flower-outline"),
-    def("leaf-outline"),
-    def("star-outline"),
-    def("star-half-outline"),
-  ],
-  "Feelings & Status": [
-    def("happy-outline"),
-    def("sad-outline"),
-    def("skull-outline"),
-    def("flame-outline"),
-    def("thumbs-up-outline"),
-    def("thumbs-down-outline"),
-    def("shield-checkmark-outline"),
-    def("shield-half-outline"),
-    def("shield-outline"),
-    def("lock-closed-outline"),
-    def("lock-open-outline"),
-    def("key-outline"),
-    def("eye-outline"),
-    def("eye-off-outline"),
-    def("sparkles-outline"),
-    def("bulb-outline"),
-  ],
-  Communication: [
-    def("chatbubble-outline"),
-    def("chatbubble-ellipses-outline"),
-    def("chatbox-outline"),
-    def("chatbox-ellipses-outline"),
-    def("mail-outline"),
-    def("mail-unread-outline"),
-    def("mail-open-outline"),
-    def("send-outline"),
-    def("notifications-outline"),
-    def("notifications-circle-outline"),
-    def("notifications-off-outline"),
-    def("megaphone-outline"),
-    def("mic-outline"),
-    def("mic-off-outline"),
-    def("call-outline"),
-    def("videocam-outline"),
-  ],
-  "Places & Travel": [
-    def("location-outline"),
-    def("location-circle-outline"),
-    def("navigate-outline"),
-    def("compass-outline"),
-    def("map-outline"),
-    def("globe-outline"),
-    def("globe-americas-outline"),
-    def("earth-outline"),
-    def("airplane-outline"),
-    def("car-outline"),
-    def("bus-outline"),
-    def("boat-outline"),
-    def("train-outline"),
-    def("bicycle-outline"),
-    def("walk-outline"),
-    def("home-outline"),
-    def("business-outline"),
-    def("school-outline"),
-    def("storefront-outline"),
-  ],
-  "Food & Drink": [
-    def("restaurant-outline"),
-    def("fast-food-outline"),
-    def("pizza-outline"),
-    def("cafe-outline"),
-    def("wine-outline"),
-    def("beer-outline"),
-    def("ice-cream-outline"),
-    def("nutrition-outline"),
-    def("water-outline"),
-    def("leaf-outline"),
-  ],
-  "Activities & Hobbies": [
-    def("game-controller-outline"),
-    def("football-outline"),
-    def("basketball-outline"),
-    def("tennisball-outline"),
-    def("golf-outline"),
-    def("musical-notes-outline"),
-    def("headset-outline"),
-    def("book-outline"),
-    def("bookmark-outline"),
-    def("pencil-outline"),
-    def("brush-outline"),
-    def("camera-outline"),
-    def("film-outline"),
-    def("rocket-outline"),
-    def("trophy-outline"),
-    def("medal-outline"),
-    def("barbell-outline"),
-    def("bicycle-outline"),
-    def("flag-outline"),
-  ],
-  "Work & Lifestyle": [
-    def("briefcase-outline"),
-    def("card-outline"),
-    def("cash-outline"),
-    def("wallet-outline"),
-    def("calculator-outline"),
-    def("calendar-outline"),
-    def("time-outline"),
-    def("alarm-outline"),
-    def("bed-outline"),
-    def("sunny-outline"),
-    def("moon-outline"),
-  ],
-  "Tech & Media": [
-    def("phone-portrait-outline"),
-    def("laptop-outline"),
-    def("desktop-outline"),
-    def("tablet-landscape-outline"),
-    def("tv-outline"),
-    def("wifi-outline"),
-    def("bluetooth-outline"),
-    def("battery-charging-outline"),
-    def("bulb-outline"),
-    def("game-controller-outline"),
-    def("code-slash-outline"),
-    def("terminal-outline"),
-    def("settings-outline"),
-    def("options-outline"),
-    def("filter-outline"),
-    def("cloud-outline"),
-    def("server-outline"),
-    def("bug-outline"),
-    def("rocket-outline"),
-  ],
-  "Nature & Weather": [
-    def("sunny-outline"),
-    def("moon-outline"),
-    def("cloud-outline"),
-    def("cloudy-outline"),
-    def("rainy-outline"),
-    def("thunderstorm-outline"),
-    def("snow-outline"),
-    def("leaf-outline"),
-    def("flower-outline"),
-    def("flame-outline"),
-    def("water-outline"),
-    def("earth-outline"),
-    def("bonfire-outline"),
-    def("partly-sunny-outline"),
-    def("rainbow-outline"),
-  ],
-  Objects: [
-    def("home-outline"),
-    def("business-outline"),
-    def("storefront-outline"),
-    def("car-outline"),
-    def("gift-outline"),
-    def("key-outline"),
-    def("lock-closed-outline"),
-    def("bag-outline"),
-    def("basket-outline"),
-    def("cart-outline"),
-    def("wallet-outline"),
-    def("card-outline"),
-    def("cash-outline"),
-    def("pricetag-outline"),
-    def("ticket-outline"),
-    def("library-outline"),
-    def("book-outline"),
-    def("newspaper-outline"),
-    def("cube-outline"),
-    def("diamond-outline"),
-  ],
-  "Symbols & Shapes": [
-    def("heart-outline"),
-    def("star-outline"),
-    def("bookmark-outline"),
-    def("flag-outline"),
-    def("ribbon-outline"),
-    def("flame-outline"),
-    def("sparkles-outline"),
-    def("planet-outline"),
-    def("diamond-outline"),
-    def("triangle-outline"),
-    def("square-outline"),
-    def("ellipse-outline"),
-    def("add-circle-outline"),
-    def("remove-circle-outline"),
-    def("close-circle-outline"),
-    def("checkmark-circle-outline"),
-    def("help-circle-outline"),
-    def("information-circle-outline"),
-    def("alert-circle-outline"),
-    def("warning-outline"),
-  ],
-  "Arrows & Navigation": [
-    def("arrow-back-outline"),
-    def("arrow-forward-outline"),
-    def("arrow-up-outline"),
-    def("arrow-down-outline"),
-    def("chevron-back-outline"),
-    def("chevron-forward-outline"),
-    def("chevron-up-outline"),
-    def("chevron-down-outline"),
-    def("caret-back-outline"),
-    def("caret-forward-outline"),
-    def("caret-up-outline"),
-    def("caret-down-outline"),
-    def("add-outline"),
-    def("remove-outline"),
-    def("close-outline"),
-    def("refresh-outline"),
-    def("sync-outline"),
-    def("swap-horizontal-outline"),
-    def("swap-vertical-outline"),
-    def("enter-outline"),
-    def("exit-outline"),
-    def("home-outline"),
-    def("menu-outline"),
-    def("ellipsis-horizontal-outline"),
-    def("ellipsis-vertical-outline"),
-    def("reorder-three-outline"),
-    def("apps-outline"),
-  ],
-  System: [
-    def("settings-outline"),
-    def("options-outline"),
-    def("filter-outline"),
-    def("search-outline"),
-    def("add-outline"),
-    def("remove-outline"),
-    def("close-outline"),
-    def("checkmark-outline"),
-    def("trash-outline"),
-    def("pencil-outline"),
-    def("create-outline"),
-    def("eye-outline"),
-    def("eye-off-outline"),
-    def("lock-closed-outline"),
-    def("lock-open-outline"),
-    def("information-circle-outline"),
-    def("help-circle-outline"),
-    def("alert-circle-outline"),
-    def("warning-outline"),
-    def("save-outline"),
-    def("download-outline"),
-    def("cloud-upload-outline"),
-    def("cloud-download-outline"),
-    def("share-outline"),
-    def("link-outline"),
-    def("copy-outline"),
-    def("print-outline"),
-    def("qr-code-outline"),
-    def("barcode-outline"),
-    def("scan-outline"),
-    def("toggle-outline"),
-    def("flash-outline"),
-  ],
-});
+for (const [canonicalName, exportedName] of Object.entries(
+  canonicalNameAliases,
+)) {
+  const component = lucideIconMap.get(exportedName);
+  if (component) lucideIconMap.set(canonicalName, component);
+}
 
-export const ICON_FLAT_LIST: OptionIconEntry[] = (() => {
-  const seen = new Set();
-  const out: OptionIconEntry[] = [];
-  for (const entry of Object.values(ICON_CATALOG).flat()) {
-    const key = `${entry.library}:${entry.name}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(entry);
-  }
-  return out;
-})();
+export const getLucideOptionIcon = (name: string): LucideIcon | null =>
+  lucideIconMap.get(name) || null;
 
 export const isKnownOptionIconName = (
   library: string | null | undefined,
   name: string | null | undefined,
-): boolean => {
-  if (!library || !name) return false;
-  return ICON_FLAT_LIST.some(
-    (entry) => entry.library === library && entry.name === name,
-  );
-};
+): boolean =>
+  library === "Lucide" && Boolean(name) && lucideIconMap.has(String(name));

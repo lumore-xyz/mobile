@@ -6,7 +6,7 @@ import { fetchNearbyRooms, type LocationRoomSummary } from "@/src/libs/apis";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { useLocation } from "@/src/service/providers/LocationProvider";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "@/src/libs/Icon";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -187,18 +187,16 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
           </View>
         </View>
 
-        <View className="mt-4 flex-row flex-wrap items-center gap-3">
+<View className="mt-4 flex-row flex-wrap items-center gap-3">
           <RoomMeta
-            icon="people-outline"
-            text={`${room.poolCount || 0} in pool`}
+            icon="Users"
+            text={`${room.memberCount} ${room.memberCount === 1 ? "member" : "members"}`}
           />
           <RoomMeta
-            icon="pin-outline"
-            text={`${room.pinnedCount || 0} pinned`}
+            icon="MapPin"
+            text={room.locationLabel}
           />
-          {room.distanceKm != null ? (
-            <RoomMeta icon="navigate-outline" text={`${room.distanceKm}km`} />
-          ) : null}
+          <RoomMeta icon="Navigation" text={`${room.distanceKm}km`} />
         </View>
 
         {/* <View className="mt-4 flex-row items-center justify-between">
@@ -218,7 +216,7 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
 function RoomMeta({ icon, text }: { icon: string; text: string }) {
   return (
     <View className="flex-row items-center gap-1">
-      <Ionicons name={icon as any} size={15} color="#565656" />
+      <Icon name={icon} size={15} color="#565656" />
       <Text className="text-sm text-ui-shade">{text}</Text>
     </View>
   );
@@ -228,7 +226,7 @@ function EmptyRooms() {
   return (
     <View className="mt-16 items-center rounded-3xl border border-ui-shade/10 bg-white p-6">
       <View className="mb-3 h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
-        <Ionicons name="location-outline" size={28} color="#6D3FD1" />
+        <Icon name="MapPin" size={28} color="#6D3FD1" />
       </View>
       <Text className="text-center text-xl font-bold">
         No communities nearby yet

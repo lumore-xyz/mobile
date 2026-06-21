@@ -74,7 +74,7 @@ export default function CreateRoomScreen() {
           onPress={() => router.back()}
           className="h-11 w-11 items-center justify-center rounded-full bg-white"
         >
-          <Icon type="Ionicons" name="arrow-back-outline" size={22} />
+          <Icon name="ArrowLeft" size={22} />
         </TouchableOpacity>
         <View>
           <Text className="text-3xl font-bold tracking-tight">
@@ -135,7 +135,7 @@ export default function CreateRoomScreen() {
               />
             ) : (
               <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-shade/20 bg-white px-4">
-                <Icon type="Ionicons" name="image-outline" size={28} />
+                <Icon name="Image" size={28} />
                 <Text className="mt-2 text-center text-sm text-ui-shade/70">
                   Tap to upload a community cover image
                 </Text>
@@ -146,7 +146,7 @@ export default function CreateRoomScreen() {
 
         <View className="mt-5 rounded-2xl bg-ui-shade/5 p-4">
           <View className="flex-row items-center gap-2">
-            <Icon type="Ionicons" name="location-outline" size={18} />
+            <Icon name="MapPin" size={18} />
             <Text className="font-semibold text-ui-dark">
               Community location
             </Text>

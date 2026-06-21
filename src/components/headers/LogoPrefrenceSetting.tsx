@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { Image, TouchableOpacity, View } from "react-native";
+import Icon from "@/src/libs/Icon";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
 const LUMORE_WORDMARK = require("@/assets/images/lumore-hr.png");
@@ -23,8 +23,8 @@ const LogoPrefrenceSetting = () => {
           accessibilityRole="button"
           accessibilityLabel="Edit preferences"
         >
-          <Ionicons
-            name="options-outline"
+          <Icon
+            name="SlidersHorizontal"
             className="text-ui-shade"
             size={24}
           />
@@ -39,8 +39,8 @@ const LogoPrefrenceSetting = () => {
           accessibilityRole="button"
           accessibilityLabel="Settings"
         >
-          <Ionicons
-            name="settings-outline"
+          <Icon
+            name="Settings"
             className="text-ui-shade"
             size={24}
           />

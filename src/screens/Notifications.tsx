@@ -1,4 +1,3 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -27,6 +26,7 @@ import {
   navigateToNotification,
 } from "../libs/notifications/router";
 import type { NotificationItem } from "../libs/notifications/constants";
+import Icon from "../libs/Icon";
 import { triggerSelectionHaptic } from "../utils/haptics";
 
 interface NotificationsScreenProps {
@@ -245,8 +245,8 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         className="h-11 w-11 items-center justify-center rounded-full"
         hitSlop={8}
       >
-        <MaterialCommunityIcons
-          name="keyboard-backspace"
+        <Icon
+          name="ArrowLeft"
           size={24}
           color="#111827"
         />

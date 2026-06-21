@@ -38,7 +38,6 @@ interface UserChatProps {
 }
 
 interface MetaProps {
-  type?: string;
   icon: string;
   text: string | number;
 }
@@ -270,14 +269,12 @@ export const UserChat = React.memo(function UserChat({
         <View className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-ui-light flex flex-row items-center justify-center">
           {user?.isViewerUnlockedByUser && !isUserUnavailable ? (
             <Icon
-              type="Ionicons"
-              name="lock-open-outline"
+              name="LockOpen"
               className="h-4 w-4 text-ui-shade"
             />
           ) : (
             <Icon
-              type="Ionicons"
-              name="lock-closed-outline"
+              name="Lock"
               className="h-4 w-4 text-ui-shade"
             />
           )}
@@ -304,15 +301,14 @@ export const UserChat = React.memo(function UserChat({
         ) : (
           <View className="flex-row items-center gap-3">
             {user?.dob && (
-              <Meta icon="cake.png" text={calculateAge(user?.dob)} />
+              <Meta icon="Cake" text={calculateAge(user?.dob)} />
             )}
             {user?.gender && (
-              <Meta type="Ionicons" icon="person-outline" text={user.gender} />
+              <Meta icon="UserRound" text={user.gender} />
             )}
             {user?.distance != null && (
               <Meta
-                type="Ionicons"
-                icon="footsteps-outline"
+                icon="Footprints"
                 text={`${user.distance.toFixed(1)}km`}
               />
             )}
@@ -342,12 +338,11 @@ export const UserChat = React.memo(function UserChat({
   );
 });
 
-export const Meta = React.memo(function Meta({ type, icon, text }: MetaProps) {
+export const Meta = React.memo(function Meta({ icon, text }: MetaProps) {
   return (
     <View className="flex-row items-center gap-1">
       <Icon
-        type={type as any}
-        name={icon as any}
+        name={icon}
         size={16}
         className="!h-4 !w-4 text-ui-shade"
       />

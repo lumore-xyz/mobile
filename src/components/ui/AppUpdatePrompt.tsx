@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "@/src/libs/Icon";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image,
@@ -163,8 +163,8 @@ const AppUpdatePrompt = ({ enabled = true }: Props) => {
 
             <View style={styles.versionCard}>
               <View style={styles.versionIcon}>
-                <Ionicons
-                  name="arrow-down-circle-outline"
+                <Icon
+                  name="Download"
                   size={27}
                   color="#6137BE"
                 />
@@ -192,13 +192,13 @@ const AppUpdatePrompt = ({ enabled = true }: Props) => {
 
             <View style={styles.changesCard}>
               <View style={styles.changesHeadingRow}>
-                <Ionicons name="star" size={22} color="#633CB8" />
+                <Icon name="Sparkle" size={22} color="#633CB8" />
                 <Text style={styles.changesHeading}>What&apos;s new?</Text>
               </View>
 
               {WHATS_NEW.map((item) => (
                 <View key={item} style={styles.changeRow}>
-                  <Ionicons name="checkmark-circle" size={17} color="#633CB8" />
+                  <Icon name="CircleCheck" size={17} color="#633CB8" />
                   <Text style={styles.changeText}>{item}</Text>
                 </View>
               ))}

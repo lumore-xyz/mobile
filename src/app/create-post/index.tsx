@@ -16,21 +16,21 @@ const CreatePost = () => {
         <PostCard
           title="Prompts"
           description="Answer quick prompts to show your personality."
-          icon={{ type: "Ionicons", name: "chatbubble-ellipses-outline" }}
+          icon={{ name: "MessageCircleMore" }}
           accent="border-ui-highlight"
           onPress={() => router.push("/create-post/prompts")}
         />
         <PostCard
           title="Image"
           description="Share a photo with a short caption."
-          icon={{ type: "Ionicons", name: "image-outline" }}
+          icon={{ name: "Image" }}
           accent="border-ui-accent"
           onPress={() => router.push("/create-post/image")}
         />
         <PostCard
           title="Free text"
           description="Write freely - a story, a quote, or a thought."
-          icon={{ type: "Ionicons", name: "create-outline" }}
+          icon={{ name: "Pencil" }}
           accent="border-cyan-700"
           onPress={() => router.push("/create-post/free-text")}
         />
@@ -51,7 +51,7 @@ const PostCard = ({
 }: {
   title: string;
   description: string;
-  icon: { type: string; name: string };
+  icon: { name: string };
   accent: string;
   onPress: () => void;
 }) => (
@@ -61,13 +61,13 @@ const PostCard = ({
   >
     <View className="flex-row items-center gap-3">
       <View className="h-10 w-10 rounded-full bg-ui-light items-center justify-center">
-        <Icon type={icon.type} name={icon.name} size={20} />
+        <Icon name={icon.name} size={20} />
       </View>
       <View className="flex-1">
         <Text className="text-base font-semibold">{title}</Text>
         <Text className="text-xs text-ui-shade mt-1">{description}</Text>
       </View>
-      <Icon type="Ionicons" name="chevron-forward" size={18} />
+      <Icon name="ChevronRight" size={18} />
     </View>
   </Pressable>
 );

@@ -4,7 +4,7 @@ import {
   triggerLightImpactHaptic,
   triggerSelectionHaptic,
 } from "@/src/utils/haptics";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "@/src/libs/Icon";
 import React, { useMemo, useRef } from "react";
 import {
   Image,
@@ -88,8 +88,8 @@ export const ChatMessage = React.memo(function ChatMessage({
                     : "border-ui-shade/20 bg-ui-light"
                 }`}
               >
-                <Ionicons
-                  name="return-up-back-outline"
+                <Icon
+                  name="Reply"
                   size={12}
                   color={isOwnMessage ? "#E8ECF4" : "#667085"}
                 />
@@ -182,12 +182,13 @@ export const ChatMessage = React.memo(function ChatMessage({
             {message.editedAt ? " (edited)" : ""}
           </Text>
           {isOwnMessage ? (
-            <Ionicons
-              name="checkmark-done"
+            <View className="ml-1">
+            <Icon
+              name="CheckCheck"
               size={12}
               color={isRead ? "#4F46E5" : "#98A2B3"}
-              style={{ marginLeft: 4 }}
             />
+          </View>
           ) : null}
         </View>
       </View>
@@ -217,8 +218,8 @@ const VoiceNotePlayer = React.memo(function VoiceNotePlayer({
               isOwnMessage ? "bg-white/20" : "bg-ui-highlight/10"
             }`}
           >
-            <Ionicons
-              name="mic-outline"
+            <Icon
+              name="Mic"
               size={18}
               color={isOwnMessage ? "white" : "#541388"}
             />
@@ -327,8 +328,8 @@ const VoiceNotePlayerWithAudio = React.memo(function VoiceNotePlayerWithAudio({
             status.playing ? "Pause voice note" : "Play voice note"
           }
         >
-          <Ionicons
-            name={status.playing ? "pause" : "play"}
+          <Icon
+            name={status.playing ? "Pause" : "Play"}
             size={18}
             color="white"
           />

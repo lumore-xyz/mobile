@@ -186,7 +186,7 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
       >
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <View className="flex-row items-center gap-2">
-            <Icon name="videocam-outline" type="Ionicons" size={16} />
+            <Icon name="Video" size={16} />
             <Text className="text-lg font-semibold">Watch ad for credits</Text>
           </View>
           <Text className="mt-2 text-sm text-ui-shade/70">
@@ -251,7 +251,7 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
 
         <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
           <View className="flex-row items-center gap-2">
-            <Icon name="cash-outline" type="Ionicons" size={16} />
+            <Icon name="Wallet" size={16} />
             <Text className="text-lg font-semibold">
               How credits are distributed
             </Text>

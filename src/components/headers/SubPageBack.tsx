@@ -1,7 +1,7 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Href, router } from "expo-router";
 import React, { useCallback } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import Icon from "@/src/libs/Icon";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
 const SubPageBack = ({
@@ -32,8 +32,8 @@ const SubPageBack = ({
         accessibilityRole="button"
         accessibilityLabel="Go back"
       >
-        <MaterialCommunityIcons
-          name="keyboard-backspace"
+        <Icon
+          name="ArrowLeft"
           className="text-ui-shade"
           size={24}
         />

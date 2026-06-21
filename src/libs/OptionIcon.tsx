@@ -1,8 +1,6 @@
 import React from "react";
 
-import { Ionicons } from "@expo/vector-icons";
-
-import { isKnownOptionIconName } from "./optionIcons";
+import { getLucideOptionIcon } from "./optionIcons";
 import type { SelectOptionIcon } from "./options";
 
 export interface OptionIconProps {
@@ -18,20 +16,23 @@ const OptionIcon: React.FC<OptionIconProps> = ({
   color,
   className,
 }) => {
-  if (!icon || !isKnownOptionIconName(icon.library, icon.name)) {
+  if (!icon) {
     return null;
   }
-  if (icon.library !== "Ionicons") {
-    return null;
+
+  if (icon.library === "Lucide") {
+    const LucideIcon = getLucideOptionIcon(icon.name);
+    if (!LucideIcon) return null;
+    return (
+      <LucideIcon
+        size={size}
+        color={color}
+        className={className}
+      />
+    );
   }
-  return (
-    <Ionicons
-      name={icon.name as any}
-      size={size}
-      color={color}
-      className={className}
-    />
-  );
+
+  return null;
 };
 
 export default OptionIcon;

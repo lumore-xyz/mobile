@@ -12,7 +12,7 @@ export interface SelectOptionIcon {
   name: string;
 }
 
-export const ICON_LIBRARIES = Object.freeze(["Ionicons"] as const);
+export const ICON_LIBRARIES = Object.freeze(["Lucide"] as const);
 export type IconLibrary = (typeof ICON_LIBRARIES)[number];
 
 export const isSupportedOptionIconLibrary = (

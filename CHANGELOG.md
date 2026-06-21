@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/). The runt
 
 ## [Unreleased]
 
+### Changed
+- **Single icon library.** All app icons now come from `lucide-react-native/icons`. `src/libs/Icon.tsx` was rewritten to look up icons by computed key (`icons[name]`), accepts PascalCase Lucide names, and keeps `type="image"` for image-based entries (`graduation.png`, `relationship.png`, `mask.png`, `distance.png`, `cake.png`). Every call site (bottom nav, headers, notifications, chat input/header/message, profile fields/pills/quick actions, community rooms, create-post cards, settings items, match-making, the app-update prompt, the Google sign-in button, etc.) was converted from `<Ionicons>` / `<MaterialCommunityIcons>` / `<MaterialIcons>` / `<Feather>` / `<Fontisto>` to the Lucide-based `Icon`. Outlined Ionicons names map to the closest Lucide equivalent (`videocam-outline` → `Video`, `cash-outline` → `Wallet`, `beer-outline` → `Beer`, `smoking-rooms` → `Cigarette`, `paw` → `PawPrint`, `person-outline` → `UserRound`, `magnet-outline` → `Magnet`, `footsteps-outline` → `Footprints`, `options-outline` → `SlidersHorizontal`, `chatbubble-ellipses-outline` → `MessageCircleMore`, etc.). Picker-selected icons from the admin (server data) keep working because admin option icons are already Lucide.
+
+### Removed
+- `@expo/vector-icons` dependency. Dropped imports of `Ionicons`, `MaterialCommunityIcons`, `MaterialIcons`, `Feather`, and `Fontisto` across the app.
+- `OptionIcon` no longer renders Ionicons names for legacy option icons — admin option icons must be Lucide. Non-Lucide icons stored on options silently render nothing (per the "hard-fail unmatched" decision).
+- `ICON_LIBRARIES` is now `["Lucide"]` only (was `["Lucide", "Ionicons"]`).
+
+### Internal
+- `src/libs/Icon.tsx` is now a thin wrapper over `lucide-react-native/icons` with image-fallback support and a hard-fail for unknown Lucide names (no <Ionicons> fallback).
+- Lint clean (`expo lint`), TypeScript clean for every changed file. The four pre-existing `tsc --noEmit` errors (in `src/app/chat/archive.tsx` and `src/app/community/index.tsx`) are untouched and were present before this change.
+
 ## [1.1.0] – In-app notifications, dynamic-option icons, UI polish
 
 ### Added

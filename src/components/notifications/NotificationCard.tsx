@@ -107,8 +107,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
               className="h-8 w-8 items-center justify-center rounded-full bg-ui-shade/5"
             >
               <Icon
-                type="Ionicons"
-                name="trash-outline"
+                name="Trash"
                 size={16}
                 color="#6B7280"
               />

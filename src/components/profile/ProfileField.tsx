@@ -55,7 +55,7 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
               onVisibilityChange={onVisibilityChange}
             />
           )}
-          <Icon type="Ionicons" name="chevron-forward" size={18} />
+          <Icon name="ChevronRight" size={18} />
         </View>
       </View>
     </Pressable>

@@ -18,7 +18,6 @@ import {
   triggerSelectionHaptic,
   triggerSuccessHaptic,
 } from "@/src/utils/haptics";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -186,8 +185,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           accessibilityLabel="Back to inbox"
         >
           <Icon
-            type="Feather"
-            name="arrow-left"
+            name="ArrowLeft"
             size={24}
             className="cursor-pointer"
           />
@@ -223,13 +221,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             style={{ position: "absolute", bottom: 0, right: 0 }}
             className="bg-ui-light h-4 w-4 rounded-full aspect-square flex flex-row items-center justify-center"
           >
-            <Ionicons
+            <Icon
               name={
                 user?.isViewerUnlockedByUser
-                  ? "lock-open-outline"
-                  : "lock-closed-outline"
+                  ? "LockOpen"
+                  : "Lock"
               }
-              color="#999" // use color prop, not className for Ionicons
+              color="#999"
               size={10}
             />
           </View>
@@ -258,28 +256,20 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           <View className="flex flex-row items-center justify-start gap-2 mt-1 text-sm">
             {user?.dob ? (
               <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-                <MaterialCommunityIcons
-                  name="cake-variant-outline"
-                  size={12}
-                  className="flex-shrink-0"
-                />
+                <Icon name="CakeSlice" size={12} className="flex-shrink-0" />
                 <Text>{calculateAge(user?.dob)}</Text>
               </View>
             ) : null}
 
             {user?.gender ? (
               <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-                <Ionicons name="person-outline" size={12} />
+                <Icon name="UserRound" size={12} />
                 <Text>{user?.gender}</Text>
               </View>
             ) : null}
 
             <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-              <Ionicons
-                name="footsteps-outline"
-                size={12}
-                className="flex-shrink-0"
-              />
+              <Icon name="Footprints" size={12} className="flex-shrink-0" />
               <Text>{Number(user?.distance || 0).toFixed(2)}km</Text>
             </View>
           </View>
@@ -294,9 +284,9 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           accessibilityLabel={isUnlocked ? "Lock profile" : "Unlock profile"}
         >
           {isUnlocked ? (
-            <Icon type="Ionicons" name="lock-open-outline" size={24} />
+            <Icon name="LockOpen" size={24} />
           ) : (
-            <Icon type="Ionicons" name="lock-closed-outline" size={24} />
+            <Icon name="Lock" size={24} />
           )}
         </Pressable>
         {isActive ? (
@@ -307,7 +297,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Open chat options"
           >
-            <Ionicons name="ellipsis-vertical-outline" size={24} />
+            <Icon name="EllipsisVertical" size={24} />
           </Pressable>
         ) : null}
       </View>

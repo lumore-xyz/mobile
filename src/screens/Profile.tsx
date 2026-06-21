@@ -25,7 +25,6 @@ import {
 } from "@/src/utils/haptics";
 import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
 import { ThisOrThatAnswer } from "@/src/utils/types";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
@@ -86,68 +85,57 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const traitsHr = [
     user?.dob && {
-      icon: "cake-variant-outline",
-      type: "MaterialCommunityIcons",
+      icon: "CakeSlice",
       value: calculateAge(user.dob),
     },
     user?.gender && {
-      icon: "person-outline",
-      type: "Ionicons",
+      icon: "UserRound",
       value: user.gender,
     },
     user?.orientation && {
-      icon: "magnet-outline",
-      type: "Ionicons",
+      icon: "Magnet",
       value: user.orientation,
     },
     user?.height && {
-      icon: "ruler",
-      type: "MaterialCommunityIcons",
+      icon: "Ruler",
       value: convertHeight(user.height),
     },
     user?.location?.formattedAddress && {
-      icon: "location-outline",
-      type: "Ionicons",
+      icon: "MapPin",
       value: extractFullAddressParts(user.location.formattedAddress, [
         "district",
       ]).district,
     },
     user?.diet && {
-      icon: "fast-food-outline",
-      type: "Ionicons",
+      icon: "Utensils",
       value: user.diet,
     },
     user?.zodiacSign && {
-      icon: "fast-food-outline",
-      type: "Ionicons",
+      icon: "Sparkles",
       value: user.zodiacSign,
     },
     user?.lifestyle?.drinking && {
-      icon: "beer-outline",
-      type: "Ionicons",
+      icon: "Beer",
       value: user.lifestyle.drinking,
     },
     user?.lifestyle?.smoking && {
-      icon: "smoking-rooms",
-      type: "MaterialIcons",
+      icon: "Cigarette",
       value: user.lifestyle.smoking,
     },
     user?.lifestyle?.pets && {
-      icon: "paw",
-      type: "MaterialCommunityIcons",
+      icon: "PawPrint",
       value: user.lifestyle.pets,
     },
     user?.bloodGroup && {
-      icon: "blood",
-      type: "Fontisto",
+      icon: "Droplet",
       value: user.bloodGroup,
     },
   ].filter((trait) => trait && hasDisplayValue(trait.value));
 
   const traitsVr = [
     user?.work && {
-      icon: "briefcase-outline",
-      type: "Ionicons",
+      icon: "Briefcase",
+      type: "lucide",
       size: 24,
       value: user.work,
     },
@@ -158,8 +146,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       value: user?.institution,
     },
     user?.religion && {
-      icon: "book-outline",
-      type: "Ionicons",
+      icon: "Book",
+      type: "lucide",
       size: 24,
       value: user?.religion,
     },
@@ -170,14 +158,14 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       value: user.maritalStatus,
     },
     (user?.homeTown || user?.hometown) && {
-      icon: "location-outline",
-      type: "Ionicons",
+      icon: "MapPin",
+      type: "lucide",
       size: 24,
       value: user?.homeTown || user?.hometown,
     },
     user?.languages?.length && {
-      icon: "language-outline",
-      type: "Ionicons",
+      icon: "Languages",
+      type: "lucide",
       size: 24,
       value: languageDisplay(user.languages || [])?.join(", "),
     },
@@ -394,46 +382,29 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   </Text>
                 )}{" "}
                 {user?.isVerified ? (
-                  <MaterialCommunityIcons
-                    name="check-decagram"
-                    size={16}
-                    color={COLORS.highlight}
-                    className="flex-shrink-0"
-                  />
+                  <Icon name="BadgeCheck" size={16} color={COLORS.highlight} className="flex-shrink-0" />
                 ) : isOwner ? (
-                  <MaterialCommunityIcons
-                    name="alert-decagram-outline"
-                    size={16}
-                    className="flex-shrink-0 text-ui-shade/10"
-                  />
+                  <Icon name="BadgeAlert" size={16} className="flex-shrink-0 text-ui-shade/10" />
                 ) : null}
               </Text>
               <View className="flex flex-row items-center justify-start gap-2 mt-1">
                 {user?.dob ? (
                   <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-                    <MaterialCommunityIcons
-                      name="cake-variant-outline"
-                      size={16}
-                      className="flex-shrink-0"
-                    />
+                    <Icon name="CakeSlice" size={16} className="flex-shrink-0" />
                     <Text className="text-base">{calculateAge(user.dob)}</Text>
                   </View>
                 ) : null}
 
                 {user?.gender ? (
                   <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-                    <Ionicons name="person-outline" size={16} />
+                    <Icon name="UserRound" size={16} />
                     <Text className="text-base capitalize">{user.gender}</Text>
                   </View>
                 ) : null}
 
                 {user?.distance != null ? (
                   <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
-                    <Ionicons
-                      name="footsteps-outline"
-                      size={16}
-                      className="flex-shrink-0"
-                    />
+                    <Icon name="Footprints" size={16} className="flex-shrink-0" />
                     <Text className="text-base">
                       {distanceDisplay(user.distance)}
                     </Text>
@@ -463,7 +434,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 accessibilityRole="button"
               >
                 <Text>Edit profile</Text>
-                <Ionicons name="pencil-outline" size={16} />
+                <Icon name="Pencil" size={16} />
               </Pressable>
               <Pressable
                 onPress={() => {
@@ -474,7 +445,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 accessibilityRole="button"
               >
                 <Text>Edit preferences</Text>
-                <Ionicons name="options-outline" size={16} />
+                <Icon name="SlidersHorizontal" size={16} />
               </Pressable>
             </View>
           ) : null}
@@ -527,32 +498,32 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <View className="mt-3 flex-row flex-wrap gap-2">
               <ActionPill
                 label="Credits"
-                icon="cash-outline"
+                icon="Wallet"
                 onPress={() => router.navigate("/(subpage)/credits")}
               />
               <ActionPill
                 label="Referral"
-                icon="gift-outline"
+                icon="Gift"
                 onPress={() => router.navigate("/(subpage)/referral")}
               />
               <ActionPill
                 label="Games"
-                icon="game-controller-outline"
+                icon="Gamepad2"
                 onPress={() => router.navigate("/(subpage)/games")}
               />
               <ActionPill
                 label="Feedback"
-                icon="chatbox-ellipses-outline"
+                icon="MessageCircleMore"
                 onPress={() => router.navigate("/(subpage)/feedback")}
               />
               <ActionPill
                 label="Settings"
-                icon="settings-outline"
+                icon="Settings"
                 onPress={() => router.navigate("/(subpage)/settings")}
               />
               <ActionPill
                 label="Notifications"
-                icon="notifications-outline"
+                icon="Bell"
                 onPress={() => router.navigate("/(subpage)/notifications")}
               />
             </View>
@@ -600,7 +571,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               >
                 <Icon
                   name={trait!.icon}
-                  type={trait!.type}
                   size={16}
                   className=""
                 />
@@ -874,7 +844,7 @@ const ActionPill = ({
   onPress,
 }: {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: string;
   onPress: () => void;
 }) => (
   <Pressable
@@ -886,7 +856,7 @@ const ActionPill = ({
     hitSlop={4}
     accessibilityRole="button"
   >
-    <Ionicons name={icon} size={14} className="text-ui-shade" />
+    <Icon name={icon} size={14} className="text-ui-shade" />
     <Text className="text-sm text-ui-shade">{label}</Text>
   </Pressable>
 );
@@ -930,7 +900,7 @@ const PostCard = ({
           accessibilityRole="button"
           accessibilityLabel="Open post actions"
         >
-          <Icon type="Ionicons" name="ellipsis-vertical-outline" size={16} />
+          <Icon name="EllipsisVertical" size={16} />
         </Pressable>
       ) : null}
       <View className="min-h-28">

@@ -172,19 +172,19 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
               >
                 {user?.lifestyle?.drinking && (
                   <Text className="flex items-center gap-2">
-                    <Icon type="Ionicons" name="beer-outline" />{" "}
+<Icon name="Beer" />{" "}
                     {user?.lifestyle?.drinking}
                   </Text>
                 )}
                 {user?.lifestyle?.smoking && (
                   <Text className="flex items-center gap-2">
-                    <Icon type="MaterialIcons" name="smoking-rooms" />{" "}
+                    <Icon name="Cigarette" />{" "}
                     {user?.lifestyle?.smoking}
                   </Text>
                 )}
                 {user?.lifestyle?.pets && (
                   <Text className="flex items-center gap-2">
-                    <Icon type="MaterialCommunityIcons" name="paw" />{" "}
+                    <Icon name="PawPrint" />{" "}
                     {user?.lifestyle?.pets}
                   </Text>
                 )}

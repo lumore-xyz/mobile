@@ -3,7 +3,6 @@ import Icon from "@/src/libs/Icon";
 import { useExploreChat } from "@/src/service/context/ExploreChatContext";
 import { useOneSignal } from "@/src/service/providers/OneSignalProvider";
 import { getIsOnboarded, getUser } from "@/src/service/storage";
-import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -105,7 +104,7 @@ const MatchMaking = () => {
   return (
     <View className="flex w-full items-center justify-center gap-2 p-3">
       <View className="flex h-20 w-20 aspect-square items-center justify-center rounded-full border border-ui-shade/10 bg-ui-light/70">
-        <Ionicons name="rose-outline" className="text-ui-shade/60" size={40} />
+        <Icon name="Flower2" className="text-ui-shade/60" size={40} />
       </View>
       <Text className="text-center text-4xl font-bold text-ui-light/90">
         {isMatching ? <AnimatedDots text="Searching" /> : "Meet Someone New"}
@@ -134,8 +133,7 @@ const MatchMaking = () => {
 
           <View className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-ui-highlight">
             <Icon
-              type="Ionicons"
-              name="arrow-forward-outline"
+              name="ArrowRight"
               color="#FAFAFA"
             />
           </View>

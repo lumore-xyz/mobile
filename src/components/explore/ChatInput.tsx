@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
   ActivityIndicator,
@@ -12,6 +11,7 @@ import {
   triggerLightImpactHaptic,
   triggerSelectionHaptic,
 } from "@/src/utils/haptics";
+import Icon from "@/src/libs/Icon";
 import { AudioWaveform } from "./AudioWaveform";
 
 interface ReplyingToPreview {
@@ -196,7 +196,7 @@ const ChatInput = React.memo(function ChatInput({
             accessibilityLabel="Cancel voice recording"
           >
             <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
-              <Ionicons name="trash-outline" size={20} color="#541388" />
+              <Icon name="Trash" size={20} color="#541388" />
             </View>
           </TouchableOpacity>
           <View className="flex-1">
@@ -248,7 +248,7 @@ const ChatInput = React.memo(function ChatInput({
               : "Images are available after your match unlocks you"
           }
         >
-          <Ionicons name="add-circle-outline" size={20} color="#667085" />
+          <Icon name="ImagePlus" size={20} color="#667085" />
         </TouchableOpacity>
 
         <TextInput
@@ -290,8 +290,8 @@ const ChatInput = React.memo(function ChatInput({
                 isRecordingVoice ? "bg-red-500" : "bg-ui-highlight/10"
               }`}
             >
-              <Ionicons
-                name={isRecordingVoice ? "stop" : "mic-outline"}
+              <Icon
+                name={isRecordingVoice ? "Square" : "Mic"}
                 size={18}
                 color={isRecordingVoice ? "white" : "#541388"}
               />
@@ -311,7 +311,7 @@ const ChatInput = React.memo(function ChatInput({
           accessibilityState={{ disabled: !canSend }}
         >
           <View className="h-11 w-11 rounded-full items-center justify-center bg-ui-highlight">
-            <Ionicons name="paper-plane" size={16} color="white" />
+            <Icon name="Send" size={16} color="white" />
           </View>
         </TouchableOpacity>
       </View>

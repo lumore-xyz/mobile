@@ -10,79 +10,66 @@ interface NotificationIconProps {
   size?: number;
 }
 
-const ENTITY_ICONS: Record<string, { name: string; type: string; color: string }> = {
-  match: { name: "heart", type: "Ionicons", color: "#E11D48" },
-  community: { name: "location", type: "Ionicons", color: "#0EA5E9" },
-  feedback: { name: "chatbubble-ellipses", type: "Ionicons", color: "#7C3AED" },
-  game: { name: "game-controller", type: "Ionicons", color: "#F97316" },
-  account: { name: "shield-checkmark", type: "Ionicons", color: "#10B981" },
-  system: { name: "notifications", type: "Ionicons", color: "#541388" },
+const ENTITY_ICONS: Record<string, { name: string; color: string }> = {
+  match: { name: "Heart", color: "#E11D48" },
+  community: { name: "MapPin", color: "#0EA5E9" },
+  feedback: { name: "MessageCircleMore", color: "#7C3AED" },
+  game: { name: "Gamepad2", color: "#F97316" },
+  account: { name: "ShieldCheck", color: "#10B981" },
+  system: { name: "Bell", color: "#541388" },
 };
 
-const TYPE_OVERRIDES: Record<string, { name: string; type: string; color: string }> = {
+const TYPE_OVERRIDES: Record<string, { name: string; color: string }> = {
   FEEDBACK_RECEIVED: {
-    name: "chatbubble-ellipses",
-    type: "Ionicons",
+    name: "MessageCircleMore",
     color: "#7C3AED",
   },
   ACCOUNT_VERIFICATION_APPROVED: {
-    name: "shield-checkmark",
-    type: "Ionicons",
+    name: "ShieldCheck",
     color: "#10B981",
   },
   ACCOUNT_VERIFICATION_COMPLETED: {
-    name: "shield-checkmark",
-    type: "Ionicons",
+    name: "ShieldCheck",
     color: "#10B981",
   },
   ACCOUNT_VERIFICATION_REVOKED: {
-    name: "shield-half",
-    type: "Ionicons",
+    name: "ShieldHalf",
     color: "#F59E0B",
   },
   ACCOUNT_VERIFICATION_REJECTED: {
-    name: "shield-outline",
-    type: "Ionicons",
+    name: "ShieldX",
     color: "#EF4444",
   },
   GAME_SUBMISSION_APPROVED: {
-    name: "checkmark-circle",
-    type: "Ionicons",
+    name: "CircleCheck",
     color: "#10B981",
   },
   GAME_SUBMISSION_REJECTED: {
-    name: "close-circle",
-    type: "Ionicons",
+    name: "CircleX",
     color: "#EF4444",
   },
   COMMUNITY_INVITE_RECEIVED: {
-    name: "mail-unread",
-    type: "Ionicons",
+    name: "MailOpen",
     color: "#0EA5E9",
   },
   COMMUNITY_JOINED: {
-    name: "enter",
-    type: "Ionicons",
+    name: "LogIn",
     color: "#0EA5E9",
   },
   COMMUNITY_ROLE_UPDATED: {
-    name: "key",
-    type: "Ionicons",
+    name: "Key",
     color: "#0EA5E9",
   },
   MATCH_CREATED: {
-    name: "heart",
-    type: "Ionicons",
+    name: "Heart",
     color: "#E11D48",
   },
   MATCH_CREATED_FROM_COMMUNITY: {
-    name: "heart",
-    type: "Ionicons",
+    name: "Heart",
     color: "#DB2777",
   },
   SYSTEM_MESSAGE: {
-    name: "notifications",
-    type: "Ionicons",
+    name: "Bell",
     color: "#541388",
   },
 };
@@ -104,7 +91,6 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({
     >
       <Icon
         name={config.name}
-        type={config.type}
         size={size}
         color={config.color}
       />

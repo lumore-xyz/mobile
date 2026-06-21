@@ -159,8 +159,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
               accessibilityLabel="Cancel edit"
             >
               <Icon
-                type="Ionicons"
-                name="close-outline"
+                name="X"
                 size={32}
                 className="text-xl text-ui-shade"
               />
@@ -184,8 +183,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
               accessibilityState={{ disabled: isSubmitDisabled }}
             >
               <Icon
-                type="Ionicons"
-                name="checkmark-outline"
+                name="Check"
                 size={32}
                 className="text-xl !text-ui-highlight"
               />

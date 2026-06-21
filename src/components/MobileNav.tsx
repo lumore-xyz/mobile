@@ -1,63 +1,43 @@
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, usePathname } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
+import Icon from "../libs/Icon";
 import { triggerSelectionHaptic } from "../utils/haptics";
 
 const NAV_ITEMS = [
   {
     label: "Explore",
     path: "/explore",
-    icon: (active: boolean, color: string) => (
-      <Ionicons
-        name={active ? "rocket" : "rocket-outline"}
-        size={24}
-        color={color}
-      />
+    icon: (_active: boolean, color: string) => (
+      <Icon name="Rocket" size={24} color={color} />
     ),
   },
   {
     label: "Community",
     path: "/community",
-    icon: (active: boolean, color: string) => (
-      <Ionicons
-        name={active ? "location" : "location-outline"}
-        size={24}
-        color={color}
-      />
+    icon: (_active: boolean, color: string) => (
+      <Icon name="MapPin" size={24} color={color} />
     ),
   },
   {
     label: "Chats",
     path: "/chat",
-    icon: (active: boolean, color: string) => (
-      <Ionicons
-        name={active ? "chatbubble" : "chatbubble-outline"}
-        size={24}
-        color={color}
-      />
+    icon: (_active: boolean, color: string) => (
+      <Icon name="MessageCircle" size={24} color={color} />
     ),
   },
   {
     label: "Create",
     path: "/create-post",
-    icon: (active: boolean, color: string) => (
-      <MaterialCommunityIcons
-        name={active ? "plus-circle-multiple" : "plus-circle-multiple-outline"}
-        size={24}
-        color={color}
-      />
+    icon: (_active: boolean, color: string) => (
+      <Icon name="CirclePlus" size={24} color={color} />
     ),
   },
   {
     label: "Profile",
     path: "/profile",
-    icon: (active: boolean, color: string) => (
-      <Ionicons
-        name={active ? "person" : "person-outline"}
-        size={24}
-        color={color}
-      />
+    icon: (_active: boolean, color: string) => (
+      <Icon name="UserRound" size={24} color={color} />
     ),
   },
 ];

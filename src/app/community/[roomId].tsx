@@ -28,7 +28,6 @@ import Icon from "@/src/libs/Icon";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
 import { calculateAge } from "@/src/utils";
-import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
@@ -438,7 +437,7 @@ export default function RoomDetailScreen() {
           onPress={() => router.back()}
           className="h-11 w-11 items-center justify-center rounded-full bg-white"
         >
-          <Icon type="Ionicons" name="arrow-back-outline" size={22} />
+          <Icon name="ArrowLeft" size={22} />
         </TouchableOpacity>
         <Text
           className="flex-1 text-3xl font-bold tracking-tight"
@@ -451,7 +450,7 @@ export default function RoomDetailScreen() {
             onPress={() => setIsCreatorSheetOpen(true)}
             className="h-11 w-11 items-center justify-center rounded-full bg-white"
           >
-            <Icon type="Ionicons" name="settings-outline" size={24} />
+            <Icon name="Settings" size={24} />
           </TouchableOpacity>
         ) : null}
         {canLeaveRoom ? (
@@ -459,7 +458,7 @@ export default function RoomDetailScreen() {
             onPress={handleConfirmLeaveRoom}
             className="h-11 w-11 items-center justify-center rounded-full bg-white"
           >
-            <Icon type="Ionicons" name="exit-outline" size={24} />
+            <Icon name="LogOut" size={24} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -486,7 +485,7 @@ export default function RoomDetailScreen() {
 
             <View className="mt-4 rounded-2xl bg-white/90 p-3">
               <View className="flex-row items-center gap-2">
-                <Ionicons name="location-outline" size={18} color="#6D3FD1" />
+                <Icon name="MapPin" size={18} color="#6D3FD1" />
                 <Text
                   className="flex-1 font-semibold text-ui-dark"
                   numberOfLines={1}
@@ -500,7 +499,7 @@ export default function RoomDetailScreen() {
                   onPress={handleCopyAddress}
                   className="min-h-10 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-ui-light px-3"
                 >
-                  <Ionicons name="copy-outline" size={16} color="#000000" />
+                  <Icon name="Copy" size={16} color="#000000" />
                   <Text className="font-semibold text-ui-dark">
                     Copy address
                   </Text>
@@ -510,7 +509,7 @@ export default function RoomDetailScreen() {
                   onPress={handleOpenMap}
                   className="min-h-10 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-ui-highlight px-3"
                 >
-                  <Ionicons name="map-outline" size={16} color="#FAFAFA" />
+                  <Icon name="Map" size={16} color="#FAFAFA" />
                   <Text className="font-semibold text-white">Open map</Text>
                 </TouchableOpacity>
               </View>
@@ -632,7 +631,7 @@ export default function RoomDetailScreen() {
                       />
                     ) : (
                       <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-shade/20 bg-white px-4">
-                        <Icon type="Ionicons" name="image-outline" size={28} />
+                        <Icon name="Image" size={28} />
                         <Text className="mt-2 text-center text-sm text-ui-shade/70">
                           Tap to upload a community cover image
                         </Text>
@@ -691,7 +690,7 @@ export default function RoomDetailScreen() {
                   className="rounded-2xl border border-ui-shade/10 bg-white px-4 py-3"
                 >
                   <View className="flex-row items-center gap-3">
-                    <Ionicons name="create-outline" size={18} color="#111827" />
+                    <Icon name="Pencil" size={18} color="#111827" />
                     <View className="flex-1">
                       <Text className="font-semibold text-ui-dark">
                         Edit community details
@@ -710,7 +709,7 @@ export default function RoomDetailScreen() {
                   }`}
                 >
                   <View className="flex-row items-center gap-3">
-                    <Ionicons name="flash-outline" size={18} color="#6D3FD1" />
+                    <Icon name="Zap" size={18} color="#6D3FD1" />
                     <View className="flex-1">
                       <Text className="font-semibold text-ui-dark">
                         {startMatchMutation.isPending
