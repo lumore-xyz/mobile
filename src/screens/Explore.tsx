@@ -3,6 +3,8 @@ import LogoPrefrence from "@/src/components/headers/LogoPrefrence";
 import { useQuery } from "@tanstack/react-query";
 import { ImageBackground, Text, View } from "react-native";
 import { fetchPreferenceMatchCount } from "../libs/apis";
+import { COLORS } from "../libs/constants/theme";
+import Icon from "../libs/Icon";
 import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "../service/query-keys";
 import { formatNumber } from "../utils";
 
@@ -16,19 +18,24 @@ export default function ExploreScreen() {
   });
 
   return (
-    <View className="flex-1 justify-start items-center bg-ui-light">
+    <View className="flex-1 items-center justify-start bg-ui-surface-page">
       <LogoPrefrence />
-      <View className="flex-1 justify-center items-center w-full bg-ui-light p-3">
+      <View className="w-full flex-1 items-center justify-center bg-ui-surface-page p-3">
         <ImageBackground
           source={require("@/assets/images/login-screen.webp")}
           resizeMode="cover"
-          className="relative flex-1 justify-end items-center bg-cover bg-center overflow-hidden w-full rounded-3xl"
+          className="relative w-full flex-1 items-center justify-between overflow-hidden rounded-2xl bg-cover bg-center"
         >
-          <View className="absolute top-0 right-0 z-10 flex w-full items-end justify-center p-4">
-            <View className="bg-ui-light/30 rounded-full space-x-1 px-3 py-1">
-              <Text className="text-ui-light">
-                {formatNumber(availableUsersCount)} Users
-              </Text>
+          <View className="z-10 w-full px-4 pt-4">
+            <View className="flex-row items-start justify-end gap-3">
+              <View className="items-end gap-2">
+                <View className="flex-row items-center gap-2 rounded-full bg-ui-primary px-3 py-2">
+                  <Icon name="UsersRound" size={15} color={COLORS.shade} />
+                  <Text className="text-sm font-black text-ui-shade">
+                    {formatNumber(availableUsersCount)}
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
           <MatchMaking />

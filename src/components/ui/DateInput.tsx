@@ -1,8 +1,9 @@
 import { formatDate } from "@/src/utils";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useEffect, useMemo, useState } from "react";
-import { Platform, Text, TextInput as RNTextInput, View } from "react-native";
-import Button from "./Button";
+import { Platform, Pressable, Text, TextInput as RNTextInput, View } from "react-native";
+import Icon from "@/src/libs/Icon";
+import { COLORS } from "@/src/libs/constants/theme";
 
 interface DateInputProps {
   date?: Date;
@@ -92,11 +93,9 @@ const DateInput: React.FC<DateInputProps> = ({
   };
 
   return (
-    <View className="">
-      <Text className="font-medium text-typography-900 text-xl mb-1">
-        {label}
-      </Text>
-      <View className="w-full flex flex-row justify-between items-center border border-ui-shade/10 rounded-lg p-3">
+    <View>
+      <Text className="mb-2 text-lg font-bold text-ui-shade">{label}</Text>
+      <View className="w-full flex-row items-center justify-between gap-3 rounded-[22px] border border-ui-border bg-ui-surface-page p-3">
         <RNTextInput
           value={typedDate}
           onChangeText={(text) => {
@@ -110,16 +109,18 @@ const DateInput: React.FC<DateInputProps> = ({
           keyboardType="number-pad"
           autoCorrect={false}
           autoCapitalize="none"
-          className="flex-1 text-ui-shade text-xl"
+          className="min-h-11 flex-1 text-xl font-semibold text-ui-shade"
           accessibilityLabel={`${label} input`}
         />
-        <Button
-          size="md"
-          variant="secondary"
-          className="text-ui-light"
-          onClick={() => setIsOpen(true)}
-          text="change"
-        />
+        <Pressable
+          onPress={() => setIsOpen(true)}
+          className="min-h-11 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-4 active:opacity-80"
+          accessibilityRole="button"
+          accessibilityLabel={`Open ${label} picker`}
+        >
+          <Icon name="CalendarDays" size={16} color={COLORS.light} />
+          <Text className="font-semibold text-ui-light">Change</Text>
+        </Pressable>
         {isOpen ? (
           <DateTimePicker
             value={new Date(date || null)}
@@ -146,13 +147,17 @@ const DateInput: React.FC<DateInputProps> = ({
         ) : null}
       </View>
       {helperText ? (
-        <Text className="text-xl text-typography-500 mt-2">{helperText}</Text>
+        <Text className="mt-2 text-sm leading-5 text-ui-muted">{helperText}</Text>
       ) : null}
       {localErrorText ? (
-        <Text className="text-red-500 mt-2">{localErrorText}</Text>
+        <Text className="mt-2 text-sm font-medium text-red-500">
+          {localErrorText}
+        </Text>
       ) : null}
       {errorText ? (
-        <Text className="text-red-500 mt-2">{errorText}</Text>
+        <Text className="mt-2 text-sm font-medium text-red-500">
+          {errorText}
+        </Text>
       ) : null}
     </View>
   );

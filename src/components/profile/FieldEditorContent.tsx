@@ -21,6 +21,7 @@ import {
   zodiacOptions,
 } from "@/src/libs/options";
 import Icon from "@/src/libs/Icon";
+import { COLORS } from "@/src/libs/constants/theme";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import RangeInput from "../ui/RangeInput";
@@ -44,13 +45,13 @@ const usernameStatusStyles: Record<
     icon?: string;
   }
 > = {
-  idle: { color: "#667085", icon: "Info" },
-  invalid: { color: "#EF4444", icon: "CircleAlert" },
-  current: { color: "#667085", icon: "CircleUserRound" },
-  checking: { color: "#541388" },
-  available: { color: "#15803D", icon: "CircleCheck" },
-  taken: { color: "#EF4444", icon: "CircleX" },
-  error: { color: "#B45309", icon: "TriangleAlert" },
+  idle: { color: COLORS.muted, icon: "Info" },
+  invalid: { color: COLORS.danger, icon: "CircleAlert" },
+  current: { color: COLORS.muted, icon: "CircleUserRound" },
+  checking: { color: COLORS.highlight },
+  available: { color: COLORS.highlight, icon: "CircleCheck" },
+  taken: { color: COLORS.danger, icon: "CircleX" },
+  error: { color: COLORS.accent, icon: "TriangleAlert" },
 };
 
 type HeightUnit = "cm" | "ft";
@@ -174,14 +175,14 @@ const HeightInput = ({
 
   return (
     <View>
-      <Text className="mb-2 text-sm font-medium text-ui-shade">
+      <Text className="mb-2 text-base font-bold text-ui-shade">
         Choose height unit
       </Text>
-      <View className="mb-4 flex-row rounded-md bg-ui-shade/5 p-1">
+      <View className="mb-4 flex-row rounded-full bg-ui-surface-page p-1">
         <Pressable
           onPress={() => selectUnit("cm")}
-          className={`min-h-11 flex-1 justify-center rounded-md py-2 ${
-            unit === "cm" ? "bg-white" : ""
+          className={`min-h-11 flex-1 justify-center rounded-full py-2 ${
+            unit === "cm" ? "bg-ui-light" : ""
           }`}
           accessibilityRole="button"
           accessibilityState={{ selected: unit === "cm" }}
@@ -196,8 +197,8 @@ const HeightInput = ({
         </Pressable>
         <Pressable
           onPress={() => selectUnit("ft")}
-          className={`min-h-11 flex-1 justify-center rounded-md py-2 ${
-            unit === "ft" ? "bg-white" : ""
+          className={`min-h-11 flex-1 justify-center rounded-full py-2 ${
+            unit === "ft" ? "bg-ui-light" : ""
           }`}
           accessibilityRole="button"
           accessibilityState={{ selected: unit === "ft" }}
@@ -250,7 +251,7 @@ const HeightInput = ({
               />
             </View>
           </View>
-          <Text className="mt-1 text-sm text-ui-shade/70">
+          <Text className="mt-2 text-sm leading-5 text-ui-muted">
             {cmValue
               ? `Saved as ${cmValue} cm. Inches should be 0-11.`
               : "Enter feet and inches; we'll save it in centimeters."}
@@ -385,7 +386,8 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           value={value || ""}
           type="text"
           action={(text: string) => setValue(text)}
-          placeholder="Enter your bio"
+          placeholder="A short line that sounds like you."
+          helperText="Specific details beat generic bios. Give someone an easy opener."
         />
       );
 
@@ -441,7 +443,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
 
     case "lifestyle":
       return (
-        <>
+        <View className="gap-4">
           <MultiSelectChipInput
             label="Drinking Habit"
             options={drinkingOptions}
@@ -466,7 +468,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
             onChange={(option) => setValue({ ...value, pets: option })}
             multiple={false}
           />
-        </>
+        </View>
       );
 
     case "work":
@@ -688,7 +690,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       );
     case "goal":
       return (
-        <View className="flex gap-8 mt-4">
+        <View className="mt-2 gap-4">
           <MultiSelectChipInput
             label="What's Your Primary Goal?"
             options={goalOptions}

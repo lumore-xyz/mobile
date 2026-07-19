@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import FieldEditorSheet from "../components/profile/FieldEditorSheet";
 import PrefrenceFieldsList from "../components/profile/PrefrenceFieldsList";
 import Skeleton from "../components/ui/Skeleton";
 import { UserPreferences, useUserPrefrence } from "../hooks/useUserPrefrence";
+import { COLORS } from "../libs/constants/theme";
+import Icon from "../libs/Icon";
 import { updateUserPreferences } from "../libs/apis";
 import { queryClient } from "../service/query-client";
 import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "../service/query-keys";
@@ -107,9 +109,9 @@ const EditPreferenceScreen = () => {
 
   if (isLoading && !preferences) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-ui-surface-page">
         <SubPageBack title="Edit Preference" />
-        <ScrollView className="p-4" contentContainerClassName="pb-8">
+        <ScrollView className="px-4" contentContainerClassName="pb-8 pt-4">
           <EditPreferenceSkeleton />
         </ScrollView>
       </View>
@@ -117,7 +119,7 @@ const EditPreferenceScreen = () => {
   }
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Edit Preference" />
       <FieldEditorSheet
         key={editFieldType}
@@ -134,26 +136,79 @@ const EditPreferenceScreen = () => {
       />
       <ScrollView
         ref={scrollRef}
-        className="p-4"
-        contentContainerClassName="pb-8"
+        className="px-4"
+        contentContainerClassName="pb-10 pt-4"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
-        <View className="p-4 rounded-2xl bg-ui-light border border-ui-shade/10">
-          <Text className="text-base font-semibold">
-            Match preferences
-          </Text>
-          <Text className="text-xs text-ui-shade mt-1">
-            These help us tailor who you see.
-          </Text>
-          <View className="mt-3 h-2 w-full rounded-full bg-ui-shade/10">
+        <View className="mb-5 overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text
+                className="text-[28px] font-bold leading-8 text-ui-light"
+                accessibilityRole="header"
+              >
+                Tune the people you meet
+              </Text>
+              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+                Your preferences help Lumore find matches that feel intentional,
+                not random.
+              </Text>
+            </View>
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary">
+              <Icon name="SlidersHorizontal" size={20} color={COLORS.shade} />
+            </View>
+          </View>
+        </View>
+
+        <View className="rounded-[28px] border border-ui-border bg-ui-light p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="text-xl font-bold text-ui-shade">
+                Match preference strength
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                Complete preferences make your pool more relevant.
+              </Text>
+            </View>
+            <View className="min-h-11 min-w-14 items-center justify-center rounded-full bg-ui-highlight px-3">
+              <Text className="font-bold text-ui-light">
+                {completionPercent}%
+              </Text>
+            </View>
+          </View>
+          <View className="mt-4 h-2.5 w-full rounded-full bg-ui-highlight/10">
             <View
-              className="h-2 rounded-full bg-ui-highlight"
+              className="h-2.5 rounded-full bg-ui-highlight"
               style={{ width: `${completionPercent}%` }}
             />
           </View>
-          <Text className="text-xs text-ui-shade mt-2">
-            {completionPercent}% complete
-            {missingCount > 0 ? ` - ${missingCount} left` : ""}
+          <Text className="mt-3 text-sm leading-5 text-ui-muted">
+            {missingCount > 0
+              ? `${missingCount} preference${missingCount === 1 ? "" : "s"} left to complete.`
+              : "You’re all set — your preferences are complete."}
           </Text>
+        </View>
+
+        <View className="mt-4 flex-row gap-3">
+          <Pressable
+            onPress={() => handleEditField("interestedIn")}
+            className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-4 active:opacity-80"
+            accessibilityRole="button"
+            accessibilityLabel="Edit interested in preference"
+          >
+            <Icon name="Heart" size={17} color={COLORS.light} />
+            <Text className="font-semibold text-ui-light">Interested in</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => handleEditField("goal")}
+            className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full border border-ui-highlight/25 bg-ui-light px-4 active:bg-ui-highlight/5"
+            accessibilityRole="button"
+            accessibilityLabel="Edit relationship goals"
+          >
+            <Icon name="Target" size={17} color={COLORS.highlight} />
+            <Text className="font-semibold text-ui-highlight">Goals</Text>
+          </Pressable>
         </View>
 
         <PrefrenceFieldsList
@@ -167,7 +222,9 @@ const EditPreferenceScreen = () => {
 
 const EditPreferenceSkeleton = () => (
   <View>
-    <View className="p-4 rounded-2xl bg-ui-light border border-ui-shade/10">
+    <Skeleton width="100%" height={132} radius={32} />
+
+    <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
       <Skeleton width={150} height={14} />
       <Skeleton width={210} height={11} style={{ marginTop: 10 }} />
       <Skeleton width="100%" height={8} radius={999} style={{ marginTop: 12 }} />
@@ -178,7 +235,7 @@ const EditPreferenceSkeleton = () => (
       {Array.from({ length: 8 }).map((_, index) => (
         <View
           key={`edit-preference-skeleton-${index}`}
-          className="rounded-2xl border border-ui-shade/10 bg-white p-4"
+          className="rounded-[22px] bg-ui-light p-4"
         >
           <Skeleton width={index % 2 ? "42%" : "56%"} height={12} />
           <Skeleton width="82%" height={12} style={{ marginTop: 10 }} />

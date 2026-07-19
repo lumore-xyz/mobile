@@ -16,7 +16,7 @@ const UITextarea = createTextarea({
 });
 
 const textareaStyle = tva({
-  base: 'w-full h-[100px] border border-background-300 rounded-lg data-[hover=true]:border-outline-400 data-[focus=true]:border-primary-700 data-[focus=true]:data-[hover=true]:border-primary-700 data-[disabled=true]:opacity-40 data-[disabled=true]:bg-background-50 data-[disabled=true]:data-[hover=true]:border-background-300',
+  base: 'h-[120px] w-full rounded-[20px] border border-ui-border bg-white data-[hover=true]:border-ui-highlight/50 data-[focus=true]:border-ui-highlight data-[disabled=true]:opacity-40',
 
   variants: {
     variant: {
@@ -33,7 +33,7 @@ const textareaStyle = tva({
 });
 
 const textareaInputStyle = tva({
-  base: 'p-2 web:outline-0 web:outline-none flex-1 color-typography-900 placeholder:text-typography-500 web:cursor-text web:data-[disabled=true]:cursor-not-allowed',
+  base: 'flex-1 p-4 text-ui-shade placeholder:text-ui-muted web:outline-0 web:outline-none web:cursor-text web:data-[disabled=true]:cursor-not-allowed',
   parentVariants: {
     size: {
       sm: 'text-sm',

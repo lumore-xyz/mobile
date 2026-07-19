@@ -3,6 +3,8 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import OptionIcon from "@/src/libs/OptionIcon";
 import type { SelectOption } from "@/src/libs/options";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
+import Icon from "@/src/libs/Icon";
+import { COLORS } from "@/src/libs/constants/theme";
 
 export type MultiSelectChipOption = SelectOption;
 
@@ -18,53 +20,6 @@ interface MultiSelectChipInputProps {
   helperText?: string;
   errorText?: string;
 }
-
-const CHIP_PALETTES = [
-  {
-    idle: "bg-rose-50 border-rose-200 text-rose-700",
-    active: "bg-rose-200 border-rose-300 text-rose-900",
-  },
-  {
-    idle: "bg-amber-50 border-amber-200 text-amber-700",
-    active: "bg-amber-200 border-amber-300 text-amber-900",
-  },
-  {
-    idle: "bg-lime-50 border-lime-200 text-lime-700",
-    active: "bg-lime-200 border-lime-300 text-lime-900",
-  },
-  {
-    idle: "bg-emerald-50 border-emerald-200 text-emerald-700",
-    active: "bg-emerald-200 border-emerald-300 text-emerald-900",
-  },
-  {
-    idle: "bg-cyan-50 border-cyan-200 text-cyan-700",
-    active: "bg-cyan-200 border-cyan-300 text-cyan-900",
-  },
-  {
-    idle: "bg-sky-50 border-sky-200 text-sky-700",
-    active: "bg-sky-200 border-sky-300 text-sky-900",
-  },
-  {
-    idle: "bg-violet-50 border-violet-200 text-violet-700",
-    active: "bg-violet-200 border-violet-300 text-violet-900",
-  },
-  {
-    idle: "bg-fuchsia-50 border-fuchsia-200 text-fuchsia-700",
-    active: "bg-fuchsia-200 border-fuchsia-300 text-fuchsia-900",
-  },
-];
-
-const hashText = (text: string) => {
-  let hash = 0;
-  for (let index = 0; index < text.length; index += 1) {
-    hash = (hash << 5) - hash + text.charCodeAt(index);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-};
-
-const getPaletteForText = (text: string) =>
-  CHIP_PALETTES[hashText(text) % CHIP_PALETTES.length];
 
 const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
   label,
@@ -114,12 +69,19 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
 
   return (
     <View
-      className={`rounded-lg border p-3 ${errorText ? "border-red-500" : "border-ui-shade/10"}`}
+      className={`rounded-[24px] border bg-ui-surface-page p-4 ${errorText ? "border-red-500" : "border-ui-border"}`}
     >
       <View className="flex-row items-center justify-between gap-2">
-        <Text className="font-medium text-typography-900 text-xl">{label}</Text>
+        <View className="flex-1">
+          <Text className="text-lg font-bold text-ui-shade">{label}</Text>
+          {placeholder ? (
+            <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              {placeholder}
+            </Text>
+          ) : null}
+        </View>
         {multiple && max ? (
-          <Text className="text-xs text-ui-shade/70">
+          <Text className="rounded-full bg-ui-highlight/10 px-3 py-1 text-xs font-semibold text-ui-highlight">
             {selectedValues.length}/{max}
           </Text>
         ) : null}
@@ -138,38 +100,49 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
             options.map((option) => {
               const isSelected = selectedValueSet.has(option.value);
               const isDisabled = Boolean(multiple && !isSelected && maxReached);
-              const palette = getPaletteForText(option.label || option.value);
               return (
                 <Pressable
                   key={option.value}
                   onPress={() => toggleOption(option.value)}
                   disabled={isDisabled}
-                  className={`min-h-11 flex-row items-center gap-2 justify-center rounded-full border px-3 py-2 ${
-                    isSelected ? palette.active : palette.idle
+                  className={`min-h-11 flex-row items-center justify-center gap-2 rounded-full border px-3.5 py-2.5 ${
+                    isSelected
+                      ? "border-ui-highlight bg-ui-highlight"
+                      : "border-ui-border bg-ui-light"
                   } ${isDisabled ? "opacity-45" : ""} self-start`}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={`${isSelected ? "Selected" : "Select"} ${option.label}`}
                 >
                   <OptionIcon icon={option.icon} size={14} />
                   <Text
-                    className={`text-xs ${isSelected ? "font-semibold" : "font-medium"}`}
+                    className={`text-sm ${
+                      isSelected
+                        ? "font-semibold text-ui-light"
+                        : "font-medium text-ui-shade"
+                    }`}
                   >
                     {option.label}
                   </Text>
+                  {isSelected ? (
+                    <Icon name="Check" size={14} color={COLORS.light} />
+                  ) : null}
                 </Pressable>
               );
             })
           ) : (
-            <Text className="text-sm text-ui-shade/60">{placeholder}</Text>
+            <Text className="text-sm text-ui-muted">{placeholder}</Text>
           )}
         </View>
       </ScrollView>
 
       {helperText && !errorText ? (
-        <Text className="text-sm text-ui-shade/70 mt-2">{helperText}</Text>
+        <Text className="mt-3 text-sm leading-5 text-ui-muted">{helperText}</Text>
       ) : null}
       {errorText ? (
-        <Text className="text-red-500 mt-2">{errorText}</Text>
+        <Text className="mt-3 text-sm font-medium text-red-500">
+          {errorText}
+        </Text>
       ) : null}
     </View>
   );

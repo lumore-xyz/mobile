@@ -1019,7 +1019,7 @@ export const ChatScreen = () => {
   }
 
   return (
-    <View className="bg-ui-light" style={{ flex: 1 }}>
+    <View className="bg-ui-surface-page" style={{ flex: 1 }}>
       <ChatHeader
         user={matchedUser}
         onEndChat={cancelChat}
@@ -1067,8 +1067,8 @@ export const ChatScreen = () => {
 };
 
 const ChatScreenSkeleton = () => (
-  <View className="bg-ui-light" style={{ flex: 1 }}>
-    <View className="border-b border-ui-shade/10 bg-white px-4 py-3">
+  <View className="bg-ui-surface-page" style={{ flex: 1 }}>
+    <View className="border-b border-ui-border bg-ui-light px-4 py-3">
       <View className="flex-row items-center">
         <Skeleton width={40} height={40} radius={999} />
         <View className="ml-3 flex-1">
@@ -1090,8 +1090,8 @@ const ChatScreenSkeleton = () => (
       </View>
     </View>
 
-    <View className="border-t border-ui-shade/10 bg-white px-3 py-3">
-      <Skeleton width="100%" height={48} radius={16} />
+    <View className="border-t border-ui-border bg-ui-light px-3 py-3">
+      <Skeleton width="100%" height={56} radius={999} />
     </View>
   </View>
 );

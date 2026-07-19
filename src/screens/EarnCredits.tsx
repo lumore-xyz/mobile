@@ -1,39 +1,45 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
-import Button from "../components/ui/Button";
 import { useAd } from "../hooks/useAd";
 import { claimRewardedAdCredit, fetchCreditsBalance } from "../libs/apis";
+import { COLORS } from "../libs/constants/theme";
 import Icon from "../libs/Icon";
 import { queryClient } from "../service/query-client";
+import { triggerSelectionHaptic } from "../utils/haptics";
 
 const earnWays = [
   {
     title: "Rewarded ad watch",
+    icon: "Video",
     amount: "+1 (max 3/hour)",
     description:
       "Watch a rewarded ad and earn +1 credit. Up to 3 successful ad rewards are granted per rolling hour.",
   },
   {
     title: "Daily activity",
+    icon: "CalendarCheck",
     amount: "+1 / +3",
     description:
       "Claim once per UTC day. Unverified users get +1, verified users get +3.",
   },
   {
     title: "Signup bonus",
+    icon: "PartyPopper",
     amount: "+10",
     description: "Granted once for new users.",
   },
   {
     title: "This-or-That approvals",
+    icon: "BadgeCheck",
     amount: "+5",
     description:
       "Awarded when your submitted question is approved. Each question is rewarded once.",
   },
   {
     title: "Referral rewards",
+    icon: "Gift",
     amount: "+10",
     description:
       "Given to the referrer when the referred user gets verified. Referrer must also be verified.",
@@ -168,154 +174,270 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
           : "Watch rewarded ad (+1)";
 
   return (
-    <View className="flex-1 bg-ui-light">
+    <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Earn Credits" />
       <ScrollView
-        className="p-4"
-        contentContainerClassName="pb-10 gap-4"
+        className="px-4"
+        contentContainerClassName="pb-10 pt-4"
         refreshControl={
           onRefresh ? (
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor="#541388"
-              colors={["#541388"]}
+              tintColor={COLORS.highlight}
+              colors={[COLORS.highlight]}
             />
           ) : undefined
         }
       >
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <View className="flex-row items-center gap-2">
-            <Icon name="Video" size={16} />
-            <Text className="text-lg font-semibold">Watch ad for credits</Text>
-          </View>
-          <Text className="mt-2 text-sm text-ui-shade/70">
-            Earn +1 credit per successful rewarded ad completion.
-          </Text>
-          <Text className="mt-1 text-sm text-ui-shade/70">
-            Hourly quota: {rewardedWatched}/{rewardedMax} used
-          </Text>
-          <Text className="mt-1 text-sm text-ui-shade/70">
-            Remaining this hour: {Math.max(rewardedRemaining, 0)}
-          </Text>
-          {isHourlyCapped && nextEligibleLabel ? (
-            <Text className="mt-1 text-xs text-ui-shade/60">
-              Next ad reward window opens at {nextEligibleLabel}
-            </Text>
-          ) : null}
-          {!isRewardedLoaded ? (
-            <Text className="mt-1 text-xs text-ui-shade/60">
-              Rewarded ad is loading...
-            </Text>
-          ) : null}
-          {statusMessage ? (
-            <Text className="mt-2 text-sm text-ui-highlight">
-              {statusMessage}
-            </Text>
-          ) : null}
-          <View className="mt-3">
-            <Button
-              text={watchButtonText}
-              onClick={handleWatchRewardedAd}
-              disabled={isWatchDisabled}
-            />
+        <View className="overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold text-ui-light/60">
+                Rewards
+              </Text>
+              <Text
+                className="mt-1 text-[32px] font-black leading-9 text-ui-light"
+                accessibilityRole="header"
+              >
+                Earn credits for showing up
+              </Text>
+              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+                Credits power premium moments on Lumore. Earn them through
+                activity, referrals, approved contributions, and rewarded ads.
+              </Text>
+            </View>
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-primary">
+              <Icon name="Sparkles" size={24} color={COLORS.shade} />
+            </View>
           </View>
         </View>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-sm text-ui-shade/70">
-            How credits are earned
-          </Text>
-          <Text className="mt-1 text-2xl font-bold">
-            Ways to earn on Lumore
-          </Text>
-          <View className="mt-4 gap-2">
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+          <View className="flex-row items-start gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/10">
+              <Icon name="Video" size={19} color={COLORS.highlight} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-xl font-bold text-ui-shade">
+                Watch ad for credits
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                Earn +1 credit per successful rewarded ad completion.
+              </Text>
+            </View>
+          </View>
+
+          <View className="mt-4 flex-row gap-3">
+            <QuotaPill
+              icon="Gauge"
+              label="Hourly quota"
+              value={`${rewardedWatched}/${rewardedMax} used`}
+            />
+            <QuotaPill
+              icon="Clock3"
+              label="Remaining"
+              value={`${Math.max(rewardedRemaining, 0)}`}
+            />
+          </View>
+
+          {isHourlyCapped && nextEligibleLabel ? (
+            <InfoPanel
+              tone="warning"
+              text={`Next ad reward window opens at ${nextEligibleLabel}.`}
+            />
+          ) : null}
+          {!isRewardedLoaded ? (
+            <InfoPanel tone="muted" text="Rewarded ad is loading..." />
+          ) : null}
+          {statusMessage ? (
+            <InfoPanel tone="highlight" text={statusMessage} />
+          ) : null}
+
+          <Pressable
+            onPress={() => {
+              triggerSelectionHaptic();
+              void handleWatchRewardedAd();
+            }}
+            disabled={isWatchDisabled}
+            className={`mt-4 min-h-12 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-4 ${
+              isWatchDisabled ? "opacity-60" : "active:opacity-80"
+            }`}
+            accessibilityRole="button"
+            accessibilityLabel={watchButtonText}
+            accessibilityState={{ disabled: isWatchDisabled }}
+          >
+            <Icon name="PlayCircle" size={18} color={COLORS.light} />
+            <Text className="font-semibold text-ui-light">
+              {watchButtonText}
+            </Text>
+          </Pressable>
+        </View>
+
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+          <SectionHeader
+            icon="BadgePlus"
+            title="Ways to earn on Lumore"
+            description="A quick map of every reward path."
+          />
+          <View className="mt-3 gap-3">
             {earnWays.map((item) => (
               <View
                 key={item.title}
-                className="rounded-lg border border-ui-shade/10 p-3"
+                className="rounded-[22px] bg-ui-light p-4"
               >
-                <View className="flex-row items-center justify-between gap-2">
-                  <Text className="font-medium">{item.title}</Text>
-                  <Text className="text-sm font-semibold text-ui-highlight">
-                    {item.amount}
-                  </Text>
+                <View className="flex-row items-start justify-between gap-3">
+                  <View className="flex-1 flex-row items-start gap-3">
+                    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+                      <Icon name={item.icon} size={18} color={COLORS.highlight} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-bold text-ui-shade">
+                        {item.title}
+                      </Text>
+                      <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                        {item.description}
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="rounded-full bg-ui-primary px-3 py-1">
+                    <Text className="text-sm font-bold text-ui-shade">
+                      {item.amount}
+                    </Text>
+                  </View>
                 </View>
-                <Text className="mt-1 text-sm text-ui-shade/70">
-                  {item.description}
-                </Text>
               </View>
             ))}
           </View>
         </View>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <View className="flex-row items-center gap-2">
-            <Icon name="Wallet" size={16} />
-            <Text className="text-lg font-semibold">
-              How credits are distributed
-            </Text>
-          </View>
-          <Text className="mt-2 text-sm text-ui-shade/70">
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+          <SectionHeader
+            icon="ShieldCheck"
+            title="How credits are distributed"
+            description="Rewards are checked before credits are granted."
+          />
+          <Text className="mt-3 text-sm leading-5 text-ui-muted">
             Credit distribution is based on completed actions and approved
             contributions. Rewards are awarded only when each condition is fully
             satisfied and are protected against duplicate payouts where
             applicable.
           </Text>
-          <View className="mt-3 gap-2">
-            <Text className="text-sm text-ui-shade/80">
-              - Rewarded ad grants +1 credit, up to 3 successful claims per
-              rolling hour.
-            </Text>
-            <Text className="text-sm text-ui-shade/80">
-              - Daily reward can be claimed once per UTC day.
-            </Text>
-            <Text className="text-sm text-ui-shade/80">
-              - Referral bonus is paid only after the referred user is verified.
-            </Text>
-            <Text className="text-sm text-ui-shade/80">
-              - Referral code cannot be self-applied and should come from a user
-              who joined before you.
-            </Text>
-            <Text className="text-sm text-ui-shade/80">
-              - This-or-That reward is paid only on admin approval of your
-              question.
-            </Text>
+          <View className="mt-4 gap-2">
+            {[
+              "Rewarded ad grants +1 credit, up to 3 successful claims per rolling hour.",
+              "Daily reward can be claimed once per UTC day.",
+              "Referral bonus is paid only after the referred user is verified.",
+              "Referral code cannot be self-applied and should come from a user who joined before you.",
+              "This-or-That reward is paid only on admin approval of your question.",
+            ].map((item) => (
+              <RuleRow key={item} text={item} />
+            ))}
           </View>
         </View>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-lg font-semibold">
-            What credits are used for
-          </Text>
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+          <SectionHeader
+            icon="WalletCards"
+            title="What credits are used for"
+            description="Credits power premium actions across Lumore."
+          />
           <View className="mt-3 gap-2">
             {creditUses.map((item) => (
-              <Text key={item} className="text-sm text-ui-shade/80">
-                - {item}
-              </Text>
+              <RuleRow key={item} text={item} />
             ))}
-            <Text className="text-sm text-ui-shade/80">
-              - Starting a new matched conversation currently costs 1 credit per
-              participant.
-            </Text>
+            <RuleRow text="Starting a new matched conversation currently costs 1 credit per participant." />
           </View>
         </View>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-lg font-semibold">
+        <View className="mt-5 rounded-[28px] border border-ui-primary/30 bg-ui-primary/20 p-5">
+          <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-ui-light">
+            <Icon name="Coins" size={20} color={COLORS.highlight} />
+          </View>
+          <Text className="text-xl font-bold text-ui-shade">
             Future plan: Lumore Token
           </Text>
-          <Text className="mt-2 text-sm text-ui-shade/80">
+          <Text className="mt-2 text-sm leading-5 text-ui-shade/80">
             We plan to launch a Lumore token in the future. The target model is
             1 credit = 1 Lumore token, designed to be tradable on the open
             market after launch.
           </Text>
-          <Text className="mt-2 text-xs text-ui-shade/60">
+          <Text className="mt-3 text-xs leading-4 text-ui-muted">
             Note: Token launch, conversion, and market availability are future
             plans and are not live yet.
           </Text>
         </View>
       </ScrollView>
+    </View>
+  );
+};
+
+const SectionHeader = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: string;
+  title: string;
+  description: string;
+}) => (
+  <View className="flex-row items-start gap-3">
+    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+      <Icon name={icon} size={18} color={COLORS.highlight} />
+    </View>
+    <View className="flex-1">
+      <Text className="text-xl font-bold text-ui-shade">{title}</Text>
+      <Text className="mt-1 text-sm leading-5 text-ui-muted">
+        {description}
+      </Text>
+    </View>
+  </View>
+);
+
+const QuotaPill = ({
+  icon,
+  label,
+  value,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+}) => (
+  <View className="flex-1 rounded-[22px] bg-ui-surface-page p-3">
+    <View className="mb-2 h-9 w-9 items-center justify-center rounded-full bg-ui-highlight/10">
+      <Icon name={icon} size={16} color={COLORS.highlight} />
+    </View>
+    <Text className="text-xs font-semibold text-ui-muted">{label}</Text>
+    <Text className="mt-1 text-sm font-bold text-ui-shade">{value}</Text>
+  </View>
+);
+
+const RuleRow = ({ text }: { text: string }) => (
+  <View className="flex-row items-start gap-2 rounded-2xl bg-ui-light p-3">
+    <View className="mt-1 h-2 w-2 rounded-full bg-ui-highlight" />
+    <Text className="flex-1 text-sm leading-5 text-ui-shade">{text}</Text>
+  </View>
+);
+
+const InfoPanel = ({
+  text,
+  tone,
+}: {
+  text: string;
+  tone: "highlight" | "muted" | "warning";
+}) => {
+  const toneClass =
+    tone === "warning"
+      ? "bg-ui-primary/20"
+      : tone === "highlight"
+        ? "bg-ui-highlight/10"
+        : "bg-ui-surface-page";
+
+  return (
+    <View className={`mt-3 rounded-2xl p-3 ${toneClass}`}>
+      <Text className="text-sm font-medium leading-5 text-ui-shade">
+        {text}
+      </Text>
     </View>
   );
 };

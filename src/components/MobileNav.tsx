@@ -2,6 +2,7 @@ import { router, usePathname } from "expo-router";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import Icon from "../libs/Icon";
+import { COLORS } from "../libs/constants/theme";
 import { triggerSelectionHaptic } from "../utils/haptics";
 
 const NAV_ITEMS = [
@@ -49,7 +50,7 @@ const MobileNav = () => {
   const pathname = usePathname();
 
   return (
-    <View className="w-full flex-row items-center justify-between border-t border-ui-shade/10 bg-ui-light px-4 py-2.5">
+    <View className="w-full flex-row items-center justify-between border-t border-ui-border bg-ui-light px-2 py-2">
       {NAV_ITEMS.map((item) => {
         const active = isRouteActive(pathname, item.path);
         return (
@@ -82,12 +83,12 @@ function NavItem({
   onPress: () => void;
   icon: (color: string) => any;
 }) {
-  const color = active ? "#000000" : "#565656";
+  const color = active ? COLORS.highlight : COLORS.muted;
 
   return (
     <Pressable
       onPress={onPress}
-      className="min-h-12 flex-1 items-center justify-center rounded-xl py-1"
+      className={`min-h-14 flex-1 items-center justify-center rounded-2xl py-1 active:opacity-70`}
       hitSlop={8}
       android_ripple={{ color: "rgba(0,0,0,0.06)", borderless: false }}
       accessibilityRole="tab"
@@ -96,7 +97,11 @@ function NavItem({
     >
       {icon(color)}
       <Text
-        className={`mt-1 text-xs ${active ? "text-black" : "text-gray-500"}`}
+        className={`mt-1 text-xs ${
+          active
+            ? "font-semibold text-ui-highlight"
+            : "font-medium text-ui-muted"
+        }`}
       >
         {label}
       </Text>

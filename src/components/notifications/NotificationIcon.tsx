@@ -2,6 +2,7 @@ import React from "react";
 import { Text, View } from "react-native";
 
 import Icon from "../../libs/Icon";
+import { COLORS } from "../../libs/constants/theme";
 import type { NotificationEntityType } from "../../libs/notifications/constants";
 
 interface NotificationIconProps {
@@ -11,66 +12,66 @@ interface NotificationIconProps {
 }
 
 const ENTITY_ICONS: Record<string, { name: string; color: string }> = {
-  match: { name: "Heart", color: "#E11D48" },
-  community: { name: "MapPin", color: "#0EA5E9" },
-  feedback: { name: "MessageCircleMore", color: "#7C3AED" },
-  game: { name: "Gamepad2", color: "#F97316" },
-  account: { name: "ShieldCheck", color: "#10B981" },
-  system: { name: "Bell", color: "#541388" },
+  match: { name: "Heart", color: COLORS.accent },
+  community: { name: "MapPin", color: COLORS.foreground },
+  feedback: { name: "MessageCircleMore", color: COLORS.highlight },
+  game: { name: "Gamepad2", color: COLORS.accent },
+  account: { name: "ShieldCheck", color: COLORS.highlight },
+  system: { name: "Bell", color: COLORS.highlight },
 };
 
 const TYPE_OVERRIDES: Record<string, { name: string; color: string }> = {
   FEEDBACK_RECEIVED: {
     name: "MessageCircleMore",
-    color: "#7C3AED",
+    color: COLORS.highlight,
   },
   ACCOUNT_VERIFICATION_APPROVED: {
     name: "ShieldCheck",
-    color: "#10B981",
+    color: COLORS.highlight,
   },
   ACCOUNT_VERIFICATION_COMPLETED: {
     name: "ShieldCheck",
-    color: "#10B981",
+    color: COLORS.highlight,
   },
   ACCOUNT_VERIFICATION_REVOKED: {
     name: "ShieldHalf",
-    color: "#F59E0B",
+    color: COLORS.primary,
   },
   ACCOUNT_VERIFICATION_REJECTED: {
     name: "ShieldX",
-    color: "#EF4444",
+    color: COLORS.danger,
   },
   GAME_SUBMISSION_APPROVED: {
     name: "CircleCheck",
-    color: "#10B981",
+    color: COLORS.highlight,
   },
   GAME_SUBMISSION_REJECTED: {
     name: "CircleX",
-    color: "#EF4444",
+    color: COLORS.danger,
   },
   COMMUNITY_INVITE_RECEIVED: {
     name: "MailOpen",
-    color: "#0EA5E9",
+    color: COLORS.foreground,
   },
   COMMUNITY_JOINED: {
     name: "LogIn",
-    color: "#0EA5E9",
+    color: COLORS.foreground,
   },
   COMMUNITY_ROLE_UPDATED: {
     name: "Key",
-    color: "#0EA5E9",
+    color: COLORS.foreground,
   },
   MATCH_CREATED: {
     name: "Heart",
-    color: "#E11D48",
+    color: COLORS.accent,
   },
   MATCH_CREATED_FROM_COMMUNITY: {
     name: "Heart",
-    color: "#DB2777",
+    color: COLORS.accent,
   },
   SYSTEM_MESSAGE: {
     name: "Bell",
-    color: "#541388",
+    color: COLORS.highlight,
   },
 };
 

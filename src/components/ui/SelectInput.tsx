@@ -27,6 +27,7 @@ import { SelectOption } from "./MultiSelectInput";
 import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
+import { COLORS } from "@/src/libs/constants/theme";
 
 interface SelectInputUIProps {
   value: string;
@@ -76,7 +77,7 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
     [action],
   );
 
-  const selectedIconColor = isInvalid ? "#EF4444" : "#541388";
+  const selectedIconColor = isInvalid ? COLORS.danger : COLORS.highlight;
 
   return (
     <FormControl
@@ -102,8 +103,8 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
       >
         <SelectTrigger
           size="lg"
-          className={`rounded-lg border px-3 ${
-            isInvalid ? "border-red-500" : "border-ui-shade/20"
+          className={`rounded-[20px] border bg-ui-light px-3 ${
+            isInvalid ? "border-ui-danger" : "border-ui-border"
           }`}
         >
           <Pressable
@@ -129,7 +130,7 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
               {selectedOption?.label || placeholder}
             </Text>
             <ChevronDownIcon
-              className={`${isInvalid ? "text-red-500" : "text-ui-highlight"}`}
+              className={`${isInvalid ? "text-ui-danger" : "text-ui-highlight"}`}
             />
           </Pressable>
         </SelectTrigger>
@@ -159,7 +160,7 @@ const SelectInputUI: React.FC<SelectInputUIProps> = ({
                         <OptionIcon
                           icon={option.icon}
                           size={18}
-                          color={isSelected ? "#541388" : "#111827"}
+                          color={isSelected ? COLORS.highlight : COLORS.shade}
                         />
                       </View>
                       <ActionsheetItemText

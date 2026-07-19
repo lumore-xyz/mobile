@@ -21,8 +21,17 @@ interface SectionField {
 interface Section {
   title: string;
   description: string;
+  icon: string;
   fields: SectionField[];
 }
+
+const sectionIconByTitle: Record<string, string> = {
+  Basics: "UserRound",
+  About: "MessageCircleHeart",
+  Details: "BadgeInfo",
+  Lifestyle: "Sparkles",
+  Background: "BriefcaseBusiness",
+};
 
 const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
   user,
@@ -42,6 +51,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "Basics",
       description: "Help people recognize you quickly.",
+      icon: sectionIconByTitle.Basics,
       fields: [
         { label: "Username", field: "username", value: user?.username },
         { label: "Nickname", field: "nickname", value: user?.nickname },
@@ -51,6 +61,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "About",
       description: "Share a little about yourself.",
+      icon: sectionIconByTitle.About,
       fields: [
         { label: "Bio", field: "bio", value: user?.bio },
         { label: "Interests", field: "interests", value: interests },
@@ -59,6 +70,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "Details",
       description: "Personal details you can control visibility for.",
+      icon: sectionIconByTitle.Details,
       fields: [
         { label: "Gender", field: "gender", value: user?.gender },
         {
@@ -97,6 +109,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "Lifestyle",
       description: "Lifestyle helps build better matches.",
+      icon: sectionIconByTitle.Lifestyle,
       fields: [
         {
           label: "Diet",
@@ -121,6 +134,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "Background",
       description: "Education, work, and languages.",
+      icon: sectionIconByTitle.Background,
       fields: [
         {
           label: "Work",
@@ -153,13 +167,23 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
   return (
     <>
       {sections.map((section) => (
-        <View key={section.title} className="mt-6">
-          <Text className="text-sm text-ui-shade/70 uppercase">
-            {section.title}
-          </Text>
-          <Text className="text-xs text-ui-shade/60 mt-1">
-            {section.description}
-          </Text>
+        <View
+          key={section.title}
+          className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4"
+        >
+          <View className="mb-1 flex-row items-start gap-3">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+              <Icon name={section.icon} size={18} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-xl font-bold text-ui-shade">
+                {section.title}
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                {section.description}
+              </Text>
+            </View>
+          </View>
           {section.fields.map((field) =>
             field.custom ? (
               <ProfileField
@@ -170,24 +194,25 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
                 visibility={field.visibility}
                 onVisibilityChange={onVisibilityChange}
               >
-                {user?.lifestyle?.drinking && (
-                  <Text className="flex items-center gap-2">
-<Icon name="Beer" />{" "}
-                    {user?.lifestyle?.drinking}
-                  </Text>
-                )}
-                {user?.lifestyle?.smoking && (
-                  <Text className="flex items-center gap-2">
-                    <Icon name="Cigarette" />{" "}
-                    {user?.lifestyle?.smoking}
-                  </Text>
-                )}
-                {user?.lifestyle?.pets && (
-                  <Text className="flex items-center gap-2">
-                    <Icon name="PawPrint" />{" "}
-                    {user?.lifestyle?.pets}
-                  </Text>
-                )}
+                <View className="mt-1 flex-row flex-wrap gap-2">
+                  {user?.lifestyle?.drinking ? (
+                    <LifestyleChip icon="Beer" label={user.lifestyle.drinking} />
+                  ) : null}
+                  {user?.lifestyle?.smoking ? (
+                    <LifestyleChip
+                      icon="Cigarette"
+                      label={user.lifestyle.smoking}
+                    />
+                  ) : null}
+                  {user?.lifestyle?.pets ? (
+                    <LifestyleChip icon="PawPrint" label={user.lifestyle.pets} />
+                  ) : null}
+                  {!user?.lifestyle?.drinking &&
+                  !user?.lifestyle?.smoking &&
+                  !user?.lifestyle?.pets ? (
+                    <Text className="text-base text-ui-muted">Not set yet</Text>
+                  ) : null}
+                </View>
               </ProfileField>
             ) : (
               <ProfileField
@@ -206,5 +231,12 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     </>
   );
 };
+
+const LifestyleChip = ({ icon, label }: { icon: string; label: string }) => (
+  <View className="flex-row items-center gap-1.5 rounded-full bg-ui-highlight/10 px-3 py-1.5">
+    <Icon name={icon} size={14} />
+    <Text className="text-sm font-medium text-ui-shade">{label}</Text>
+  </View>
+);
 
 export default ProfileFieldsList;

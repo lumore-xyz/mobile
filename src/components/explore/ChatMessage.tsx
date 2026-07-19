@@ -5,12 +5,13 @@ import {
   triggerSelectionHaptic,
 } from "@/src/utils/haptics";
 import Icon from "@/src/libs/Icon";
+import { COLORS } from "@/src/libs/constants/theme";
 import React, { useMemo, useRef } from "react";
 import {
   Image,
   Linking,
+  Pressable,
   Text,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -72,26 +73,28 @@ export const ChatMessage = React.memo(function ChatMessage({
   };
 
   return (
-    <View className={`flex mb-3 ${isOwnMessage ? "items-end" : "items-start"}`}>
-      <View className="flex flex-col max-w-[75%] gap-1">
+    <View className={`mb-2 flex ${isOwnMessage ? "items-end" : "items-start"}`}>
+      <View className="max-w-[82%] gap-1">
         <TouchableWithoutFeedback onPressOut={handleTouchEnd}>
           <View
-            className={`rounded-xl p-3 ${
-              isOwnMessage ? "bg-ui-highlight" : "bg-ui-highlight/5"
+            className={`px-4 py-3 ${
+              isOwnMessage
+                ? "rounded-[22px] rounded-br-md bg-ui-highlight"
+                : "rounded-[22px] rounded-bl-md border border-ui-border bg-ui-light"
             }`}
           >
             {message.replyTo ? (
               <View
-                className={`mb-2 flex-row items-center gap-1 rounded-md px-2 py-1 border ${
+                className={`mb-2 flex-row items-center gap-2 rounded-xl border-l-2 px-3 py-2 ${
                   isOwnMessage
-                    ? "border-white/40 bg-white/10"
-                    : "border-ui-shade/20 bg-ui-light"
+                    ? "border-ui-light/70 bg-ui-light/10"
+                    : "border-ui-highlight bg-ui-highlight/5"
                 }`}
               >
                 <Icon
                   name="Reply"
                   size={12}
-                  color={isOwnMessage ? "#E8ECF4" : "#667085"}
+                  color={isOwnMessage ? COLORS.light : COLORS.highlight}
                 />
                 <Text
                   className={`text-xs ${
@@ -110,8 +113,10 @@ export const ChatMessage = React.memo(function ChatMessage({
             {type === "image" && message.imageUrl ? (
               <Image
                 source={{ uri: message.imageUrl }}
-                className="rounded-lg max-h-64 w-52"
+                className="h-56 w-56 rounded-2xl"
                 resizeMode="cover"
+                accessible
+                accessibilityLabel="Shared photo"
               />
             ) : type === "audio" && message.audioUrl ? (
               <VoiceNotePlayer
@@ -133,7 +138,7 @@ export const ChatMessage = React.memo(function ChatMessage({
             {reactionCounts.map(([emoji, count]) => (
               <View
                 key={emoji}
-                className="bg-ui-highlight/10 rounded-full px-2 py-0.5"
+                className="rounded-full border border-ui-border bg-ui-light px-2.5 py-1"
               >
                 <Text className="text-xs text-ui-shade">
                   {emoji} {count > 1 ? count : ""}
@@ -143,37 +148,41 @@ export const ChatMessage = React.memo(function ChatMessage({
           </View>
         ) : null}
 
-        <View
-          className={`flex-row gap-3 ${isOwnMessage ? "justify-end" : "justify-start"}`}
-        >
-          <TouchableOpacity
+        <View className={`flex-row gap-2 ${isOwnMessage ? "justify-end" : "justify-start"}`}>
+          <Pressable
             onPress={() => {
               triggerSelectionHaptic();
               onReply(message);
             }}
-            className="min-h-11 justify-center"
+            className="min-h-11 flex-row items-center gap-1 rounded-full px-2 active:bg-ui-highlight/5"
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Reply to message"
           >
-            <Text className="text-xs text-ui-shade/70">Reply</Text>
-          </TouchableOpacity>
+            <Icon name="Reply" size={13} color={COLORS.muted} />
+            <Text className="text-xs font-medium text-ui-muted">Reply</Text>
+          </Pressable>
           {isOwnMessage && type === "text" && message._id ? (
-            <TouchableOpacity
+            <Pressable
               onPress={() => {
                 triggerSelectionHaptic();
                 onStartEdit(message);
               }}
-              className="min-h-11 justify-center"
+              className="min-h-11 flex-row items-center gap-1 rounded-full px-2 active:bg-ui-highlight/5"
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Edit message"
             >
-              <Text className="text-xs text-ui-shade/70">Edit</Text>
-            </TouchableOpacity>
+              <Icon name="Pencil" size={13} color={COLORS.muted} />
+              <Text className="text-xs font-medium text-ui-muted">Edit</Text>
+            </Pressable>
           ) : null}
         </View>
 
         <View
           className={`mt-1 flex-row items-center ${isOwnMessage ? "justify-end" : "justify-start"}`}
         >
-          <Text className="text-xs text-ui-shade/60 opacity-70">
+          <Text className="text-xs text-ui-muted">
             {new Date(message.timestamp).toLocaleTimeString("en-US", {
               hour: "2-digit",
               minute: "2-digit",
@@ -183,12 +192,12 @@ export const ChatMessage = React.memo(function ChatMessage({
           </Text>
           {isOwnMessage ? (
             <View className="ml-1">
-            <Icon
-              name="CheckCheck"
-              size={12}
-              color={isRead ? "#4F46E5" : "#98A2B3"}
-            />
-          </View>
+              <Icon
+                name="CheckCheck"
+                size={12}
+                color={isRead ? COLORS.highlight : COLORS.muted}
+              />
+            </View>
           ) : null}
         </View>
       </View>
@@ -221,7 +230,7 @@ const VoiceNotePlayer = React.memo(function VoiceNotePlayer({
             <Icon
               name="Mic"
               size={18}
-              color={isOwnMessage ? "white" : "#541388"}
+              color={isOwnMessage ? COLORS.light : COLORS.highlight}
             />
           </View>
           <View className="flex-1">
@@ -232,7 +241,7 @@ const VoiceNotePlayer = React.memo(function VoiceNotePlayer({
               barCount={28}
               barWidth={3}
               gap={4}
-              activeColor={isOwnMessage ? "#FFFFFF" : "#541388"}
+              activeColor={isOwnMessage ? COLORS.light : COLORS.highlight}
               inactiveColor={
                 isOwnMessage ? "rgba(255,255,255,0.45)" : "rgba(84,19,136,0.25)"
               }
@@ -318,9 +327,9 @@ const VoiceNotePlayerWithAudio = React.memo(function VoiceNotePlayerWithAudio({
   return (
     <View className="w-60 pe-4">
       <View className="flex-row items-center gap-3">
-        <TouchableOpacity
+        <Pressable
           onPress={togglePlayback}
-          className={`h-10 w-10 items-center justify-center rounded-full ${
+          className={`h-11 w-11 items-center justify-center rounded-full active:opacity-75 ${
             isOwnMessage ? "bg-white/20" : "bg-ui-highlight"
           }`}
           accessibilityRole="button"
@@ -333,7 +342,7 @@ const VoiceNotePlayerWithAudio = React.memo(function VoiceNotePlayerWithAudio({
             size={18}
             color="white"
           />
-        </TouchableOpacity>
+        </Pressable>
 
         <View className="flex-1">
           <AudioWaveform
@@ -344,7 +353,7 @@ const VoiceNotePlayerWithAudio = React.memo(function VoiceNotePlayerWithAudio({
             barCount={23}
             barWidth={3}
             gap={4}
-            activeColor={isOwnMessage ? "#FFFFFF" : "#541388"}
+            activeColor={isOwnMessage ? COLORS.light : COLORS.highlight}
             inactiveColor={
               isOwnMessage ? "rgba(255,255,255,0.42)" : "rgba(84,19,136,0.26)"
             }
@@ -372,7 +381,7 @@ const LinkifyText = React.memo(function LinkifyText({
   const parts = useMemo(() => text.split(URL_SPLIT_REGEX), [text]);
 
   return (
-    <Text className={`${isOwnMessage ? "text-ui-light" : "text-ui-shade"}`}>
+    <Text className={`text-base leading-6 ${isOwnMessage ? "text-ui-light" : "text-ui-shade"}`}>
       {parts.map((part, index) => {
         if (!part) return null;
         if (URL_TEST_REGEX.test(part)) {

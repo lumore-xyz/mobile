@@ -5,6 +5,7 @@ import {
   ActionsheetDragIndicator,
   ActionsheetDragIndicatorWrapper,
 } from "@/src/components/ui/actionsheet";
+import Button from "@/src/components/ui/Button";
 import { TextAreaInput } from "@/src/components/ui/TextInput";
 import VisibilityToggle from "@/src/components/VisibilityToggle";
 import {
@@ -12,6 +13,8 @@ import {
   fetchPromptCategories,
   fetchPromptsByCategories,
 } from "@/src/libs/apis";
+import { COLORS } from "@/src/libs/constants/theme";
+import Icon from "@/src/libs/Icon";
 import { queryClient } from "@/src/service/query-client";
 import { getUser } from "@/src/service/storage";
 import { useQuery } from "@tanstack/react-query";
@@ -43,47 +46,64 @@ const CreatePromptPost = () => {
     : FALLBACK_CATEGORIES;
 
   return (
-    <View className="bg-ui-light h-full">
+    <View className="h-full bg-ui-surface-page">
       <SubPageBack title="Prompt post" />
-      <View className="p-4 flex-1 h-full">
-        <View className="pb-2">
-          {/* <Text className="text-2xl font-semibold">Prompt post</Text> */}
-          <Text className="text-xs text-ui-shade mt-1">
-            Pick a prompt and add your answer.
-          </Text>
+      <View className="h-full flex-1 p-4">
+        <View className="mb-4 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="text-2xl font-bold text-ui-light">
+                Pick your angle
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                Choose a prompt, answer with texture, and let people start from
+                something real.
+              </Text>
+            </View>
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary">
+              <Icon name="MessageCircleMore" size={20} color={COLORS.shade} />
+            </View>
+          </View>
         </View>
-        <View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className=""
-            contentContainerClassName="items-start"
-          >
-            <View className="flex-row gap-2 py-2 items-center">
-              {categories.map((cat) => (
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="max-h-14 flex-grow-0"
+          contentContainerClassName="items-start pb-2"
+        >
+          <View className="flex-row items-center gap-2">
+            {categories.map((cat) => {
+              const selected = active === cat._id;
+              return (
                 <Pressable
                   key={cat._id}
+                  accessibilityRole="tab"
+                  accessibilityLabel={`${cat._id} prompts`}
+                  accessibilityState={{ selected }}
                   onPress={() => setActive(cat._id)}
-                  className={`self-start px-4 py-2 rounded-full border ${
-                    active === cat._id
-                      ? "bg-ui-highlight border-ui-highlight"
-                      : "bg-white border-ui-shade/20"
+                  className={`min-h-11 self-start rounded-full border px-4 ${
+                    selected
+                      ? "border-ui-highlight bg-ui-highlight"
+                      : "border-ui-border bg-ui-light"
                   }`}
                 >
                   <Text
-                    className={` capitalize ${
-                      active === cat._id ? "text-white" : "text-ui-shade"
+                    className={`py-2 capitalize ${
+                      selected ? "text-ui-light" : "text-ui-muted"
                     }`}
                   >
                     {cat._id}
                   </Text>
                 </Pressable>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
+              );
+            })}
+          </View>
+        </ScrollView>
 
-        <PromptList category={active} />
+        <View className="flex-1 pt-1">
+          <PromptList category={active} />
+        </View>
       </View>
     </View>
   );
@@ -92,7 +112,7 @@ const CreatePromptPost = () => {
 export default CreatePromptPost;
 
 const PromptList = ({ category }: { category: string }) => {
-  const { data: promptsData = [] } = useQuery<any[]>({
+  const { data: promptsData = [], isLoading } = useQuery<any[]>({
     queryKey: ["prompt list", category],
     queryFn: () => fetchPromptsByCategories([category]),
   });
@@ -103,6 +123,7 @@ const PromptList = ({ category }: { category: string }) => {
   const [visibility, setVisibility] = useState("public");
   const [errorText, setErrorText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const trimmedValue = value.trim();
 
   const openEditor = (prompt: any) => {
     setSelectedPrompt(prompt);
@@ -114,7 +135,7 @@ const PromptList = ({ category }: { category: string }) => {
 
   const handleSubmit = async () => {
     if (!selectedPrompt?._id) return;
-    if (!value.trim()) {
+    if (!trimmedValue) {
       setErrorText("Please answer the prompt before posting.");
       return;
     }
@@ -125,7 +146,7 @@ const PromptList = ({ category }: { category: string }) => {
         type: "PROMPT",
         content: {
           promptId: selectedPrompt._id,
-          promptAnswer: value.trim(),
+          promptAnswer: trimmedValue,
         },
         visibility,
       });
@@ -149,13 +170,49 @@ const PromptList = ({ category }: { category: string }) => {
     <>
       <ScrollView className="flex-1">
         <View className="pb-8">
+          {isLoading ? (
+            <View className="rounded-[28px] border border-ui-border bg-ui-light p-5">
+              <Text className="text-sm font-semibold text-ui-muted">
+                Loading prompts...
+              </Text>
+            </View>
+          ) : null}
+
+          {!isLoading && !promptsData.length ? (
+            <View className="items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8">
+              <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
+                <Icon name="MessageCircleMore" size={24} color={COLORS.highlight} />
+              </View>
+              <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+                No prompts here yet
+              </Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+                Try another category while this one catches up.
+              </Text>
+            </View>
+          ) : null}
+
           {promptsData.map((prompt) => (
             <Pressable
               key={prompt._id}
+              accessibilityRole="button"
+              accessibilityLabel="Answer this prompt"
               onPress={() => openEditor(prompt)}
-              className="bg-white border border-ui-highlight/30 p-4 rounded-2xl mb-3"
+              className="mb-3 rounded-[24px] border border-ui-border bg-ui-light p-4 active:opacity-90"
             >
-              <Text className="text-base text-ui-shade">{prompt.text}</Text>
+              <View className="flex-row items-start gap-3">
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+                  <Icon name="Quote" size={18} color={COLORS.highlight} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-semibold leading-6 text-ui-shade">
+                    {prompt.text}
+                  </Text>
+                  <Text className="mt-2 text-xs font-semibold text-ui-highlight">
+                    Tap to answer
+                  </Text>
+                </View>
+              </View>
             </Pressable>
           ))}
         </View>
@@ -167,9 +224,11 @@ const PromptList = ({ category }: { category: string }) => {
           <ActionsheetDragIndicatorWrapper>
             <ActionsheetDragIndicator />
           </ActionsheetDragIndicatorWrapper>
-          <View className="px-4 pt-4 w-full">
-            <Text className="text-base font-semibold mb-2">Answer prompt</Text>
-            <Text className="text-sm text-ui-shade mb-3">
+          <View className="w-full px-4 pt-4">
+            <Text className="mb-1 text-xl font-bold text-ui-shade">
+              Answer prompt
+            </Text>
+            <Text className="mb-4 text-sm leading-5 text-ui-muted">
               {selectedPrompt?.text}
             </Text>
 
@@ -179,31 +238,38 @@ const PromptList = ({ category }: { category: string }) => {
               action={setValue}
               placeholder="Write your answer..."
             />
+            <Text className="mt-2 text-xs text-ui-muted">
+              {trimmedValue.length
+                ? `${trimmedValue.length} characters`
+                : "Keep it honest, specific, and easy to reply to."}
+            </Text>
 
-            <View className="mt-4 border border-ui-shade/10 rounded-xl p-3">
-              <Text className="text-xs text-ui-shade mb-2">Visibility</Text>
+            <View className="mt-4 rounded-[24px] border border-ui-border bg-ui-shade/5 p-4">
+              <Text className="mb-3 text-sm font-bold text-ui-shade">
+                Visibility
+              </Text>
               <VisibilityToggle
                 field="promptPost"
                 currentVisibility={visibility}
                 onVisibilityChange={(_, vis) => setVisibility(vis)}
+                className="w-full"
               />
             </View>
 
             {errorText ? (
-              <Text className="text-red-500 text-sm mt-2">{errorText}</Text>
+              <View className="mt-3 rounded-2xl bg-red-50 px-4 py-3">
+                <Text className="text-sm font-medium text-ui-danger">
+                  {errorText}
+                </Text>
+              </View>
             ) : null}
 
-            <Pressable
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-              className={`mt-4 py-3 rounded-xl bg-ui-highlight ${
-                isSubmitting ? "opacity-70" : ""
-              }`}
-            >
-              <Text className="text-center text-white font-semibold">
-                {isSubmitting ? "Posting..." : "Post prompt"}
-              </Text>
-            </Pressable>
+            <Button
+              text={isSubmitting ? "Posting..." : "Post prompt"}
+              disabled={isSubmitting || !trimmedValue}
+              onClick={handleSubmit}
+              className="mt-4 rounded-full"
+            />
           </View>
         </ActionsheetContent>
       </Actionsheet>

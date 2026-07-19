@@ -66,9 +66,11 @@ export const TextInput: React.FC<TextInputProps> = ({
       isRequired={isRequired}
     >
       <FormControlLabel>
-        <FormControlLabelText>{label}</FormControlLabelText>
+        <FormControlLabelText className="text-base font-bold text-ui-shade">
+          {label}
+        </FormControlLabelText>
       </FormControlLabel>
-      <Input className="mt-1" size="md">
+      <Input className="mt-2 bg-ui-surface-page" size="lg">
         <InputField
           type={isPasswordField && showPassword ? "text" : type}
           placeholder={placeholder}
@@ -104,7 +106,9 @@ export const TextInput: React.FC<TextInputProps> = ({
 
       {helperText ? (
         <FormControlHelper>
-          <FormControlHelperText>{helperText}</FormControlHelperText>
+          <FormControlHelperText className="text-sm leading-5 text-ui-muted">
+            {helperText}
+          </FormControlHelperText>
         </FormControlHelper>
       ) : null}
 
@@ -140,9 +144,11 @@ export const TextAreaInput: React.FC<TextInputProps> = ({
       isRequired={isRequired}
     >
       <FormControlLabel>
-        <FormControlLabelText>{label}</FormControlLabelText>
+        <FormControlLabelText className="text-base font-bold text-ui-shade">
+          {label}
+        </FormControlLabelText>
       </FormControlLabel>
-      <Textarea size="md" className="w-full">
+      <Textarea size="md" className="mt-2 h-40 w-full bg-ui-surface-page">
         <TextareaInput
           nativeID={label}
           onChangeText={(text) => action(text)}
@@ -153,7 +159,9 @@ export const TextAreaInput: React.FC<TextInputProps> = ({
 
       {helperText ? (
         <FormControlHelper>
-          <FormControlHelperText>{helperText}</FormControlHelperText>
+          <FormControlHelperText className="text-sm leading-5 text-ui-muted">
+            {helperText}
+          </FormControlHelperText>
         </FormControlHelper>
       ) : null}
 

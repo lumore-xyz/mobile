@@ -6,8 +6,10 @@ import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import { useUser } from "../hooks/useUser";
 import { startDiditVerification } from "../libs/apis";
+import { COLORS } from "../libs/constants/theme";
 import Icon from "../libs/Icon";
 import { getUser } from "../service/storage";
+import { triggerSelectionHaptic } from "../utils/haptics";
 
 const SettingsScreen = () => {
   const currentUser = getUser();
@@ -22,6 +24,7 @@ const SettingsScreen = () => {
 
   const handleStartVerification = async () => {
     if (isStartingVerification || isVerified) return;
+    triggerSelectionHaptic();
     try {
       setIsStartingVerification(true);
       const response = await startDiditVerification();
@@ -37,77 +40,127 @@ const SettingsScreen = () => {
   };
 
   return (
-    <View className="flex-1 bg-ui-light">
+    <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Settings" fallbackHref="/profile" />
-      <ScrollView className="p-4" contentContainerClassName="pb-10">
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-base font-semibold">Profile</Text>
+      <ScrollView className="px-4" contentContainerClassName="pb-10 pt-4">
+        <View className="mb-5 overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text
+                className="text-[28px] font-bold leading-8 text-ui-light"
+                accessibilityRole="header"
+              >
+                Your Lumore space
+              </Text>
+              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+                Manage your profile, preferences, rewards, and trust signals in
+                one calm place.
+              </Text>
+            </View>
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary">
+              <Icon name="Settings" size={20} color={COLORS.shade} />
+            </View>
+          </View>
+        </View>
+
+        <SettingsSection
+          title="Profile"
+          description="Shape what people see before they message you."
+          icon="UserRound"
+        >
           <SettingsItem
             icon="UserRound"
             label="Edit profile"
+            description="Photos, bio, basics, lifestyle, and visibility."
             onPress={() => router.navigate("/(subpage)/edit-profile")}
           />
           <SettingsItem
             icon="SlidersHorizontal"
             label="Edit preferences"
+            description="Tune who you meet and what kind of connection you want."
             onPress={() => router.navigate("/(subpage)/edit-preference")}
           />
-        </View>
+        </SettingsSection>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
-          <Text className="text-base font-semibold">Account</Text>
+        <SettingsSection
+          title="Account"
+          description="Keep your account details and app settings current."
+          icon="ShieldCheck"
+        >
           <SettingsItem
             icon="Settings"
             label="User settings"
+            description="Update account, notification, and privacy settings."
             onPress={() => router.navigate("/(subpage)/edit-user-settings")}
           />
-          {/* <SettingsItem
-            icon="key-outline"
-            label="Set new password"
-            onPress={() => router.navigate("/set-new-password")}
-          /> */}
-        </View>
+        </SettingsSection>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
-          <Text className="text-base font-semibold">Rewards</Text>
+        <SettingsSection
+          title="Rewards"
+          description="Track credits and invite people into Lumore."
+          icon="Gift"
+        >
           <SettingsItem
             icon="Wallet"
             label="Credits"
+            description="View balance, earned credits, and credit history."
             onPress={() => router.navigate("/(subpage)/credits")}
           />
           <SettingsItem
             icon="Gift"
             label="Referral"
+            description="Share Lumore and unlock referral rewards."
             onPress={() => router.navigate("/(subpage)/referral")}
           />
-        </View>
+        </SettingsSection>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
-          <Text className="text-base font-semibold">Community</Text>
+        <SettingsSection
+          title="Community"
+          description="Play, reflect, and share feedback."
+          icon="MessageCircleHeart"
+        >
           <SettingsItem
             icon="Gamepad2"
             label="Games"
+            description="Answer prompts and playful profile questions."
             onPress={() => router.navigate("/(subpage)/games")}
           />
           <SettingsItem
             icon="MessageCircleMore"
             label="Feedback"
+            description="Read feedback and relationship notes people shared."
             onPress={() => router.navigate("/(subpage)/feedback")}
           />
-        </View>
+        </SettingsSection>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
-          <Text className="text-base font-semibold">Verification</Text>
-          <Text className="text-xs text-ui-shade mt-1">
-            Verified profiles get access to referral rewards.
-          </Text>
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+          <View className="flex-row items-start gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/10">
+              <Icon
+                name={isVerified ? "BadgeCheck" : "BadgeAlert"}
+                size={19}
+                color={COLORS.highlight}
+              />
+            </View>
+            <View className="flex-1">
+              <Text className="text-xl font-bold text-ui-shade">
+                Verification
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                Verified profiles build trust and unlock referral rewards.
+              </Text>
+            </View>
+          </View>
           {isVerified ? (
-            <View className="mt-3 rounded-xl bg-ui-highlight/10 border border-ui-highlight/20 p-3">
-              <Text className="text-ui-highlight font-medium">Verified</Text>
+            <View className="mt-4 flex-row items-center gap-3 rounded-[22px] border border-ui-highlight/20 bg-ui-highlight/10 p-4">
+              <Icon name="BadgeCheck" size={18} color={COLORS.highlight} />
+              <Text className="font-semibold text-ui-highlight">
+                Verified
+              </Text>
             </View>
           ) : (
             <Button
-              className="mt-3"
+              className="mt-4"
               text={
                 isPending
                   ? "Verification pending"
@@ -128,22 +181,66 @@ const SettingsScreen = () => {
 const SettingsItem = ({
   icon,
   label,
+  description,
   onPress,
 }: {
   icon: string;
   label: string;
+  description: string;
   onPress: () => void;
 }) => (
   <Pressable
-    onPress={onPress}
-    className="mt-3 flex-row items-center justify-between rounded-xl border border-ui-shade/10 px-4 py-3"
+    onPress={() => {
+      triggerSelectionHaptic();
+      onPress();
+    }}
+    className="mt-3 min-h-16 flex-row items-center justify-between gap-3 rounded-[22px] bg-ui-light p-4 active:opacity-80"
+    android_ripple={{ color: "rgba(84,19,136,0.06)", borderless: false }}
+    accessibilityRole="button"
+    accessibilityLabel={`Open ${label}`}
   >
-    <View className="flex-row items-center gap-3">
-      <Icon name={icon} size={18} className="text-ui-shade" />
-      <Text className="text-ui-shade font-medium">{label}</Text>
+    <View className="flex-1 flex-row items-center gap-3">
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+        <Icon name={icon} size={18} color={COLORS.highlight} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-base font-semibold text-ui-shade">{label}</Text>
+        <Text className="mt-0.5 text-sm leading-5 text-ui-muted">
+          {description}
+        </Text>
+      </View>
     </View>
-    <Icon name="ChevronRight" size={16} className="text-ui-shade/60" />
+    <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-surface-page">
+      <Icon name="ChevronRight" size={17} color={COLORS.muted} />
+    </View>
   </Pressable>
+);
+
+const SettingsSection = ({
+  title,
+  description,
+  icon,
+  children,
+}: {
+  title: string;
+  description: string;
+  icon: string;
+  children: React.ReactNode;
+}) => (
+  <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+    <View className="mb-1 flex-row items-start gap-3">
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+        <Icon name={icon} size={18} color={COLORS.highlight} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-xl font-bold text-ui-shade">{title}</Text>
+        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+          {description}
+        </Text>
+      </View>
+    </View>
+    {children}
+  </View>
 );
 
 export default SettingsScreen;

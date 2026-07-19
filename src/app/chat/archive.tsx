@@ -6,6 +6,7 @@ import { fetchIbox } from "@/src/libs/apis";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import { Text, View } from "react-native";
 import { Inbox, InboxTabs } from ".";
@@ -13,6 +14,7 @@ import { Inbox, InboxTabs } from ".";
 const ChatInbox = () => {
   const u = getUser();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { socket, revalidateSocket } = useSocket();
   const { user, isLoading: gettingUser } = useUser(u?._id);
 
@@ -20,6 +22,8 @@ const ChatInbox = () => {
     data: rooms = [],
     isLoading,
     error,
+    isRefetching,
+    refetch,
   } = useQuery<any[]>({
     queryKey: ["inbox", "archive"],
     queryFn: () => fetchIbox("archive"),
@@ -46,13 +50,23 @@ const ChatInbox = () => {
 
   return (
     <>
-      <View className="flex-1 pt-6 px-4">
-        {/* Header */}
-        <View className="mb-6">
-          <Text className="text-3xl font-bold tracking-tight">Inbox</Text>
+      <View className="flex-1 bg-ui-surface-page px-4 pt-5">
+        <View className="mb-5 rounded-[28px] bg-ui-foreground p-5">
+          <Text className="text-3xl font-bold tracking-tight text-ui-light" accessibilityRole="header">
+            Conversations
+          </Text>
+          <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+            Revisit connections whenever the moment feels right.
+          </Text>
         </View>
 
-        <InboxTabs activeTab="archive" />
+        <InboxTabs
+          activeTab="archive"
+          archiveCount={rooms.length}
+          onTabChange={(tab) => {
+            if (tab === "active") router.replace("/chat");
+          }}
+        />
 
         <Inbox
           key="archive"
@@ -60,6 +74,9 @@ const ChatInbox = () => {
           rooms={rooms}
           isLoading={isLoading || gettingUser}
           error={error}
+          mode="archive"
+          isRefreshing={isRefetching}
+          onRefresh={() => void refetch()}
         />
       </View>
       <MobileNav />

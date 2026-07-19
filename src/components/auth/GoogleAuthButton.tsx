@@ -1,7 +1,8 @@
 import React from "react";
-import { ActivityIndicator, Pressable, Text } from "react-native";
-import Icon from "@/src/libs/Icon";
+import { ActivityIndicator, Image, Pressable, Text } from "react-native";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
+
+const GOOGLE_LOGO = require("@/assets/images/google.png");
 
 interface GoogleAuthButtonProps {
   text?: string;
@@ -36,7 +37,12 @@ export const GoogleAuthButton = React.memo(function GoogleAuthButton({
       {isLoading ? (
         <ActivityIndicator size="small" color="#541388" />
       ) : (
-        <Icon name="LogIn" size={18} color="#541388" />
+        <Image
+          source={GOOGLE_LOGO}
+          className="h-5 w-5"
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
       )}
       <Text className="text-sm font-semibold text-ui-shade">{text}</Text>
     </Pressable>

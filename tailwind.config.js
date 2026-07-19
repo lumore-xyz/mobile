@@ -27,6 +27,14 @@ module.exports = {
           primary: "#FFD400", // Bright Yellow
           accent: "#D90368", // Vivid Pink
           highlight: "#541388", // Deep Purple
+          muted: "#6F697B",
+          border: "#DED5C7",
+          danger: "#B4233D",
+          surface: {
+            page: "#F1E9DA",
+            raised: "#FAFAFA",
+            dark: "#2E294E",
+          },
           dark: {
             background: "#1A1A2E", // Deep Navy
             foreground: "#EAEAEA", // Light Grey

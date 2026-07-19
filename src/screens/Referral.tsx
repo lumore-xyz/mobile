@@ -1,12 +1,14 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import React, { useEffect, useMemo, useState } from "react";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
 import { TextInput } from "../components/ui/TextInput";
 import { applyReferralCode, fetchReferralSummary } from "../libs/apis";
+import { COLORS } from "../libs/constants/theme";
+import Icon from "../libs/Icon";
 import { referralCodeSchema } from "../schemas/referralSchema";
 import { queryClient } from "../service/query-client";
 import { buildReferralShareLink } from "../service/referralAttribution";
@@ -16,6 +18,7 @@ import {
   setPendingReferralCode,
 } from "../service/storage";
 import { ReferralSummary } from "../utils/types";
+import { triggerSelectionHaptic } from "../utils/haptics";
 import { toUserFacingError } from "../utils/userFacingError";
 
 interface ReferralScreenProps {
@@ -76,6 +79,7 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
 
   const handleCopyCode = async () => {
     if (!summary?.referralCode) return;
+    triggerSelectionHaptic();
     await Clipboard.setStringAsync(summary.referralCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
@@ -83,6 +87,7 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
 
   const handleCopyLink = async () => {
     if (!referralShareLink) return;
+    triggerSelectionHaptic();
     await Clipboard.setStringAsync(referralShareLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 1200);
@@ -90,6 +95,7 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
 
   const handleApply = async () => {
     if (!canApply) return;
+    triggerSelectionHaptic();
     const parsed = referralCodeSchema.safeParse(code);
     if (!parsed.success) {
       setCodeError(parsed.error.issues[0]?.message || "Invalid referral code.");
@@ -111,68 +117,111 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
   };
 
   return (
-    <View className="flex-1 bg-ui-light">
+    <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Referral" />
       <ScrollView
-        className="p-4"
-        contentContainerClassName="pb-10"
+        className="px-4"
+        contentContainerClassName="pb-10 pt-4"
         refreshControl={
           onRefresh ? (
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor="#541388"
-              colors={["#541388"]}
+              tintColor={COLORS.highlight}
+              colors={[COLORS.highlight]}
             />
           ) : undefined
         }
       >
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-sm text-ui-shade/70">Your referral code</Text>
-          <View className="mt-2">
-            {isLoading ? (
-              <Skeleton width={180} height={30} />
-            ) : (
-              <Text className="text-2xl font-bold">
-                {summary?.referralCode || "-"}
+        <View className="overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold text-ui-light/60">
+                Invite rewards
               </Text>
-            )}
+              <Text
+                className="mt-1 text-[32px] font-black leading-9 text-ui-light"
+                accessibilityRole="header"
+              >
+                Bring good people to Lumore
+              </Text>
+              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+                Share your code and earn credits when invited friends complete
+                verification.
+              </Text>
+            </View>
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-primary">
+              <Icon name="Gift" size={24} color={COLORS.shade} />
+            </View>
           </View>
-          <Text className="mt-2 text-sm text-ui-shade/70">
-            Earn +{summary?.referralRewardCredits ?? 10} credits when a referred
-            user completes profile verification.
-          </Text>
+        </View>
+
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold text-ui-muted">
+                Your referral code
+              </Text>
+              <View className="mt-3 rounded-[24px] border border-ui-highlight/20 bg-ui-surface-page px-4 py-5">
+                {isLoading ? (
+                  <Skeleton width={180} height={30} />
+                ) : (
+                  <Text
+                    className="text-[30px] font-black tracking-[3px] text-ui-shade"
+                    selectable
+                  >
+                    {summary?.referralCode || "-"}
+                  </Text>
+                )}
+              </View>
+              <Text className="mt-3 text-sm leading-5 text-ui-muted">
+                Earn +{summary?.referralRewardCredits ?? 10} credits when a
+                referred user completes profile verification.
+              </Text>
+            </View>
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary/80">
+              <Icon name="BadgePlus" size={20} color={COLORS.shade} />
+            </View>
+          </View>
 
           {!canAccess ? (
-            <Text className="mt-3 rounded-lg bg-ui-shade/10 px-3 py-2 text-sm text-ui-shade">
-              Referral is only available to verified users.
-            </Text>
+            <InfoPanel
+              icon="BadgeAlert"
+              text="Referral is only available to verified users."
+            />
           ) : null}
 
-          <View className="mt-4 flex-row gap-2">
-            <View className="flex-1">
-              <Button
-                text="Copy code"
-                onClick={handleCopyCode}
-                disabled={isLoading || !canAccess}
-              />
-            </View>
-            <View className="flex-1">
-              <Button
-                variant="outline"
-                text="Copy link"
-                onClick={handleCopyLink}
-                disabled={isLoading || !canAccess || !referralShareLink}
-              />
-            </View>
+          <View className="mt-4 flex-row gap-3">
+            <CopyAction
+              icon="Copy"
+              label="Copy code"
+              onPress={handleCopyCode}
+              disabled={isLoading || !canAccess}
+              primary
+            />
+            <CopyAction
+              icon="Link"
+              label="Copy link"
+              onPress={handleCopyLink}
+              disabled={isLoading || !canAccess || !referralShareLink}
+            />
           </View>
           {copied ? (
-            <Text className="mt-2 text-xs text-green-600">Copied</Text>
+            <View className="mt-3 flex-row items-center gap-2 rounded-full bg-ui-highlight/10 px-3 py-2">
+              <Icon name="Check" size={15} color={COLORS.highlight} />
+              <Text className="text-sm font-semibold text-ui-highlight">
+                Copied
+              </Text>
+            </View>
           ) : null}
         </View>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
-          <Text className="text-lg font-semibold">Apply referral code</Text>
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+          <SectionHeader
+            icon="Ticket"
+            title="Apply referral code"
+            description="If someone invited you, apply their code before your account is linked."
+          />
           <View className="mt-3">
             <TextInput
               label="Referral code"
@@ -190,12 +239,14 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
               placeholder="Enter referral code"
             />
             {referredBy ? (
-              <Text className="text-sm text-ui-shade/70 mt-2">
-                Already applied: {referredBy}
-              </Text>
+              <InfoPanel icon="BadgeCheck" text={`Already applied: ${referredBy}`} />
             ) : null}
             {codeError ? (
-              <Text className="text-sm text-red-500 mt-2">{codeError}</Text>
+              <View className="mt-3 rounded-2xl bg-red-50 p-3">
+                <Text className="text-sm font-medium text-red-600">
+                  {codeError}
+                </Text>
+              </View>
             ) : null}
             <View className="mt-3">
               <Button
@@ -207,21 +258,28 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
           </View>
         </View>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
-          <Text className="text-lg font-semibold">Referral stats</Text>
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+          <SectionHeader
+            icon="ChartNoAxesColumn"
+            title="Referral stats"
+            description="Watch your invites turn into verified rewards."
+          />
           <View className="mt-3 flex-row gap-2">
             <StatCard
               label="Referred"
+              icon="Users"
               value={summary?.stats?.referredTotal ?? 0}
               isLoading={isLoading}
             />
             <StatCard
               label="Verified"
+              icon="BadgeCheck"
               value={summary?.stats?.referredVerified ?? 0}
               isLoading={isLoading}
             />
             <StatCard
               label="Rewards"
+              icon="Coins"
               value={summary?.stats?.rewardsEarned ?? 0}
               isLoading={isLoading}
             />
@@ -232,21 +290,97 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
   );
 };
 
+const CopyAction = ({
+  icon,
+  label,
+  onPress,
+  disabled,
+  primary = false,
+}: {
+  icon: string;
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  primary?: boolean;
+}) => (
+  <Pressable
+    onPress={onPress}
+    disabled={disabled}
+    className={`min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full px-4 ${
+      primary
+        ? "bg-ui-highlight"
+        : "border border-ui-highlight/25 bg-ui-light"
+    } ${disabled ? "opacity-60" : "active:opacity-80"}`}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+    accessibilityState={{ disabled }}
+  >
+    <Icon
+      name={icon}
+      size={17}
+      color={primary ? COLORS.light : COLORS.highlight}
+    />
+    <Text
+      className={`font-semibold ${
+        primary ? "text-ui-light" : "text-ui-highlight"
+      }`}
+    >
+      {label}
+    </Text>
+  </Pressable>
+);
+
+const SectionHeader = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: string;
+  title: string;
+  description: string;
+}) => (
+  <View className="flex-row items-start gap-3">
+    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+      <Icon name={icon} size={18} color={COLORS.highlight} />
+    </View>
+    <View className="flex-1">
+      <Text className="text-xl font-bold text-ui-shade">{title}</Text>
+      <Text className="mt-1 text-sm leading-5 text-ui-muted">
+        {description}
+      </Text>
+    </View>
+  </View>
+);
+
+const InfoPanel = ({ icon, text }: { icon: string; text: string }) => (
+  <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-ui-highlight/10 p-3">
+    <Icon name={icon} size={16} color={COLORS.highlight} />
+    <Text className="flex-1 text-sm font-medium leading-5 text-ui-shade">
+      {text}
+    </Text>
+  </View>
+);
+
 const StatCard = ({
   label,
+  icon,
   value,
   isLoading,
 }: {
   label: string;
+  icon: string;
   value: number;
   isLoading?: boolean;
 }) => (
-  <View className="flex-1 rounded-lg border border-ui-shade/10 p-3 items-center">
-    <Text className="text-xs text-ui-shade/70">{label}</Text>
+  <View className="flex-1 items-center rounded-[22px] bg-ui-surface-page p-3">
+    <View className="mb-2 h-9 w-9 items-center justify-center rounded-full bg-ui-highlight/10">
+      <Icon name={icon} size={16} color={COLORS.highlight} />
+    </View>
+    <Text className="text-xs font-semibold text-ui-muted">{label}</Text>
     {isLoading ? (
       <Skeleton width={36} height={24} style={{ marginTop: 6 }} />
     ) : (
-      <Text className="text-xl font-semibold mt-1">{value}</Text>
+      <Text className="mt-1 text-xl font-black text-ui-shade">{value}</Text>
     )}
   </View>
 );

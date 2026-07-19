@@ -1,4 +1,5 @@
 import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
+import Icon from "@/src/libs/Icon";
 import React from "react";
 import { Text, View } from "react-native";
 import ProfileField from "./ProfileField";
@@ -14,6 +15,13 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
   onEdit,
   onVisibilityChange,
 }) => {
+  const sectionIconByTitle: Record<string, string> = {
+    Core: "Compass",
+    Intent: "Target",
+    Lifestyle: "Sparkles",
+    Compatibility: "Puzzle",
+  };
+
   const sections = [
     {
       title: "Core",
@@ -125,13 +133,23 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
   return (
     <>
       {sections.map((section) => (
-        <View key={section.title} className="mt-6">
-          <Text className="text-sm text-ui-shade/70 uppercase">
-            {section.title}
-          </Text>
-          <Text className="text-xs text-ui-shade/60 mt-1">
-            {section.description}
-          </Text>
+        <View
+          key={section.title}
+          className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4"
+        >
+          <View className="mb-1 flex-row items-start gap-3">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+              <Icon name={sectionIconByTitle[section.title] || "SlidersHorizontal"} size={18} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-xl font-bold text-ui-shade">
+                {section.title}
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                {section.description}
+              </Text>
+            </View>
+          </View>
           {section.fields.map((field) => (
             <ProfileField
               key={field.field}

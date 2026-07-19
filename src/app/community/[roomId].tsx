@@ -24,10 +24,12 @@ import {
   type LocationRoomMember,
   type MatchRoomSummary,
 } from "@/src/libs/apis";
+import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
 import { calculateAge } from "@/src/utils";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router, useLocalSearchParams } from "expo-router";
@@ -39,11 +41,12 @@ import {
   ImageBackground,
   Linking,
   ListRenderItem,
+  Pressable,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type RoomSection = "pool" | "chats";
 
@@ -176,7 +179,39 @@ function RoomCountdown({
   );
 }
 
+function RoomStatPill({
+  icon,
+  label,
+  isHighlighted = false,
+}: {
+  icon: string;
+  label: string;
+  isHighlighted?: boolean;
+}) {
+  return (
+    <View
+      className={`flex-row items-center gap-1.5 rounded-full px-3 py-1.5 ${
+        isHighlighted ? "bg-ui-primary" : "bg-ui-light/15"
+      }`}
+    >
+      <Icon
+        name={icon}
+        size={14}
+        color={isHighlighted ? COLORS.shade : COLORS.light}
+      />
+      <Text
+        className={`text-xs font-bold ${
+          isHighlighted ? "text-ui-shade" : "text-ui-light"
+        }`}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
+
 export default function RoomDetailScreen() {
+  const insets = useSafeAreaInsets();
   const { roomId } = useLocalSearchParams<{ roomId: string }>();
   const { socket, revalidateSocket } = useSocket();
   const queryClient = useQueryClient();
@@ -332,6 +367,7 @@ export default function RoomDetailScreen() {
   }, [mapQuery]);
 
   const handleStartEditing = useCallback(() => {
+    triggerSelectionHaptic();
     setEditedTitle(String(room?.title || ""));
     setEditedDescription(String(room?.description || ""));
     setEditedCoverImageUri("");
@@ -339,6 +375,7 @@ export default function RoomDetailScreen() {
   }, [room?.description, room?.title]);
 
   const handleCancelEditing = useCallback(() => {
+    triggerSelectionHaptic();
     setEditedTitle(String(room?.title || ""));
     setEditedDescription(String(room?.description || ""));
     setEditedCoverImageUri("");
@@ -346,6 +383,7 @@ export default function RoomDetailScreen() {
   }, [room?.description, room?.title]);
 
   const closeCreatorSheet = useCallback(() => {
+    triggerSelectionHaptic();
     setIsCreatorSheetOpen(false);
     setIsEditingRoom(false);
     setEditedCoverImageUri("");
@@ -431,305 +469,492 @@ export default function RoomDetailScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-ui-light px-4 pt-6">
-      <View className="mb-5 flex-row items-center gap-3">
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="h-11 w-11 items-center justify-center rounded-full bg-white"
-        >
-          <Icon name="ArrowLeft" size={22} />
-        </TouchableOpacity>
-        <Text
-          className="flex-1 text-3xl font-bold tracking-tight"
-          numberOfLines={1}
-        >
-          {room.title}
-        </Text>
-        {canManageRoom ? (
-          <TouchableOpacity
-            onPress={() => setIsCreatorSheetOpen(true)}
-            className="h-11 w-11 items-center justify-center rounded-full bg-white"
-          >
-            <Icon name="Settings" size={24} />
-          </TouchableOpacity>
-        ) : null}
-        {canLeaveRoom ? (
-          <TouchableOpacity
-            onPress={handleConfirmLeaveRoom}
-            className="h-11 w-11 items-center justify-center rounded-full bg-white"
-          >
-            <Icon name="LogOut" size={24} />
-          </TouchableOpacity>
-        ) : null}
-      </View>
-
-      <View className="overflow-hidden rounded-3xl border border-ui-shade/10 bg-white">
+    <ScrollView
+      className="flex-1 bg-ui-surface-page px-4 pt-6"
+      contentContainerClassName="pb-10"
+    >
+      <View className="overflow-hidden rounded-[32px] border border-ui-border bg-ui-light">
         <ImageBackground
           source={{ uri: room.imageUrl || ROOM_COVER_IMAGE_URL }}
           resizeMode="cover"
-          style={{ minHeight: 260, justifyContent: "flex-end" }}
+          style={{ minHeight: 360, justifyContent: "space-between" }}
         >
           <View className="absolute inset-0 bg-black/45" />
-          <View className="absolute right-4 top-4 rounded-full bg-white/90 px-3 py-1">
-            <RoomCountdown
-              nextMatchAt={room.nextMatchAt}
-              fallbackSeconds={room.secondsUntilNextMatch}
-            />
+
+          <View className="flex-row items-center justify-between p-4">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => {
+                router.back();
+              }}
+              className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/90 active:opacity-75"
+            >
+              <Icon name="ArrowLeft" size={22} color={COLORS.shade} />
+            </Pressable>
+
+            <View className="flex-row items-center gap-2">
+              {canManageRoom ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open creator controls"
+                  onPress={() => {
+                    triggerSelectionHaptic();
+                    setIsCreatorSheetOpen(true);
+                  }}
+                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/90 active:opacity-75"
+                >
+                  <Icon name="Settings" size={21} color={COLORS.shade} />
+                </Pressable>
+              ) : null}
+              {canLeaveRoom ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Leave community"
+                  onPress={handleConfirmLeaveRoom}
+                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/90 active:opacity-75"
+                >
+                  <Icon name="LogOut" size={21} color={COLORS.danger} />
+                </Pressable>
+              ) : null}
+            </View>
           </View>
 
           <View className="p-5">
-            <Text className="text-3xl font-bold text-white">{room.title}</Text>
+            <View className="mb-4 flex-row items-center gap-2">
+              <View className="rounded-full bg-ui-light/90 px-3 py-1">
+                <RoomCountdown
+                  nextMatchAt={room.nextMatchAt}
+                  fallbackSeconds={room.secondsUntilNextMatch}
+                />
+              </View>
+            </View>
+
+            <Text
+              className="text-4xl font-bold leading-10 text-ui-light"
+              accessibilityRole="header"
+            >
+              {room.title}
+            </Text>
             {room.description ? (
-              <Text className="mt-2 text-white/80">{room.description}</Text>
+              <Text className="mt-2 text-base leading-6 text-ui-light/80">
+                {room.description}
+              </Text>
             ) : null}
 
-            <View className="mt-4 rounded-2xl bg-white/90 p-3">
-              <View className="flex-row items-center gap-2">
-                <Icon name="MapPin" size={18} color="#6D3FD1" />
-                <Text
-                  className="flex-1 font-semibold text-ui-dark"
-                  numberOfLines={1}
-                >
-                  {roomAddress}
-                </Text>
-              </View>
-
-              <View className="mt-3 flex-row gap-2">
-                <TouchableOpacity
-                  onPress={handleCopyAddress}
-                  className="min-h-10 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-ui-light px-3"
-                >
-                  <Icon name="Copy" size={16} color="#000000" />
-                  <Text className="font-semibold text-ui-dark">
-                    Copy address
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleOpenMap}
-                  className="min-h-10 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-ui-highlight px-3"
-                >
-                  <Icon name="Map" size={16} color="#FAFAFA" />
-                  <Text className="font-semibold text-white">Open map</Text>
-                </TouchableOpacity>
-              </View>
+            <View className="mt-5 flex-row flex-wrap gap-2">
+              <RoomStatPill
+                icon="Sparkles"
+                label={`${room.poolCount || 0} in pool`}
+                isHighlighted={inPool}
+              />
+              <RoomStatPill
+                icon="Users"
+                label={`${room.pinnedCount || 0} pinned`}
+              />
             </View>
           </View>
         </ImageBackground>
 
-        <View className="m-5 rounded-2xl bg-ui-shade/5 p-4">
-          <Text className="font-semibold text-ui-dark">
-            {inPool
-              ? "You are in this matching pool."
-              : isFollowed
-                ? "You follow this community."
-                : "Pin this community to join the next cycle."}
-          </Text>
-          {userState?.poolStatus === "matched" ? (
-            <Text className="mt-1 text-sm text-ui-shade/70">
-              You matched in this community. Rejoin when you want another cycle.
-            </Text>
-          ) : null}
-          {userState?.poolStatus === "insufficient_credits" ? (
-            <Text className="mt-1 text-sm text-red-500">
-              Add credits, then rejoin this community.
-            </Text>
-          ) : null}
-        </View>
+        <View className="p-5">
+          <View className="rounded-[24px] bg-ui-shade/5 p-4">
+            <View className="flex-row items-start gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+                <Icon name="MapPin" size={18} color={COLORS.highlight} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold text-ui-shade">
+                  Community location
+                </Text>
+                <Text
+                  className="mt-1 text-sm leading-5 text-ui-muted"
+                  numberOfLines={2}
+                >
+                  {roomAddress || "Location details are not available yet."}
+                </Text>
+              </View>
+            </View>
 
-        <View className="mx-5 mb-5 gap-3">
-          {inPool ? (
-            <Button
-              text={
-                leavePoolMutation.isPending
-                  ? "Exiting..."
-                  : "Exit matching pool"
-              }
-              variant="outline"
-              className="rounded-2xl"
-              disabled={leavePoolMutation.isPending}
-              onClick={handleConfirmLeaveRoom}
-            />
-          ) : (
-            <Button
-              text={
-                isFollowed
-                  ? rejoinMutation.isPending
-                    ? "Rejoining..."
-                    : "Rejoin pool"
-                  : followMutation.isPending
-                    ? "Pinning..."
-                    : "Pin and join pool"
-              }
-              className="rounded-2xl"
-              disabled={followMutation.isPending || rejoinMutation.isPending}
-              onClick={() =>
-                isFollowed ? rejoinMutation.mutate() : followMutation.mutate()
-              }
-            />
-          )}
+            <View className="mt-4 flex-row gap-2">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Copy community address"
+                onPress={handleCopyAddress}
+                className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ui-light px-3 active:opacity-75"
+              >
+                <Icon name="Copy" size={16} color={COLORS.shade} />
+                <Text className="font-semibold text-ui-shade">Copy</Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open community in map"
+                onPress={handleOpenMap}
+                className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-3 active:opacity-75"
+              >
+                <Icon name="Map" size={16} color={COLORS.light} />
+                <Text className="font-semibold text-ui-light">Open map</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <View className="mt-4 rounded-[24px] bg-ui-foreground p-4">
+            <View className="flex-row items-center justify-start gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-primary">
+                <Icon
+                  name={
+                    inPool ? "Sparkles" : isFollowed ? "Pin" : "HeartHandshake"
+                  }
+                  size={18}
+                  color={COLORS.shade}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold text-ui-light">
+                  {inPool
+                    ? "You are in this matching pool."
+                    : isFollowed
+                      ? "You follow this community."
+                      : "Pin this community to join the next cycle."}
+                </Text>
+                {userState?.poolStatus === "matched" ? (
+                  <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                    You matched in this community. Rejoin when you want another
+                    cycle.
+                  </Text>
+                ) : null}
+                {userState?.poolStatus === "insufficient_credits" ? (
+                  <Text className="mt-1 text-sm leading-5 text-ui-primary">
+                    Add credits, then rejoin this community.
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+          </View>
+
+          <View className="mt-4 gap-3">
+            {inPool ? (
+              <Button
+                text={
+                  leavePoolMutation.isPending
+                    ? "Exiting..."
+                    : "Exit matching pool"
+                }
+                variant="outline"
+                className="rounded-full"
+                disabled={leavePoolMutation.isPending}
+                onClick={handleConfirmLeaveRoom}
+              />
+            ) : (
+              <Button
+                text={
+                  isFollowed
+                    ? rejoinMutation.isPending
+                      ? "Rejoining..."
+                      : "Rejoin pool"
+                    : followMutation.isPending
+                      ? "Pinning..."
+                      : "Pin and join pool"
+                }
+                className="rounded-full"
+                disabled={followMutation.isPending || rejoinMutation.isPending}
+                onClick={() =>
+                  isFollowed ? rejoinMutation.mutate() : followMutation.mutate()
+                }
+              />
+            )}
+          </View>
         </View>
       </View>
 
       <Actionsheet isOpen={isCreatorSheetOpen} onClose={closeCreatorSheet}>
         <ActionsheetBackdrop />
-        <ActionsheetContent className="p-0 pb-4">
+        <ActionsheetContent className="bg-ui-surface-page p-0">
           <ActionsheetDragIndicatorWrapper>
             <ActionsheetDragIndicator />
           </ActionsheetDragIndicatorWrapper>
-          <View className="w-full px-4 pb-4">
-            <View className="mb-3 flex-row items-center justify-between">
-              <TouchableOpacity
-                onPress={
-                  isEditingRoom ? handleCancelEditing : closeCreatorSheet
-                }
-                className="min-h-11 justify-center"
-              >
-                <Text className="text-ui-shade">
-                  {isEditingRoom ? "Back" : "Close"}
-                </Text>
-              </TouchableOpacity>
-              <Text className="text-lg font-semibold">Creator controls</Text>
-              <View className="w-10" />
-            </View>
-            {isEditingRoom ? (
-              <View className="gap-3">
-                <View className="rounded-2xl border border-ui-shade/10 bg-ui-shade/5 p-4">
-                  <View className="flex-row items-center justify-between gap-3">
-                    <View className="flex-1">
-                      <Text className="font-semibold text-ui-dark">
-                        Cover image
-                      </Text>
-                      <Text className="mt-1 text-sm text-ui-shade/70">
-                        Upload a fresh image to update this community&apos;s
-                        cover.
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={handlePickCoverImage}
-                      className="rounded-full border border-ui-shade/15 bg-white px-4 py-2"
-                    >
-                      <Text className="font-semibold text-ui-dark">
-                        {editedCoverImageUri || room.imageUrl
-                          ? "Change"
-                          : "Upload"}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
 
-                  <TouchableOpacity
-                    onPress={handlePickCoverImage}
-                    className="mt-4"
+          <ScrollView
+            className="w-full"
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingBottom: Math.max(insets.bottom, 24),
+            }}
+          >
+            <View className="w-full px-4 pb-3">
+              <View className="flex-row items-center gap-4 rounded-[28px] bg-ui-foreground p-4">
+                <Pressable
+                  onPress={
+                    isEditingRoom ? handleCancelEditing : closeCreatorSheet
+                  }
+                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/10 active:opacity-75"
+                  hitSlop={4}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isEditingRoom ? "Back" : "Close creator controls"
+                  }
+                >
+                  <Icon
+                    name={isEditingRoom ? "ArrowLeft" : "X"}
+                    size={22}
+                    className="text-ui-light"
+                  />
+                </Pressable>
+
+                <View className="flex-1">
+                  <Text className="text-xs font-semibold text-ui-light/60">
+                    {isEditingRoom ? "Editing community" : "Creator controls"}
+                  </Text>
+                  <Text className="mt-1 text-2xl font-bold leading-7 text-ui-light">
+                    {isEditingRoom ? room.title : "Shape this community"}
+                  </Text>
+                  <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                    {isEditingRoom
+                      ? "Keep it honest, specific, and easy to join."
+                      : "Edit details or run the next cycle before the countdown ends."}
+                  </Text>
+                </View>
+
+                {isEditingRoom ? (
+                  <Pressable
+                    onPress={() => {
+                      if (canSaveRoomEdits && !updateRoomMutation.isPending) {
+                        updateRoomMutation.mutate();
+                      }
+                    }}
+                    disabled={!canSaveRoomEdits || updateRoomMutation.isPending}
+                    className={`h-11 w-11 items-center justify-center rounded-full bg-ui-primary ${
+                      !canSaveRoomEdits || updateRoomMutation.isPending
+                        ? "opacity-40"
+                        : "active:opacity-80"
+                    }`}
+                    hitSlop={4}
+                    accessibilityRole="button"
+                    accessibilityLabel="Save community changes"
+                    accessibilityState={{
+                      disabled:
+                        !canSaveRoomEdits || updateRoomMutation.isPending,
+                    }}
                   >
-                    {editedCoverImageUri || room.imageUrl ? (
-                      <Image
-                        source={{
-                          uri: editedCoverImageUri || room.imageUrl,
-                        }}
-                        className="h-44 w-full rounded-2xl bg-ui-background"
-                        style={{ resizeMode: "cover" }}
-                      />
-                    ) : (
-                      <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-shade/20 bg-white px-4">
-                        <Icon name="Image" size={28} />
-                        <Text className="mt-2 text-center text-sm text-ui-shade/70">
-                          Tap to upload a community cover image
+                    <Icon name="Check" size={22} className="text-ui-shade" />
+                  </Pressable>
+                ) : (
+                  <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary">
+                    <Icon name="Sparkles" size={20} className="text-ui-shade" />
+                  </View>
+                )}
+              </View>
+            </View>
+
+            <View className="w-full px-4 pb-4">
+              {isEditingRoom ? (
+                <View className="gap-3">
+                  <View className="rounded-[24px] border border-ui-border bg-ui-light p-4">
+                    <View className="flex-row items-center justify-between gap-3">
+                      <View className="flex-1">
+                        <Text className="font-semibold text-ui-shade">
+                          Cover image
+                        </Text>
+                        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                          Upload a fresh image to update this community&apos;s
+                          cover.
                         </Text>
                       </View>
-                    )}
-                  </TouchableOpacity>
+                      <Pressable
+                        onPress={handlePickCoverImage}
+                        className="rounded-full border border-ui-border bg-ui-light px-4 py-2 active:opacity-75"
+                        hitSlop={4}
+                        accessibilityRole="button"
+                        accessibilityLabel="Change community cover image"
+                      >
+                        <Text className="font-semibold text-ui-shade">
+                          {editedCoverImageUri || room.imageUrl
+                            ? "Change"
+                            : "Upload"}
+                        </Text>
+                      </Pressable>
+                    </View>
+
+                    <Pressable
+                      onPress={handlePickCoverImage}
+                      className="mt-4"
+                      accessibilityRole="button"
+                      accessibilityLabel="Upload community cover image"
+                    >
+                      {editedCoverImageUri || room.imageUrl ? (
+                        <Image
+                          source={{
+                            uri: editedCoverImageUri || room.imageUrl,
+                          }}
+                          className="h-44 w-full overflow-hidden rounded-2xl bg-ui-background"
+                          style={{ resizeMode: "cover" }}
+                        />
+                      ) : (
+                        <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-border bg-ui-light px-4">
+                          <Icon name="Image" size={28} color={COLORS.muted} />
+                          <Text className="mt-2 text-center text-sm text-ui-muted">
+                            Tap to upload a community cover image
+                          </Text>
+                        </View>
+                      )}
+                    </Pressable>
+                  </View>
+                  <TextInput
+                    label="Community name"
+                    value={editedTitle}
+                    action={setEditedTitle}
+                    placeholder="e.g. Indiranagar Evenings"
+                    autoCapitalize="words"
+                    isInvalid={
+                      editedTitle.length > 0 && trimmedEditedTitle.length < 3
+                    }
+                    errorText={
+                      editedTitle.length > 0 && trimmedEditedTitle.length < 3
+                        ? "Use at least 3 characters."
+                        : undefined
+                    }
+                  />
+                  <TextAreaInput
+                    label="Description"
+                    value={editedDescription}
+                    action={setEditedDescription}
+                    placeholder="Who should join this community?"
+                    errorText={
+                      trimmedEditedDescription.length > 500
+                        ? "Keep it under 500 characters."
+                        : undefined
+                    }
+                  />
+                  <Button
+                    text={
+                      updateRoomMutation.isPending
+                        ? "Saving..."
+                        : "Save community changes"
+                    }
+                    className="rounded-full"
+                    disabled={!canSaveRoomEdits || updateRoomMutation.isPending}
+                    onClick={() => updateRoomMutation.mutate()}
+                  />
+                  <Button
+                    text="Cancel"
+                    variant="outline"
+                    className="rounded-full"
+                    disabled={updateRoomMutation.isPending}
+                    onClick={handleCancelEditing}
+                  />
                 </View>
-                <TextInput
-                  label="Community name"
-                  value={editedTitle}
-                  action={setEditedTitle}
-                  placeholder="e.g. Indiranagar Evenings"
-                  autoCapitalize="words"
-                  isInvalid={
-                    editedTitle.length > 0 && trimmedEditedTitle.length < 3
-                  }
-                  errorText={
-                    editedTitle.length > 0 && trimmedEditedTitle.length < 3
-                      ? "Use at least 3 characters."
-                      : undefined
-                  }
-                />
-                <TextAreaInput
-                  label="Description"
-                  value={editedDescription}
-                  action={setEditedDescription}
-                  placeholder="Who should join this community?"
-                  errorText={
-                    trimmedEditedDescription.length > 500
-                      ? "Keep it under 500 characters."
-                      : undefined
-                  }
-                />
-                <Button
-                  text={
-                    updateRoomMutation.isPending
-                      ? "Saving..."
-                      : "Save community changes"
-                  }
-                  className="rounded-2xl"
-                  disabled={!canSaveRoomEdits || updateRoomMutation.isPending}
-                  onClick={() => updateRoomMutation.mutate()}
-                />
-                <Button
-                  text="Cancel"
-                  variant="outline"
-                  className="rounded-2xl"
-                  disabled={updateRoomMutation.isPending}
-                  onClick={handleCancelEditing}
-                />
-              </View>
-            ) : (
-              <View className="gap-2">
-                <TouchableOpacity
-                  onPress={handleStartEditing}
-                  className="rounded-2xl border border-ui-shade/10 bg-white px-4 py-3"
-                >
-                  <View className="flex-row items-center gap-3">
-                    <Icon name="Pencil" size={18} color="#111827" />
-                    <View className="flex-1">
-                      <Text className="font-semibold text-ui-dark">
-                        Edit community details
-                      </Text>
-                      <Text className="text-sm text-ui-shade/70">
-                        Update the community name, description, and cover image.
-                      </Text>
+              ) : (
+                <View className="gap-3">
+                  <Pressable
+                    onPress={handleStartEditing}
+                    className="rounded-[24px] border border-ui-border bg-ui-light p-4 active:opacity-85"
+                    accessibilityRole="button"
+                    accessibilityLabel="Edit community details"
+                  >
+                    <View className="flex-row items-center gap-3">
+                      <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-highlight/10">
+                        <Icon
+                          name="Pencil"
+                          size={20}
+                          color={COLORS.highlight}
+                        />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-base font-bold text-ui-shade">
+                          Edit community details
+                        </Text>
+                        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                          Update the community name, description, and cover
+                          image.
+                        </Text>
+                      </View>
+                      <View className="h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ui-shade/5">
+                        <Icon
+                          name="ChevronRight"
+                          size={18}
+                          color={COLORS.shade}
+                        />
+                      </View>
+                    </View>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => startMatchMutation.mutate()}
+                    disabled={startMatchMutation.isPending}
+                    accessibilityRole="button"
+                    accessibilityLabel="Start community match now"
+                    accessibilityState={{
+                      disabled: startMatchMutation.isPending,
+                    }}
+                    className={`rounded-[24px] border border-ui-highlight/20 bg-ui-highlight/10 p-4 active:opacity-85 ${
+                      startMatchMutation.isPending ? "opacity-70" : ""
+                    }`}
+                  >
+                    <View className="flex-row items-center gap-3">
+                      <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary">
+                        <Icon name="Zap" size={20} color={COLORS.highlight} />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-base font-bold text-ui-shade">
+                          {startMatchMutation.isPending
+                            ? "Starting cycle..."
+                            : "Start match now"}
+                        </Text>
+                        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                          Run this community&apos;s next cycle before the
+                          countdown ends.
+                        </Text>
+                      </View>
+                      <View className="h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ui-highlight">
+                        <Icon name="Zap" size={16} color={COLORS.light} />
+                      </View>
+                    </View>
+                  </Pressable>
+
+                  <View className="mt-1 rounded-[24px] bg-ui-shade/5 p-4">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-ui-muted">
+                      What creators can do
+                    </Text>
+                    <View className="mt-2 gap-2">
+                      <View className="flex-row items-center gap-2">
+                        <Icon
+                          name="BadgeCheck"
+                          size={14}
+                          color={COLORS.highlight}
+                        />
+                        <Text className="text-sm text-ui-shade">
+                          Edit name, description, and cover image
+                        </Text>
+                      </View>
+                      <View className="flex-row items-center gap-2">
+                        <Icon
+                          name="Sparkles"
+                          size={14}
+                          color={COLORS.highlight}
+                        />
+                        <Text className="text-sm text-ui-shade">
+                          Run the next match cycle on demand
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => startMatchMutation.mutate()}
-                  disabled={startMatchMutation.isPending}
-                  className={`rounded-2xl border border-ui-highlight/20 bg-ui-highlight/10 px-4 py-3 ${
-                    startMatchMutation.isPending ? "opacity-70" : ""
-                  }`}
-                >
-                  <View className="flex-row items-center gap-3">
-                    <Icon name="Zap" size={18} color="#6D3FD1" />
-                    <View className="flex-1">
-                      <Text className="font-semibold text-ui-dark">
-                        {startMatchMutation.isPending
-                          ? "Starting cycle..."
-                          : "Start match now"}
-                      </Text>
-                      <Text className="text-sm text-ui-shade/70">
-                        Run this community&apos;s next cycle before the
-                        countdown ends.
-                      </Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+                </View>
+              )}
+            </View>
+          </ScrollView>
         </ActionsheetContent>
       </Actionsheet>
 
       <View className="mb-6 mt-6">
+        <View className="mb-3">
+          <Text className="text-xl font-bold text-ui-shade">
+            Inside this community
+          </Text>
+          <Text className="mt-1 text-sm text-ui-muted">
+            See who is waiting and the chats created from this room.
+          </Text>
+        </View>
         <RoomSectionTabs
           activeSection={activeSection}
           poolCount={room.poolCount || 0}
@@ -739,9 +964,11 @@ export default function RoomDetailScreen() {
         {activeSection === "pool" ? (
           <View>
             {!members.length ? (
-              <Text className="rounded-2xl bg-white p-4 text-center text-ui-shade">
-                Nobody is in the pool yet.
-              </Text>
+              <CommunityEmptyPanel
+                icon="Users"
+                title="Nobody is in the pool yet"
+                copy="Be the first to pin this room and start the next cycle."
+              />
             ) : (
               <FlatList
                 data={members}
@@ -754,9 +981,11 @@ export default function RoomDetailScreen() {
         ) : (
           <View>
             {!roomChats.length ? (
-              <Text className="rounded-2xl bg-white p-4 text-center text-ui-shade">
-                No matched chats yet.
-              </Text>
+              <CommunityEmptyPanel
+                icon="MessageCircleHeart"
+                title="No matched chats yet"
+                copy="Matched chats from this community will appear here after a cycle runs."
+              />
             ) : (
               <FlatList
                 data={roomChats}
@@ -772,11 +1001,42 @@ export default function RoomDetailScreen() {
   );
 }
 
+function CommunityEmptyPanel({
+  icon,
+  title,
+  copy,
+}: {
+  icon: string;
+  title: string;
+  copy: string;
+}) {
+  return (
+    <View className="items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8">
+      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
+        <Icon name={icon} size={24} color={COLORS.highlight} />
+      </View>
+      <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+        {title}
+      </Text>
+      <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+        {copy}
+      </Text>
+    </View>
+  );
+}
+
 function MemberCard({ member }: { member: LocationRoomMember }) {
   const displayName = member.nickname || member.username || "Lumore User";
+  const detailText = [
+    member.dob ? `${calculateAge(member.dob)} yrs` : null,
+    member.gender,
+  ]
+    .filter(Boolean)
+    .join(" / ");
+
   return (
-    <View className="mb-2 flex-row items-center rounded-2xl bg-white p-3">
-      <View className="mr-3 h-12 w-12 overflow-hidden rounded-full bg-ui-background">
+    <View className="mb-3 flex-row items-center rounded-[24px] border border-ui-border bg-ui-light p-3">
+      <View className="mr-3 h-12 w-12 overflow-hidden rounded-full bg-ui-highlight/10">
         {member.profilePicture ? (
           <Image
             source={{ uri: member.profilePicture }}
@@ -784,22 +1044,20 @@ function MemberCard({ member }: { member: LocationRoomMember }) {
           />
         ) : (
           <View className="h-full w-full items-center justify-center">
-            <Text className="text-2xl text-ui-shade">
+            <Text className="text-xl font-bold text-ui-highlight">
               {displayName.charAt(0)}
             </Text>
           </View>
         )}
       </View>
       <View className="flex-1">
-        <Text className="font-semibold">{displayName}</Text>
-        <Text className="text-sm text-ui-shade/70">
-          {[
-            member.dob ? `${calculateAge(member.dob)} yrs` : null,
-            member.gender,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
+        <Text className="font-bold text-ui-shade">{displayName}</Text>
+        <Text className="text-sm text-ui-muted">
+          {detailText || "Waiting in the pool"}
         </Text>
+      </View>
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-primary/30">
+        <Icon name="Sparkles" size={16} color={COLORS.shade} />
       </View>
     </View>
   );
@@ -807,12 +1065,16 @@ function MemberCard({ member }: { member: LocationRoomMember }) {
 
 function RoomDetailSkeleton() {
   return (
-    <View className="flex-1 bg-ui-light px-4 pt-8">
-      <Skeleton width="55%" height={28} />
-      <View className="mt-6 rounded-3xl bg-white p-5">
-        <Skeleton width="70%" height={22} />
+    <View className="flex-1 bg-ui-surface-page px-4 pt-6">
+      <View className="overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+        <Skeleton width={44} height={44} radius={9999} />
+        <Skeleton width="72%" height={34} style={{ marginTop: 220 }} />
         <Skeleton width="90%" height={12} style={{ marginTop: 14 }} />
-        <Skeleton width="100%" height={92} style={{ marginTop: 20 }} />
+      </View>
+      <View className="mt-4 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <Skeleton width="70%" height={18} />
+        <Skeleton width="90%" height={12} style={{ marginTop: 12 }} />
+        <Skeleton width="100%" height={44} style={{ marginTop: 18 }} />
       </View>
     </View>
   );

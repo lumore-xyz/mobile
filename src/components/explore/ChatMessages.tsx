@@ -72,14 +72,14 @@ export const ChatMessages = React.memo(function ChatMessages({
 
   return (
     <ScrollView
-      className="flex-1 px-4 py-2"
+      className="flex-1 px-3 pt-3"
       ref={scrollRef}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 12 }}
+      contentContainerStyle={{ paddingBottom: 20 }}
     >
-      <View className="space-y-4">
+      <View className="gap-4">
         <MatchNoteBanner note={matchNote || ""} createdAt={matchCreatedAt} />
         {sortedDates.map((date) => (
           <MessageGroup
@@ -93,8 +93,10 @@ export const ChatMessages = React.memo(function ChatMessages({
           />
         ))}
         {isPartnerTyping ? (
-          <View className="px-1 py-1">
-            <Text className="text-xs text-ui-shade/70 italic">Typing...</Text>
+          <View className="items-start px-1 py-1" accessibilityLiveRegion="polite">
+            <View className="rounded-full border border-ui-border bg-ui-light px-3 py-2">
+              <Text className="text-xs font-medium text-ui-muted">Typing…</Text>
+            </View>
           </View>
         ) : null}
       </View>

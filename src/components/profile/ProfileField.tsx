@@ -27,9 +27,9 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
     if (children) return children;
     if (React.isValidElement(value)) return value;
     if (value === undefined || value === null || value === "") {
-      return <Text className="text-ui-shade/50">Not set</Text>;
+      return <Text className="text-base text-ui-muted">Not set yet</Text>;
     }
-    return <Text className="text-base">{String(value)}</Text>;
+    return <Text className="text-base leading-6 text-ui-shade">{String(value)}</Text>;
   };
 
   return (
@@ -38,13 +38,14 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
         triggerSelectionHaptic();
         onEdit(field);
       }}
-      className="mt-3 min-h-12 rounded-xl border border-ui-shade/10 bg-white p-3"
+      className="mt-3 min-h-14 rounded-[22px] bg-ui-light p-4 active:opacity-80"
       android_ripple={{ color: "rgba(84,19,136,0.06)", borderless: false }}
       accessibilityRole="button"
+      accessibilityLabel={`Edit ${label}`}
     >
-      <View className="flex flex-row justify-between items-center">
-        <View className="text-lg flex-1 pr-3">
-          <Text className="text-base text-ui-shade/60">{label}</Text>
+      <View className="flex-row items-center justify-between gap-3">
+        <View className="flex-1 pr-1">
+          <Text className="text-sm font-semibold text-ui-muted">{label}</Text>
           {renderValue()}
         </View>
         <View className="flex-row items-center gap-2">
@@ -53,9 +54,12 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
               field={field}
               currentVisibility={visibility}
               onVisibilityChange={onVisibilityChange}
+              className="w-32"
             />
           )}
-          <Icon name="ChevronRight" size={18} />
+          <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-surface-page">
+            <Icon name="ChevronRight" size={17} />
+          </View>
         </View>
       </View>
     </Pressable>

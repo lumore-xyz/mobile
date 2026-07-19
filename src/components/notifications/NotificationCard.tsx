@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { GestureResponderEvent, Pressable, Text, View } from "react-native";
 
+import { COLORS } from "../../libs/constants/theme";
 import Icon from "../../libs/Icon";
 import {
   resolveNotificationTarget,
@@ -13,6 +14,7 @@ interface NotificationCardProps {
   notification: NotificationItem;
   onPress?: (notification: NotificationItem) => void;
   onDelete?: (notification: NotificationItem) => void;
+  isDeleting?: boolean;
 }
 
 const formatRelativeTime = (iso?: string | null) => {
@@ -36,6 +38,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
   notification,
   onPress,
   onDelete,
+  isDeleting = false,
 }) => {
   const isUnread = !notification.isRead;
   const target = resolveNotificationTarget(notification);
@@ -45,26 +48,23 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
     if (onPress) onPress(notification);
   }, [notification, onPress]);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback((event: GestureResponderEvent) => {
+    event.stopPropagation();
     triggerSelectionHaptic();
     if (onDelete) onDelete(notification);
   }, [notification, onDelete]);
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
+    <Pressable
       onPress={handlePress}
       accessibilityRole="button"
-      accessibilityLabel={notification.title}
+      accessibilityLabel={`${isUnread ? "Unread notification. " : ""}${notification.title}. ${notification.message}`}
       accessibilityState={{ selected: isUnread }}
-      className={`flex-row items-start gap-3 rounded-2xl border bg-white p-3 ${
-        isUnread ? "border-ui-highlight/40" : "border-ui-shade/10"
-      }`}
-      style={
+      className={`flex-row items-start gap-3 rounded-[24px] border p-4 active:opacity-75 ${
         isUnread
-          ? { backgroundColor: "rgba(124, 58, 237, 0.05)" }
-          : undefined
-      }
+          ? "border-ui-highlight/25 bg-ui-highlight/5"
+          : "border-ui-border bg-ui-light"
+      }`}
     >
       <NotificationIcon
         entityType={notification.entityType}
@@ -73,18 +73,18 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
       <View className="flex-1 gap-1">
         <View className="flex-row items-start justify-between gap-2">
           <Text
-            className={`flex-1 text-base ${
-              isUnread ? "font-semibold text-ui-dark" : "font-medium text-ui-dark"
+            className={`flex-1 text-base leading-5 ${
+              isUnread ? "font-bold text-ui-shade" : "font-semibold text-ui-shade"
             }`}
             numberOfLines={1}
           >
             {notification.title}
           </Text>
-          <Text className="text-xs text-ui-shade/60">
+          <Text className="text-xs font-medium text-ui-muted">
             {formatRelativeTime(notification.createdAt)}
           </Text>
         </View>
-        <Text className="text-sm text-ui-shade/80" numberOfLines={2}>
+        <Text className="text-sm leading-5 text-ui-muted" numberOfLines={3}>
           {notification.message}
         </Text>
         <View className="mt-1 flex-row items-center justify-between gap-2">
@@ -93,29 +93,34 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
               <View className="h-2 w-2 rounded-full bg-ui-highlight" />
             ) : null}
             {target ? (
-              <Text className="text-xs text-ui-highlight">Tap to open</Text>
+              <View className="flex-row items-center gap-1">
+                <Text className="text-xs font-medium text-ui-highlight">Open</Text>
+                <Icon name="ArrowUpRight" size={12} color={COLORS.highlight} />
+              </View>
             ) : (
-              <Text className="text-xs text-ui-shade/50">No link</Text>
+              <Text className="text-xs text-ui-muted">Update only</Text>
             )}
           </View>
           {onDelete ? (
-            <TouchableOpacity
+            <Pressable
               accessibilityRole="button"
               accessibilityLabel="Delete notification"
               onPress={handleDelete}
+              disabled={isDeleting}
               hitSlop={8}
-              className="h-8 w-8 items-center justify-center rounded-full bg-ui-shade/5"
+              accessibilityState={{ disabled: isDeleting, busy: isDeleting }}
+              className={`h-11 w-11 items-center justify-center rounded-full active:bg-red-50 ${isDeleting ? "opacity-40" : ""}`}
             >
               <Icon
                 name="Trash"
                 size={16}
-                color="#6B7280"
+                color={COLORS.muted}
               />
-            </TouchableOpacity>
+            </Pressable>
           ) : null}
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

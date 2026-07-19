@@ -15,7 +15,7 @@ import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   Text,
-  TouchableOpacity,
+  Pressable,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -55,6 +55,11 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
   const isSubmitDisabled =
     isUsernameField &&
     (usernameAvailability.isChecking || !usernameAvailability.canSubmit);
+  const safeFieldType = fieldType || "";
+  const formattedFieldType = safeFieldType
+    .replace(/([A-Z])/g, " $1")
+    .replace(/\./g, " ")
+    .trim();
 
   useEffect(() => {
     if (isOpen) {
@@ -144,73 +149,85 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
   return (
     <Actionsheet isOpen={isOpen} onClose={handleCancel}>
       <ActionsheetBackdrop />
-      <ActionsheetContent className="flex flex-col p-0 min-h-[90%]">
+      <ActionsheetContent className="min-h-[88%] flex-col rounded-t-[32px] bg-ui-surface-page p-0">
         <ActionsheetDragIndicatorWrapper>
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
 
         <View className="w-full flex-1">
-          <View className="flex flex-row items-center justify-between p-3 gap-4 shadow-sm w-full">
-            <TouchableOpacity
+          <View className="w-full px-4 pb-3">
+            <View className="flex-row items-center justify-between gap-4 rounded-[28px] bg-ui-foreground p-4">
+              <Pressable
               onPress={handleCancelPress}
-              className="h-11 w-11 items-center justify-center rounded-full"
+              className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/10 active:opacity-75"
               hitSlop={4}
               accessibilityRole="button"
               accessibilityLabel="Cancel edit"
             >
               <Icon
                 name="X"
-                size={32}
-                className="text-xl text-ui-shade"
+                size={22}
+                className="text-ui-light"
               />
-            </TouchableOpacity>
+              </Pressable>
 
-            <View>
-              <Text className="capitalize text-xl font-semibold">
-                Edit {fieldType}
-              </Text>
+              <View className="flex-1">
+                <Text className="text-xs font-semibold text-ui-light/60">
+                  Editing profile
+                </Text>
+                <Text className="mt-1 capitalize text-2xl font-bold leading-7 text-ui-light">
+                  {formattedFieldType || "Field"}
+                </Text>
+                <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                  Keep it honest, specific, and easy to reply to.
+                </Text>
+              </View>
+
+              <Pressable
+                onPress={handleSubmitPress}
+                disabled={isSubmitDisabled}
+                className={`h-11 w-11 items-center justify-center rounded-full bg-ui-primary ${
+                  isSubmitDisabled ? "opacity-40" : "active:opacity-80"
+                }`}
+                hitSlop={4}
+                accessibilityRole="button"
+                accessibilityLabel="Save edit"
+                accessibilityState={{ disabled: isSubmitDisabled }}
+              >
+                <Icon
+                  name="Check"
+                  size={22}
+                  className="text-ui-shade"
+                />
+              </Pressable>
             </View>
-
-            <TouchableOpacity
-              onPress={handleSubmitPress}
-              disabled={isSubmitDisabled}
-              className={`h-11 w-11 items-center justify-center rounded-full ${
-                isSubmitDisabled ? "opacity-40" : ""
-              }`}
-              hitSlop={4}
-              accessibilityRole="button"
-              accessibilityLabel="Save edit"
-              accessibilityState={{ disabled: isSubmitDisabled }}
-            >
-              <Icon
-                name="Check"
-                size={32}
-                className="text-xl !text-ui-highlight"
-              />
-            </TouchableOpacity>
           </View>
 
           <ScrollView
-            className="w-full flex-1 p-3"
+            className="w-full flex-1 px-4"
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             contentContainerStyle={{
               paddingBottom: Math.max(insets.bottom, 24),
             }}
           >
-            <View className="flex gap-2">
-              <FieldEditorContent
-                fieldType={fieldType}
-                value={value}
-                setValue={handleValueChange}
-                usernameAvailability={
-                  isUsernameField ? usernameAvailability : undefined
-                }
-              />
+            <View className="rounded-[28px] border border-ui-border bg-ui-light p-4">
+              {safeFieldType ? (
+                <FieldEditorContent
+                  fieldType={safeFieldType}
+                  value={value}
+                  setValue={handleValueChange}
+                  usernameAvailability={
+                    isUsernameField ? usernameAvailability : undefined
+                  }
+                />
+              ) : null}
               {errorMessage ? (
-                <Text className="text-red-500 text-sm mt-1">
-                  {errorMessage}
-                </Text>
+                <View className="mt-4 rounded-2xl bg-red-50 p-3">
+                  <Text className="text-sm font-medium text-red-600">
+                    {errorMessage}
+                  </Text>
+                </View>
               ) : null}
             </View>
           </ScrollView>

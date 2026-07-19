@@ -7,17 +7,19 @@ import { useSocket } from "@/src/service/context/SocketContext";
 import { useLocation } from "@/src/service/providers/LocationProvider";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import Icon from "@/src/libs/Icon";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { COLORS } from "@/src/libs/constants/theme";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   ImageBackground,
+  ImageSourcePropType,
   ListRenderItem,
   Platform,
+  Pressable,
   RefreshControl,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -28,6 +30,9 @@ const formatCountdown = (seconds?: number) => {
   if (hours <= 0) return `${minutes}m`;
   return `${hours}h ${minutes}m`;
 };
+
+const COMMUNITY_COVER_IMAGE_URL =
+  "https://cdn.pixabay.com/photo/2022/11/13/12/42/building-7589141_1280.jpg";
 
 const useTick = () => {
   const [tick, setTick] = useState(Date.now());
@@ -80,34 +85,25 @@ export default function RoomsScreen() {
 
   return (
     <>
-      <View className="flex-1 bg-ui-light px-4 pt-6">
-        <View className="mb-4 flex-row items-center justify-between">
-          <View>
-            <Text className="text-3xl font-bold tracking-tight">Community</Text>
-            <Text className="mt-1 text-ui-shade/70">
-              Find your vibe near you.
-            </Text>
-          </View>
-          <Button
-            text="Create"
-            size="sm"
-            className="rounded-xl"
-            onClick={() => router.push("/community/create")}
-          />
-        </View>
+      <View className="flex-1 bg-ui-surface-page px-4 pt-6">
+        <CommunityHero roomCount={rooms.length} />
 
         {locationError ? (
-          <View className="mb-3 rounded-2xl bg-amber-50 p-3">
-            <Text className="text-sm text-amber-800">{locationError}</Text>
+          <View className="mb-4 flex-row items-start gap-3 rounded-[24px] border border-ui-border bg-ui-primary/20 p-4">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-light">
+              <Icon name="MapPinOff" size={18} color={COLORS.shade} />
+            </View>
+            <View className="flex-1">
+              <Text className="font-bold text-ui-shade">Location needs a nudge</Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-muted">{locationError}</Text>
+            </View>
           </View>
         ) : null}
 
         {isLoading ? (
           <RoomsSkeleton />
         ) : error ? (
-          <Text className="mt-10 text-center text-ui-shade">
-            Unable to load communities right now.
-          </Text>
+          <RoomsError onRetry={() => void refetch()} />
         ) : !rooms.length ? (
           <EmptyRooms />
         ) : (
@@ -115,7 +111,7 @@ export default function RoomsScreen() {
             data={rooms}
             keyExtractor={(room) => room._id}
             renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: 20 }}
+            contentContainerStyle={{ paddingBottom: 24 }}
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
@@ -123,8 +119,8 @@ export default function RoomsScreen() {
                 onRefresh={() => {
                   void refetch();
                 }}
-                tintColor="#541388"
-                colors={["#541388"]}
+                tintColor={COLORS.highlight}
+                colors={[COLORS.highlight]}
               />
             }
             initialNumToRender={8}
@@ -139,17 +135,67 @@ export default function RoomsScreen() {
   );
 }
 
+function CommunityHero({ roomCount }: { roomCount: number }) {
+  return (
+    <View className="mb-5 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+      <View className="flex-row items-start justify-between gap-4">
+        <View className="flex-1">
+          <Text className="text-3xl font-bold text-ui-light" accessibilityRole="header">
+            Community
+          </Text>
+          <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+            Local rooms for campus corners, cafe evenings, events, and nearby sparks.
+          </Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Create a community"
+          onPress={() => {
+            triggerSelectionHaptic();
+            router.push("/community/create");
+          }}
+          className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary active:opacity-75"
+        >
+          <Icon name="Plus" size={22} color={COLORS.shade} />
+        </Pressable>
+      </View>
+
+      <View className="mt-5 flex-row items-end justify-between gap-3">
+        <View>
+          <Text className="text-3xl font-bold text-ui-light">{roomCount}</Text>
+          <Text className="mt-0.5 text-sm text-ui-light/70">
+            {roomCount === 1 ? "nearby room" : "nearby rooms"}
+          </Text>
+        </View>
+        <View className="rounded-full bg-ui-light/10 px-3 py-1.5">
+          <Text className="text-xs font-semibold text-ui-light">
+            25km radius
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function RoomCard({ room }: { room: LocationRoomSummary }) {
   const state = room.userState;
   const isPinned = Boolean(state?.isPinned);
   const inPool = Boolean(state?.inPool);
   const canRejoin = isPinned && !inPool;
+  const poolCount = Number(room.poolCount || 0);
+  const pinnedCount = Number(room.pinnedCount || 0);
+  const locationLabel = String(room.location?.formattedAddress || "Nearby").trim();
+  const distanceLabel =
+    typeof room.distanceKm === "number" && Number.isFinite(room.distanceKm)
+      ? `${room.distanceKm.toFixed(room.distanceKm < 10 ? 1 : 0)}km away`
+      : "Near you";
+  const imageSource: ImageSourcePropType = {
+    uri: room.imageUrl || COMMUNITY_COVER_IMAGE_URL,
+  };
   const countdown = useMemo(
     () => formatCountdown(room.secondsUntilNextMatch),
     [room.secondsUntilNextMatch],
   );
-
-  const ctaText = inPool ? "In pool" : canRejoin ? "Rejoin" : "Pin";
 
   const openRoom = () => {
     triggerSelectionHaptic();
@@ -157,86 +203,136 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
   };
 
   return (
-    <TouchableOpacity
-      className="mb-3 rounded-3xl border border-ui-shade/10 bg-white active:bg-ui-shade/5 overflow-hidden"
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${room.title} community`}
+      className="mb-4 overflow-hidden rounded-[28px] border border-ui-border bg-ui-light active:opacity-90"
       onPress={openRoom}
     >
       <ImageBackground
-        source={{ uri: room.imageUrl }}
+        source={imageSource}
         style={{
           width: "100%",
-          height: 120,
+          height: 148,
           overflow: "hidden",
+          justifyContent: "space-between",
         }}
         imageStyle={{ resizeMode: "cover" }}
-      />
+      >
+        <View className="absolute inset-0 bg-black/30" />
+        <View className="flex-row items-start justify-between p-3">
+          <View className="rounded-full bg-ui-light/90 px-3 py-1">
+            <Text className="text-xs font-bold text-ui-foreground">
+              {countdown}
+            </Text>
+          </View>
+          {inPool || canRejoin || isPinned ? (
+            <View className="rounded-full bg-ui-primary px-3 py-1">
+              <Text className="text-xs font-bold text-ui-shade">
+                {inPool ? "In pool" : canRejoin ? "Rejoin ready" : "Pinned"}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </ImageBackground>
       <View className="p-4">
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
-            <Text className="text-xl font-bold text-ui-dark">{room.title}</Text>
+            <Text className="text-xl font-bold text-ui-shade" numberOfLines={1}>
+              {room.title}
+            </Text>
             {room.description ? (
-              <Text className="mt-1 text-sm text-ui-shade/70" numberOfLines={2}>
+              <Text
+                className="mt-1 text-sm leading-5 text-ui-muted"
+                numberOfLines={2}
+              >
                 {room.description}
               </Text>
             ) : null}
           </View>
-          <View className="rounded-full bg-ui-highlight/10 px-3 py-1">
-            <Text className="text-sm font-semibold text-ui-highlight">
-              {countdown}
-            </Text>
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+            <Icon name="ChevronRight" size={20} color={COLORS.highlight} />
           </View>
         </View>
 
-<View className="mt-4 flex-row flex-wrap items-center gap-3">
+        <View className="mt-4 flex-row flex-wrap items-center gap-2">
+          <RoomMeta
+            icon="Sparkles"
+            text={`${poolCount} in pool`}
+            isHighlighted={poolCount > 0}
+          />
           <RoomMeta
             icon="Users"
-            text={`${room.memberCount} ${room.memberCount === 1 ? "member" : "members"}`}
+            text={`${pinnedCount} pinned`}
           />
           <RoomMeta
             icon="MapPin"
-            text={room.locationLabel}
+            text={locationLabel}
           />
-          <RoomMeta icon="Navigation" text={`${room.distanceKm}km`} />
+          <RoomMeta icon="Navigation" text={distanceLabel} />
         </View>
 
-        {/* <View className="mt-4 flex-row items-center justify-between">
-          <Text className="text-sm text-ui-highlight">
+        <View className="mt-4 rounded-2xl bg-ui-highlight/5 px-4 py-3">
+          <Text className="text-sm font-medium text-ui-highlight">
             {inPool
               ? "You are waiting for this cycle."
               : canRejoin
                 ? "Matched before. Rejoin when ready."
                 : "Pin to join the matching pool."}
           </Text>
-        </View> */}
+        </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
-function RoomMeta({ icon, text }: { icon: string; text: string }) {
+function RoomMeta({
+  icon,
+  text,
+  isHighlighted = false,
+}: {
+  icon: string;
+  text: string;
+  isHighlighted?: boolean;
+}) {
   return (
-    <View className="flex-row items-center gap-1">
-      <Icon name={icon} size={15} color="#565656" />
-      <Text className="text-sm text-ui-shade">{text}</Text>
+    <View
+      className={`max-w-full flex-row items-center gap-1.5 rounded-full px-3 py-1.5 ${
+        isHighlighted ? "bg-ui-primary/30" : "bg-ui-shade/5"
+      }`}
+    >
+      <Icon
+        name={icon}
+        size={14}
+        color={isHighlighted ? COLORS.shade : COLORS.muted}
+      />
+      <Text
+        className={`max-w-[210px] text-xs font-semibold ${
+          isHighlighted ? "text-ui-shade" : "text-ui-muted"
+        }`}
+        numberOfLines={1}
+      >
+        {text}
+      </Text>
     </View>
   );
 }
 
 function EmptyRooms() {
   return (
-    <View className="mt-16 items-center rounded-3xl border border-ui-shade/10 bg-white p-6">
-      <View className="mb-3 h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
-        <Icon name="MapPin" size={28} color="#6D3FD1" />
+    <View className="mt-1 items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8">
+      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
+        <Icon name="MapPin" size={24} color={COLORS.highlight} />
       </View>
-      <Text className="text-center text-xl font-bold">
+      <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
         No communities nearby yet
       </Text>
-      <Text className="mt-2 text-center text-ui-shade/70">
+      <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
         Start one for your campus, cafe, event, or neighborhood.
       </Text>
       <Button
         text="Create a community"
-        className="mt-5 rounded-2xl"
+        className="mt-5 px-6"
         onClick={() => {
           triggerSelectionHaptic();
           router.push("/community/create");
@@ -246,15 +342,41 @@ function EmptyRooms() {
   );
 }
 
+function RoomsError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <View
+      className="mt-1 items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8"
+      accessibilityLiveRegion="polite"
+    >
+      <View className="h-14 w-14 items-center justify-center rounded-full bg-red-50">
+        <Icon name="CloudOff" size={24} color={COLORS.danger} />
+      </View>
+      <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+        Communities are taking a moment
+      </Text>
+      <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+        We could not load nearby rooms. Check your connection and try again.
+      </Text>
+      <Button text="Try again" onClick={onRetry} className="mt-5 px-6" />
+    </View>
+  );
+}
+
 function RoomsSkeleton() {
   return (
     <View>
+      <View className="mb-4 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+        <Skeleton width="65%" height={28} />
+        <Skeleton width="92%" height={12} style={{ marginTop: 12 }} />
+        <Skeleton width="48%" height={12} style={{ marginTop: 8 }} />
+      </View>
       {Array.from({ length: 4 }).map((_, index) => (
         <View
           key={`room-skeleton-${index}`}
-          className="mb-3 rounded-3xl border border-ui-shade/10 bg-white p-4"
+          className="mb-4 rounded-[28px] border border-ui-border bg-ui-light p-4"
         >
-          <Skeleton width="60%" height={18} />
+          <Skeleton width="100%" height={130} radius={24} />
+          <Skeleton width="60%" height={18} style={{ marginTop: 14 }} />
           <Skeleton width="90%" height={12} style={{ marginTop: 12 }} />
           <Skeleton width="45%" height={12} style={{ marginTop: 18 }} />
         </View>

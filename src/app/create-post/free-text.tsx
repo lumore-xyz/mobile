@@ -1,11 +1,14 @@
 import VisibilityToggle from "@/src/components/VisibilityToggle";
+import Button from "@/src/components/ui/Button";
 import { TextAreaInput } from "@/src/components/ui/TextInput";
 import { createTextPost } from "@/src/libs/apis";
+import { COLORS } from "@/src/libs/constants/theme";
+import Icon from "@/src/libs/Icon";
 import { queryClient } from "@/src/service/query-client";
 import { getUser } from "@/src/service/storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import SubPageBack from "../../components/headers/SubPageBack";
 
 const CreateFreeTextPost = () => {
@@ -13,9 +16,10 @@ const CreateFreeTextPost = () => {
   const [visibility, setVisibility] = useState("public");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const trimmedText = text.trim();
 
   const handleSubmit = async () => {
-    if (!text.trim()) {
+    if (!trimmedText) {
       setError("Please write something before posting.");
       return;
     }
@@ -23,7 +27,7 @@ const CreateFreeTextPost = () => {
     setError("");
     try {
       await createTextPost({
-        text: text.trim(),
+        text: trimmedText,
         visibility,
       });
       const currentUser = getUser();
@@ -41,46 +45,69 @@ const CreateFreeTextPost = () => {
   };
 
   return (
-    <View className="flex-1 bg-ui-light p-4">
+    <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Free text" />
-      {/* <Text className="text-2xl font-semibold">Free text</Text> */}
-      <Text className="text-xs text-ui-shade mt-1">
-        Share a thought, quote, or story.
-      </Text>
-
-      <View className="mt-4">
-        <TextAreaInput
-          label="Your words"
-          value={text}
-          action={setText}
-          placeholder="Write your shayari or quote here..."
-        />
-      </View>
-
-      <View className="mt-4 border border-ui-shade/10 rounded-xl p-3 bg-white">
-        <Text className="text-xs text-ui-shade mb-2">Visibility</Text>
-        <VisibilityToggle
-          field="textPost"
-          currentVisibility={visibility}
-          onVisibilityChange={(_, vis) => setVisibility(vis)}
-        />
-      </View>
-
-      {error ? (
-        <Text className="text-red-500 text-sm mt-2">{error}</Text>
-      ) : null}
-
-      <Pressable
-        onPress={handleSubmit}
-        disabled={isSubmitting}
-        className={`mt-6 py-3 rounded-xl bg-cyan-700 ${
-          isSubmitting ? "opacity-70" : ""
-        }`}
+      <ScrollView
+        className="flex-1 px-4"
+        contentContainerClassName="pb-10 pt-3"
+        keyboardShouldPersistTaps="handled"
       >
-        <Text className="text-center text-white font-semibold">
-          {isSubmitting ? "Posting..." : "Post text"}
-        </Text>
-      </Pressable>
+        <View className="mb-5 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="text-2xl font-bold text-ui-light">
+                Say it your way
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                Share a thought, quote, story, or small truth that gives your
+                profile more texture.
+              </Text>
+            </View>
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary">
+              <Icon name="PencilLine" size={20} color={COLORS.shade} />
+            </View>
+          </View>
+        </View>
+
+        <View className="gap-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+          <TextAreaInput
+            label="Your words"
+            value={text}
+            action={setText}
+            placeholder="Write your thought, quote, or story here..."
+          />
+          <Text className="text-xs text-ui-muted">
+            {trimmedText.length
+              ? `${trimmedText.length} characters`
+              : "A few honest lines can be enough."}
+          </Text>
+
+          <View className="rounded-[24px] border border-ui-border bg-ui-shade/5 p-4">
+            <Text className="mb-3 text-sm font-bold text-ui-shade">
+              Visibility
+            </Text>
+            <VisibilityToggle
+              field="textPost"
+              currentVisibility={visibility}
+              onVisibilityChange={(_, vis) => setVisibility(vis)}
+              className="w-full"
+            />
+          </View>
+
+          {error ? (
+            <View className="rounded-2xl bg-red-50 px-4 py-3">
+              <Text className="text-sm font-medium text-ui-danger">{error}</Text>
+            </View>
+          ) : null}
+
+          <Button
+            text={isSubmitting ? "Posting..." : "Post text"}
+            disabled={isSubmitting || !trimmedText}
+            onClick={handleSubmit}
+            className="rounded-full"
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 };

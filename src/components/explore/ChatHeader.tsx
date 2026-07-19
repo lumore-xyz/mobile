@@ -11,6 +11,7 @@ import {
   chatReportSchema,
 } from "@/src/domain/chat/validation";
 import { reportChatUser, submitChatFeedback } from "@/src/libs/apis";
+import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
 import { useChat } from "@/src/service/context/ChatContext";
 import { calculateAge } from "@/src/utils";
@@ -169,17 +170,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   };
 
   return (
-    <View
-      style={{
-        borderBottomWidth: 1,
-        borderBottomColor: "rgba(100, 100, 100, 0.2)", // a gray with 60% opacity
-      }}
-      className="flex p-3 flex-row w-full items-center justify-between"
-    >
-      <View className="flex flex-row items-center gap-2">
+    <View className="w-full flex-row items-center justify-between border-b border-ui-border bg-ui-light px-2 py-2.5">
+      <View className="min-w-0 flex-1 flex-row items-center gap-2">
         <Pressable
           onPress={navigateBack}
-          className="flex h-11 w-11 items-center justify-center rounded-full"
+          className="h-11 w-11 items-center justify-center rounded-full active:bg-ui-highlight/5"
           hitSlop={4}
           accessibilityRole="button"
           accessibilityLabel="Back to inbox"
@@ -191,7 +186,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           />
         </Pressable>
         <View style={{ position: "relative" }}>
-          <View className="bg-ui-background border border-ui-shade/10 h-12 w-12 aspect-square rounded-full flex items-center justify-center overflow-hidden">
+          <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-ui-background">
             {user?.profilePicture ? (
               <Image
                 source={{
@@ -204,7 +199,8 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                   height: "100%",
                   borderRadius: 9999,
                 }}
-                alt={user?.realName || user?.nickname || user?.username}
+                accessible
+                accessibilityLabel={`Profile photo of ${user?.realName || user?.nickname || user?.username}`}
               />
             ) : (
               <Text className="text-3xl text-ui-shade">
@@ -219,7 +215,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
 
           <View
             style={{ position: "absolute", bottom: 0, right: 0 }}
-            className="bg-ui-light h-4 w-4 rounded-full aspect-square flex flex-row items-center justify-center"
+            className="h-4 w-4 items-center justify-center rounded-full bg-ui-light"
           >
             <Icon
               name={
@@ -227,21 +223,21 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                   ? "LockOpen"
                   : "Lock"
               }
-              color="#999"
+              color={COLORS.muted}
               size={10}
             />
           </View>
         </View>
-        <View>
+        <View className="min-w-0 flex-1">
           <View className="flex-row items-center gap-2">
             <Pressable
               onPress={navigateToProfile}
-              className="justify-center"
+              className="min-w-0 flex-1 justify-center"
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="View profile"
             >
-              <Text className="text-lg font-medium">
+              <Text className="text-lg font-bold text-ui-shade" numberOfLines={1}>
                 {user?.realName || user?.nickname || user?.username}
               </Text>
             </Pressable>
@@ -253,46 +249,46 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
               </View>
             ) : null}
           </View>
-          <View className="flex flex-row items-center justify-start gap-2 mt-1 text-sm">
+          <View className="mt-1 flex-row flex-wrap items-center gap-2">
             {user?.dob ? (
               <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
                 <Icon name="CakeSlice" size={12} className="flex-shrink-0" />
-                <Text>{calculateAge(user?.dob)}</Text>
+                <Text className="text-xs font-medium text-ui-muted">{calculateAge(user?.dob)}</Text>
               </View>
             ) : null}
 
             {user?.gender ? (
               <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
                 <Icon name="UserRound" size={12} />
-                <Text>{user?.gender}</Text>
+                <Text className="text-xs font-medium capitalize text-ui-muted">{user?.gender}</Text>
               </View>
             ) : null}
 
             <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
               <Icon name="Footprints" size={12} className="flex-shrink-0" />
-              <Text>{Number(user?.distance || 0).toFixed(2)}km</Text>
+              <Text className="text-xs font-medium text-ui-muted">{Number(user?.distance || 0).toFixed(1)} km</Text>
             </View>
           </View>
         </View>
       </View>
-      <View className="flex flex-row items-center gap-4">
+      <View className="ml-1 flex-row items-center gap-1">
         <Pressable
           onPress={isUnlocked ? handleLockProfile : handleUnlockProfile}
-          className="h-11 w-11 items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200"
+          className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/5 active:opacity-70"
           hitSlop={4}
           accessibilityRole="button"
           accessibilityLabel={isUnlocked ? "Lock profile" : "Unlock profile"}
         >
           {isUnlocked ? (
-            <Icon name="LockOpen" size={24} />
+            <Icon name="LockOpen" size={20} color={COLORS.highlight} />
           ) : (
-            <Icon name="Lock" size={24} />
+            <Icon name="Lock" size={20} color={COLORS.highlight} />
           )}
         </Pressable>
         {isActive ? (
           <Pressable
             onPress={openSheet}
-            className="h-11 w-11 items-center justify-center rounded-full"
+            className="h-11 w-11 items-center justify-center rounded-full active:bg-ui-highlight/5"
             hitSlop={4}
             accessibilityRole="button"
             accessibilityLabel="Open chat options"

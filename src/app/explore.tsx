@@ -1,4 +1,5 @@
 import MobileNav from "@/src/components/MobileNav";
+import { COLORS } from "@/src/libs/constants/theme";
 import ExploreScreen from "@/src/screens/Explore";
 import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "@/src/service/query-keys";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,7 +22,7 @@ const Explore = () => {
   }, [queryClient]);
 
   return (
-    <View className="flex-1 bg-ui-light">
+    <View className="flex-1 bg-ui-surface-page">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}
@@ -31,8 +32,8 @@ const Explore = () => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor="#541388"
-            colors={["#541388"]}
+            tintColor={COLORS.highlight}
+            colors={[COLORS.highlight]}
           />
         }
       >

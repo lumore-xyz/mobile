@@ -1,16 +1,19 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { RefreshControl, ScrollView, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
+import { COLORS } from "../libs/constants/theme";
+import Icon from "../libs/Icon";
 import {
   claimDailyCredits,
   fetchCreditsBalance,
   fetchCreditsHistory,
 } from "../libs/apis";
 import { queryClient } from "../service/query-client";
+import { triggerSelectionHaptic } from "../utils/haptics";
 import { CreditHistoryItem } from "../utils/types";
 
 interface CreditsScreenProps {
@@ -59,110 +62,182 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({
   const pagination = historyRes?.pagination;
 
   return (
-    <View className="flex-1 bg-ui-light">
+    <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Credits" />
       <ScrollView
-        className="p-4"
-        contentContainerClassName="pb-10"
+        className="px-4"
+        contentContainerClassName="pb-10 pt-4"
         refreshControl={
           onRefresh ? (
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor="#541388"
-              colors={["#541388"]}
+              tintColor={COLORS.highlight}
+              colors={[COLORS.highlight]}
             />
           ) : undefined
         }
       >
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4">
-          <Text className="text-sm text-ui-shade/70">Available credits</Text>
-          <View className="flex-row items-center justify-between mt-2">
-            {isBalanceLoading ? (
-              <Skeleton width={108} height={36} />
-            ) : (
-              <Text className="text-3xl font-bold text-ui-shade">
-                {balance}
+        <View className="overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+          <View className="flex-row items-start justify-between gap-4">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold text-ui-light/60">
+                Available credits
               </Text>
-            )}
+              {isBalanceLoading ? (
+                <View className="mt-3">
+                  <Skeleton width={108} height={42} />
+                </View>
+              ) : (
+                <Text
+                  className="mt-2 text-[44px] font-black leading-[50px] text-ui-light"
+                  accessibilityRole="header"
+                >
+                  {balance}
+                </Text>
+              )}
+              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+                Use credits for premium match moments, unlocks, and Lumore
+                features.
+              </Text>
+            </View>
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-primary">
+              <Icon name="WalletCards" size={24} color={COLORS.shade} />
+            </View>
           </View>
-          <View className="mt-4 gap-2">
-            <Button
+
+          <View className="mt-5 rounded-[24px] bg-ui-light/10 p-3">
+            <View className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-primary/20">
+                <Icon name="Sparkles" size={18} color={COLORS.primary} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-semibold text-ui-light">
+                  Daily reward
+                </Text>
+                <Text className="mt-0.5 text-sm text-ui-light/65">
+                  {rewardGrantedToday
+                    ? "You already claimed today's reward."
+                    : `Claim +${dailyRewardAmount} credit${dailyRewardAmount === 1 ? "" : "s"} today.`}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View className="mt-4 gap-3">
+            <Pressable
               disabled={
                 isBalanceLoading ||
                 rewardGrantedToday ||
                 claimMutation.isPending
               }
-              text={
-                isBalanceLoading
+              onPress={() => {
+                triggerSelectionHaptic();
+                claimMutation.mutate();
+              }}
+              className={`min-h-12 flex-row items-center justify-center gap-2 rounded-full bg-ui-primary px-4 ${
+                isBalanceLoading || rewardGrantedToday || claimMutation.isPending
+                  ? "opacity-60"
+                  : "active:opacity-80"
+              }`}
+              accessibilityRole="button"
+              accessibilityLabel="Claim daily credits"
+              accessibilityState={{
+                disabled:
+                  isBalanceLoading ||
+                  rewardGrantedToday ||
+                  claimMutation.isPending,
+              }}
+            >
+              <Icon name="BadgePlus" size={18} color={COLORS.shade} />
+              <Text className="font-bold text-ui-shade">
+                {isBalanceLoading
                   ? "Checking daily reward..."
                   : rewardGrantedToday
-                    ? "Daily reward already claimed"
-                    : `Claim daily +${dailyRewardAmount}`
-              }
-              onClick={() => claimMutation.mutate()}
-            />
-            <Button
-              variant="outline"
-              text="Earn credits"
-              onClick={() => router.push("/(subpage)/earn-credits")}
-            />
+                    ? "Daily reward claimed"
+                    : claimMutation.isPending
+                      ? "Claiming..."
+                      : `Claim daily +${dailyRewardAmount}`}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                triggerSelectionHaptic();
+                router.push("/(subpage)/earn-credits");
+              }}
+              className="min-h-12 flex-row items-center justify-center gap-2 rounded-full border border-ui-light/25 px-4 active:bg-ui-light/10"
+              accessibilityRole="button"
+              accessibilityLabel="Earn more credits"
+            >
+              <Icon name="Gift" size={18} color={COLORS.light} />
+              <Text className="font-semibold text-ui-light">Earn credits</Text>
+            </Pressable>
           </View>
         </View>
 
-        <View className="rounded-2xl border border-ui-shade/10 bg-white p-4 mt-4">
-          <Text className="text-lg font-semibold">Credit history</Text>
+        <View className="mt-5 flex-row gap-3">
+          <MiniStat
+            icon="CalendarCheck"
+            label="Daily"
+            value={
+              rewardGrantedToday ? "Claimed" : `+${dailyRewardAmount} ready`
+            }
+          />
+          <MiniStat icon="History" label="Ledger" value={`${items.length} shown`} />
+        </View>
+
+        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+          <View className="mb-1 flex-row items-start gap-3">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+              <Icon name="ReceiptText" size={18} color={COLORS.highlight} />
+            </View>
+            <View className="flex-1">
+              <Text className="text-xl font-bold text-ui-shade">
+                Credit history
+              </Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                Track every credit you earn or spend.
+              </Text>
+            </View>
+          </View>
+
           <View className="mt-3">
             {isHistoryLoading || isBalanceLoading ? (
               <CreditHistoryListSkeleton />
             ) : null}
             {!isHistoryLoading && !isBalanceLoading && items.length === 0 ? (
-              <Text className="text-sm text-ui-shade/70">
-                No credit activity yet.
-              </Text>
+              <View className="rounded-[24px] bg-ui-light p-5">
+                <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/10">
+                  <Icon name="WalletCards" size={20} color={COLORS.highlight} />
+                </View>
+                <Text className="text-base font-bold text-ui-shade">
+                  No credit activity yet
+                </Text>
+                <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                  Claim your daily reward or earn credits to start your ledger.
+                </Text>
+              </View>
             ) : null}
 
             {!isHistoryLoading && !isBalanceLoading
-              ? items.map((item) => (
-                  <View
-                    key={item._id}
-                    className="mt-3 flex-row items-center justify-between border border-ui-shade/10 rounded-lg p-3"
-                  >
-                    <View>
-                      <Text className="font-medium text-ui-shade">
-                        {TYPE_LABELS[item.type] || item.type}
-                      </Text>
-                      <Text className="text-xs text-ui-shade/60 mt-1">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </Text>
-                    </View>
-                    <View className="items-end">
-                      <Text
-                        className={
-                          item.amount >= 0 ? "text-green-600" : "text-red-600"
-                        }
-                      >
-                        {item.amount >= 0 ? `+${item.amount}` : item.amount}
-                      </Text>
-                      <Text className="text-xs text-ui-shade/60 mt-1">
-                        Balance: {item.balanceAfter}
-                      </Text>
-                    </View>
-                  </View>
-                ))
+              ? items.map((item) => <CreditHistoryCard key={item._id} item={item} />)
               : null}
           </View>
 
-          <View className="mt-4 flex-row items-center justify-between">
+          <View className="mt-4 flex-row items-center justify-between gap-3">
             <Button
               variant="outline"
               text="Previous"
-              disabled={!pagination || page <= 1}
+              disabled={
+                !pagination || page <= 1
+              }
               onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
             />
-            <Text className="text-sm text-ui-shade/70">
-              Page {pagination?.page || 1}
-            </Text>
+            <View className="min-h-11 items-center justify-center rounded-full bg-ui-light px-4">
+              <Text className="text-sm font-semibold text-ui-muted">
+                Page {pagination?.page || 1}
+              </Text>
+            </View>
             <Button
               variant="outline"
               text="Next"
@@ -176,12 +251,71 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({
   );
 };
 
+const MiniStat = ({
+  icon,
+  label,
+  value,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+}) => (
+  <View className="flex-1 rounded-[24px] border border-ui-border bg-ui-light p-4">
+    <View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+      <Icon name={icon} size={18} color={COLORS.highlight} />
+    </View>
+    <Text className="text-sm font-semibold text-ui-muted">{label}</Text>
+    <Text className="mt-1 text-base font-bold text-ui-shade">{value}</Text>
+  </View>
+);
+
+const CreditHistoryCard = ({ item }: { item: CreditHistoryItem }) => {
+  const isCredit = item.amount >= 0;
+  return (
+    <View className="mt-3 flex-row items-center justify-between gap-3 rounded-[22px] bg-ui-light p-4">
+      <View className="flex-1 flex-row items-center gap-3">
+        <View
+          className={`h-11 w-11 items-center justify-center rounded-full ${
+            isCredit ? "bg-ui-highlight/10" : "bg-red-100"
+          }`}
+        >
+          <Icon
+            name={isCredit ? "ArrowDownToLine" : "ArrowUpFromLine"}
+            size={18}
+            color={isCredit ? COLORS.highlight : COLORS.danger}
+          />
+        </View>
+        <View className="flex-1">
+          <Text className="font-semibold text-ui-shade">
+            {TYPE_LABELS[item.type] || item.type}
+          </Text>
+          <Text className="mt-1 text-xs leading-4 text-ui-muted">
+            {new Date(item.createdAt).toLocaleString()}
+          </Text>
+        </View>
+      </View>
+      <View className="items-end">
+        <Text
+          className={`text-base font-bold ${
+            isCredit ? "text-ui-highlight" : "text-red-600"
+          }`}
+        >
+          {isCredit ? `+${item.amount}` : item.amount}
+        </Text>
+        <Text className="mt-1 text-xs text-ui-muted">
+          Balance {item.balanceAfter}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
 const CreditHistoryListSkeleton = () => (
   <View className="gap-3">
     {Array.from({ length: 4 }).map((_, index) => (
       <View
         key={`credit-history-skeleton-${index}`}
-        className="flex-row items-center justify-between border border-ui-shade/10 rounded-lg p-3"
+        className="flex-row items-center justify-between rounded-[22px] bg-ui-light p-4"
       >
         <View className="flex-1 pr-4">
           <Skeleton width="58%" height={13} />

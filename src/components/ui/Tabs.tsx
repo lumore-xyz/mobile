@@ -1,7 +1,7 @@
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import clsxLib from "clsx";
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 export interface TabItem {
   key: string;
@@ -55,15 +55,16 @@ const Tabs = React.memo(function Tabs({
   const isTabActive = (tabKey: string) => tabKey === activeTab;
 
   // Default styles
-  const defaultContainerClass = "mb-3 flex-row rounded-xl bg-ui-shade/5 p-2";
-  const defaultTabClass = "min-h-11 flex-1 justify-center rounded-lg py-2";
-  const defaultLabelClass = "text-center font-medium";
-  const defaultActiveLabelClass = "text-ui-dark";
-  const defaultInactiveLabelClass = "text-ui-shade";
+  const defaultContainerClass =
+    "mb-4 flex-row rounded-full border border-ui-border bg-ui-light p-1.5";
+  const defaultTabClass = "min-h-11 flex-1 justify-center rounded-full px-3 py-2 active:opacity-75";
+  const defaultLabelClass = "text-center text-sm font-semibold";
+  const defaultActiveLabelClass = "text-ui-light";
+  const defaultInactiveLabelClass = "text-ui-muted";
   const defaultBadgeClass = "min-w-5 rounded-full px-1.5 py-0.5";
-  const defaultActiveBadgeClass = "bg-ui-highlight/10";
+  const defaultActiveBadgeClass = "bg-ui-primary";
   const defaultInactiveBadgeClass = "bg-ui-shade/10";
-  const defaultActiveBadgeLabelClass = "text-ui-highlight";
+  const defaultActiveBadgeLabelClass = "text-ui-shade";
   const defaultInactiveBadgeLabelClass = "text-ui-shade";
 
   return (
@@ -72,23 +73,18 @@ const Tabs = React.memo(function Tabs({
         const active = isTabActive(tab.key);
 
         return (
-          <TouchableOpacity
+          <Pressable
             key={tab.key}
             onPress={() => handleTabPress(tab.key)}
-            disabled={active}
-            className={clsxLib(tabClassName || defaultTabClass)}
-            style={[
-              active && {
-                backgroundColor: "#fff",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                elevation: 2, // Android shadow
-              },
-            ]}
+            className={clsxLib(
+              tabClassName || defaultTabClass,
+              active
+                ? activeTabClassName || "bg-ui-highlight"
+                : inactiveTabClassName || "bg-transparent",
+            )}
             accessibilityRole="tab"
-            accessibilityState={{ selected: active, disabled: active }}
+            accessibilityLabel={tab.label}
+            accessibilityState={{ selected: active }}
           >
             <View className="flex-row items-center justify-center gap-2">
               <Text
@@ -124,7 +120,7 @@ const Tabs = React.memo(function Tabs({
                 </View>
               )}
             </View>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </View>

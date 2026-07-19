@@ -1,7 +1,7 @@
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
-import clsxLib from "clsx"; // optional but great for conditional classNames
-import React from "react";
-import { GestureResponderEvent, Text, TouchableOpacity } from "react-native";
+import clsxLib from 'clsx';
+import React from 'react';
+import { GestureResponderEvent, Pressable, Text } from 'react-native';
 
 type ButtonProps = {
   onClick?: (event?: GestureResponderEvent) => void;
@@ -12,6 +12,7 @@ type ButtonProps = {
   disabled?: boolean;
   children?: React.ReactNode;
   hapticFeedback?: boolean;
+  accessibilityLabel?: string;
 };
 
 const sizeStyles = {
@@ -29,10 +30,10 @@ const sizeTextStyles = {
 };
 
 const variantStyles = {
-  primary: "bg-ui-highlight border border-ui-shade/30",
-  danger: "bg-red-600 border border-ui-shade/30",
-  secondary: "bg-ui-light border border-ui-dark/10",
-  outline: "bg-transparent border border-ui-dark/50",
+  primary: "bg-ui-highlight",
+  danger: "bg-ui-danger",
+  secondary: "bg-ui-light border border-ui-border",
+  outline: "bg-transparent border border-ui-highlight/40",
 };
 
 const variantTextStyles = {
@@ -51,6 +52,7 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false,
   children,
   hapticFeedback = true,
+  accessibilityLabel,
 }) => {
   const handlePress = (event: GestureResponderEvent) => {
     if (hapticFeedback) {
@@ -60,9 +62,9 @@ const Button: React.FC<ButtonProps> = ({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       className={clsxLib(
-        "flex items-center justify-center rounded-lg",
+        "flex items-center justify-center rounded-full active:opacity-85",
         sizeStyles[size],
         variantStyles[variant],
         disabled && "opacity-60",
@@ -70,8 +72,8 @@ const Button: React.FC<ButtonProps> = ({
       )}
       onPress={handlePress}
       disabled={disabled}
-      activeOpacity={0.82}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? text}
       accessibilityState={{ disabled }}
     >
       {children ? (
@@ -87,7 +89,7 @@ const Button: React.FC<ButtonProps> = ({
           {text}
         </Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
