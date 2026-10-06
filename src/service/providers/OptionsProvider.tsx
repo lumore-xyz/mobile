@@ -11,19 +11,28 @@ import {
 
 const OPTIONS_POLL_INTERVAL = 60_000;
 
-type GenericRecord = Record<string, any>;
+type GenericRecord = Record<string, unknown>;
+
+const asRecord = (value: unknown): GenericRecord =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as GenericRecord)
+    : {};
 
 const pickFirst = <T,>(...values: T[]) =>
   values.find((value) => value !== undefined && value !== null);
 
-const extractPayload = (responseData: GenericRecord): DynamicOptionsPayload | null => {
+const extractPayload = (responseValue: unknown): DynamicOptionsPayload | null => {
+  const responseData = asRecord(responseValue);
+  const data = asRecord(responseData.data);
   const container = pickFirst(
-    responseData?.data?.options,
-    responseData?.options,
-    responseData?.data,
+    data.options,
+    responseData.options,
+    responseData.data,
   );
 
-  if (!container || typeof container !== "object") return null;
+  if (!container || typeof container !== "object" || Array.isArray(container)) {
+    return null;
+  }
 
   const payload: DynamicOptionsPayload = {};
   Object.entries(container).forEach(([key, value]) => {
@@ -34,14 +43,16 @@ const extractPayload = (responseData: GenericRecord): DynamicOptionsPayload | nu
   return payload;
 };
 
-const extractVersion = (responseData: GenericRecord): string | null => {
+const extractVersion = (responseValue: unknown): string | null => {
+  const responseData = asRecord(responseValue);
+  const data = asRecord(responseData.data);
   const version = pickFirst(
-    responseData?.data?.version,
-    responseData?.version,
-    responseData?.data?.optionsVersion,
-    responseData?.optionsVersion,
-    responseData?.data?.updatedAt,
-    responseData?.updatedAt,
+    data.version,
+    responseData.version,
+    data.optionsVersion,
+    responseData.optionsVersion,
+    data.updatedAt,
+    responseData.updatedAt,
   );
   return typeof version === "string" && version.trim() ? version : null;
 };

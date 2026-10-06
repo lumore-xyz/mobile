@@ -106,7 +106,7 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
       await applyMutation.mutateAsync(parsed.data);
       setCode("");
       removePendingReferralCode();
-    } catch (error: any) {
+    } catch (error: unknown) {
       setCodeError(
         toUserFacingError(
           error,
@@ -127,60 +127,60 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor={COLORS.highlight}
-              colors={[COLORS.highlight]}
+              tintColor={COLORS.forest}
+              colors={[COLORS.forest]}
             />
           ) : undefined
         }
       >
-        <View className="overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+        <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-ui-light/60">
+              <Text className="text-sm font-semibold text-ui-paper/60">
                 Invite rewards
               </Text>
               <Text
-                className="mt-1 text-[32px] font-black leading-9 text-ui-light"
+                className="mt-1 font-display text-[32px] leading-9 text-ui-paper"
                 accessibilityRole="header"
               >
                 Bring good people to Lumore
               </Text>
-              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-2 text-sm leading-5 text-ui-paper/70">
                 Share your code and earn credits when invited friends complete
                 verification.
               </Text>
             </View>
-            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-primary">
-              <Icon name="Gift" size={24} color={COLORS.shade} />
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-champagne">
+              <Icon name="Gift" size={24} color={COLORS.ink} />
             </View>
           </View>
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-ui-muted">
+              <Text className="text-sm font-semibold text-ui-slate">
                 Your referral code
               </Text>
-              <View className="mt-3 rounded-[24px] border border-ui-highlight/20 bg-ui-surface-page px-4 py-5">
+              <View className="mt-3 rounded-[24px] border border-ui-forest/20 bg-ui-surface-page px-4 py-5">
                 {isLoading ? (
                   <Skeleton width={180} height={30} />
                 ) : (
                   <Text
-                    className="text-[30px] font-black tracking-[3px] text-ui-shade"
+                    className="text-[30px] font-semibold tracking-[3px] text-ui-ink"
                     selectable
                   >
                     {summary?.referralCode || "-"}
                   </Text>
                 )}
               </View>
-              <Text className="mt-3 text-sm leading-5 text-ui-muted">
+              <Text className="mt-3 text-sm leading-5 text-ui-slate">
                 Earn +{summary?.referralRewardCredits ?? 10} credits when a
                 referred user completes profile verification.
               </Text>
             </View>
-            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary/80">
-              <Icon name="BadgePlus" size={20} color={COLORS.shade} />
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-champagne/80">
+              <Icon name="BadgePlus" size={20} color={COLORS.ink} />
             </View>
           </View>
 
@@ -207,16 +207,16 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
             />
           </View>
           {copied ? (
-            <View className="mt-3 flex-row items-center gap-2 rounded-full bg-ui-highlight/10 px-3 py-2">
-              <Icon name="Check" size={15} color={COLORS.highlight} />
-              <Text className="text-sm font-semibold text-ui-highlight">
+            <View className="mt-3 flex-row items-center gap-2 rounded-full bg-ui-forest/10 px-3 py-2">
+              <Icon name="Check" size={15} color={COLORS.forest} />
+              <Text className="text-sm font-semibold text-ui-forest">
                 Copied
               </Text>
             </View>
           ) : null}
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-4">
           <SectionHeader
             icon="Ticket"
             title="Apply referral code"
@@ -242,8 +242,8 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
               <InfoPanel icon="BadgeCheck" text={`Already applied: ${referredBy}`} />
             ) : null}
             {codeError ? (
-              <View className="mt-3 rounded-2xl bg-red-50 p-3">
-                <Text className="text-sm font-medium text-red-600">
+              <View className="mt-3 rounded-2xl bg-ui-danger/5 p-3">
+                <Text className="text-sm font-medium text-ui-danger">
                   {codeError}
                 </Text>
               </View>
@@ -258,7 +258,7 @@ const ReferralScreen: React.FC<ReferralScreenProps> = ({
           </View>
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <SectionHeader
             icon="ChartNoAxesColumn"
             title="Referral stats"
@@ -308,8 +308,8 @@ const CopyAction = ({
     disabled={disabled}
     className={`min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full px-4 ${
       primary
-        ? "bg-ui-highlight"
-        : "border border-ui-highlight/25 bg-ui-light"
+        ? "bg-ui-forest"
+        : "border border-ui-forest/25 bg-ui-paper"
     } ${disabled ? "opacity-60" : "active:opacity-80"}`}
     accessibilityRole="button"
     accessibilityLabel={label}
@@ -318,11 +318,11 @@ const CopyAction = ({
     <Icon
       name={icon}
       size={17}
-      color={primary ? COLORS.light : COLORS.highlight}
+      color={primary ? COLORS.paper : COLORS.forest}
     />
     <Text
       className={`font-semibold ${
-        primary ? "text-ui-light" : "text-ui-highlight"
+        primary ? "text-ui-paper" : "text-ui-forest"
       }`}
     >
       {label}
@@ -340,12 +340,12 @@ const SectionHeader = ({
   description: string;
 }) => (
   <View className="flex-row items-start gap-3">
-    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
-      <Icon name={icon} size={18} color={COLORS.highlight} />
+    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
+      <Icon name={icon} size={18} color={COLORS.forest} />
     </View>
     <View className="flex-1">
-      <Text className="text-xl font-bold text-ui-shade">{title}</Text>
-      <Text className="mt-1 text-sm leading-5 text-ui-muted">
+      <Text className="text-xl font-bold text-ui-ink">{title}</Text>
+      <Text className="mt-1 text-sm leading-5 text-ui-slate">
         {description}
       </Text>
     </View>
@@ -353,9 +353,9 @@ const SectionHeader = ({
 );
 
 const InfoPanel = ({ icon, text }: { icon: string; text: string }) => (
-  <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-ui-highlight/10 p-3">
-    <Icon name={icon} size={16} color={COLORS.highlight} />
-    <Text className="flex-1 text-sm font-medium leading-5 text-ui-shade">
+  <View className="mt-3 flex-row items-start gap-2 rounded-2xl bg-ui-forest/10 p-3">
+    <Icon name={icon} size={16} color={COLORS.forest} />
+    <Text className="flex-1 text-sm font-medium leading-5 text-ui-ink">
       {text}
     </Text>
   </View>
@@ -373,14 +373,14 @@ const StatCard = ({
   isLoading?: boolean;
 }) => (
   <View className="flex-1 items-center rounded-[22px] bg-ui-surface-page p-3">
-    <View className="mb-2 h-9 w-9 items-center justify-center rounded-full bg-ui-highlight/10">
-      <Icon name={icon} size={16} color={COLORS.highlight} />
+    <View className="mb-2 h-9 w-9 items-center justify-center rounded-full bg-ui-forest/10">
+      <Icon name={icon} size={16} color={COLORS.forest} />
     </View>
-    <Text className="text-xs font-semibold text-ui-muted">{label}</Text>
+    <Text className="text-xs font-semibold text-ui-slate">{label}</Text>
     {isLoading ? (
       <Skeleton width={36} height={24} style={{ marginTop: 6 }} />
     ) : (
-      <Text className="mt-1 text-xl font-black text-ui-shade">{value}</Text>
+      <Text className="mt-1 text-xl font-semibold text-ui-ink">{value}</Text>
     )}
   </View>
 );

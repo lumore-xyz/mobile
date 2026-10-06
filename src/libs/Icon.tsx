@@ -1,19 +1,24 @@
 import * as icons from "lucide-react-native/icons";
 import React from "react";
-import { Image, type ImageSourcePropType } from "react-native";
+import { Image } from "react-native";
+import CAKE_IMAGE from "@/assets/images/cake.png";
+import DISTANCE_IMAGE from "@/assets/images/distance.png";
+import GRADUATION_IMAGE from "@/assets/images/graduation.png";
+import MASK_IMAGE from "@/assets/images/mask.png";
+import RELATIONSHIP_IMAGE from "@/assets/images/relationship.png";
 
 // eslint-disable-next-line @typescript-eslint/array-type
 const ICON_NAMES = Object.keys(icons) as Array<keyof typeof icons>;
 const ICON_NAME_SET = new Set<string>(ICON_NAMES);
 
-export type LucideIconName = keyof typeof icons;
+type LucideIconName = keyof typeof icons;
 
-const iconImages: Record<string, ImageSourcePropType> = {
-  "graduation.png": require("@/assets/images/graduation.png"),
-  "relationship.png": require("@/assets/images/relationship.png"),
-  "mask.png": require("@/assets/images/mask.png"),
-  "distance.png": require("@/assets/images/distance.png"),
-  "cake.png": require("@/assets/images/cake.png"),
+const iconImages: Record<string, number> = {
+  "graduation.png": GRADUATION_IMAGE,
+  "relationship.png": RELATIONSHIP_IMAGE,
+  "mask.png": MASK_IMAGE,
+  "distance.png": DISTANCE_IMAGE,
+  "cake.png": CAKE_IMAGE,
 };
 
 const resolveIconName = (name: string): LucideIconName | null => {
@@ -22,7 +27,7 @@ const resolveIconName = (name: string): LucideIconName | null => {
   return null;
 };
 
-export interface IconProps {
+interface IconProps {
   name: string;
   type?: string;
   size?: number;
@@ -41,7 +46,11 @@ const Icon = ({
     const imageSource = iconImages[name];
     if (!imageSource) return null;
     return (
-      <Image source={imageSource} className={`h-8 w-8 ${className ?? ""}`} />
+      <Image
+        source={imageSource}
+        resizeMode="contain"
+        className={`h-8 w-8 ${className ?? ""}`}
+      />
     );
   }
 

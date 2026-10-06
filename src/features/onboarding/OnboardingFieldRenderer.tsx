@@ -27,7 +27,6 @@ const OnboardingFieldRenderer = ({
       ? field.defaultValue
       : (field.min ?? 10);
 
-  // console.log({ field, value });
   if (field.type === "date") {
     return (
       <DateInput

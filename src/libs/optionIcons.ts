@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react-native";
 import * as LucideIcons from "lucide-react-native";
 
-export const toLucideIconName = (componentName: string) =>
+const toLucideIconName = (componentName: string) =>
   componentName
     .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
@@ -47,9 +47,3 @@ for (const [canonicalName, exportedName] of Object.entries(
 
 export const getLucideOptionIcon = (name: string): LucideIcon | null =>
   lucideIconMap.get(name) || null;
-
-export const isKnownOptionIconName = (
-  library: string | null | undefined,
-  name: string | null | undefined,
-): boolean =>
-  library === "Lucide" && Boolean(name) && lucideIconMap.has(String(name));

@@ -6,12 +6,13 @@ Let users answer guided prompts to enrich their profile and spark conversation.
 
 ## Current Behavior
 
-Users can browse prompt categories, fetch prompts by selected categories, and create prompt-based posts.
+Users can browse prompt categories, fetch prompts by selected categories, and create prompt-based posts. Prompt loading failures offer a retry separately from the empty-category state.
 
 ## Key Files
 
 - Route: `src/app/create-post/prompts.tsx`
 - APIs: `fetchPromptCategories`, `fetchPromptsByCategories`, `createPromptPost`
+- Types: `src/domain/posts/types.ts`
 
 ## Data/API Dependencies
 

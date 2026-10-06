@@ -6,7 +6,7 @@ const MIN_SIGNIFICANT_MOVEMENT_METERS = 100;
 const normalizeAddress = (formattedAddress?: string | null) =>
   String(formattedAddress || "").trim();
 
-export const calculateDistanceMeters = (
+const calculateDistanceMeters = (
   latitude1: number,
   longitude1: number,
   latitude2: number,

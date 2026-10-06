@@ -22,31 +22,33 @@ import {
   unfollowLocationRoom,
   updateLocationRoom,
   type LocationRoomMember,
+  type LocationRoomSummary,
   type MatchRoomSummary,
 } from "@/src/libs/apis";
+import CommunityCoverImage from "@/src/components/community/CommunityCoverImage";
 import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
 import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
 import { calculateAge } from "@/src/utils";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
+import { toUserFacingError } from "@/src/utils/userFacingError";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
-  Image,
-  ImageBackground,
   Linking,
   ListRenderItem,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type RoomSection = "pool" | "chats";
 
@@ -76,9 +78,6 @@ const RoomSectionTabs = React.memo(function RoomSectionTabs({
   );
 });
 
-const ROOM_COVER_IMAGE_URL =
-  "https://cdn.pixabay.com/photo/2022/11/13/12/42/building-7589141_1280.jpg";
-
 const getCountdownSeconds = ({
   nextMatchAt,
   fallbackSeconds,
@@ -106,8 +105,8 @@ const formatCountdown = (seconds?: number) => {
   return `${remainingSeconds}s`;
 };
 
-const getRoomCoordinates = (room: any) => {
-  const coordinates = room?.location?.coordinates;
+const getRoomCoordinates = (location: LocationRoomSummary["location"]) => {
+  const coordinates = location?.coordinates;
   if (!Array.isArray(coordinates) || coordinates.length !== 2) return null;
   const longitude = Number(coordinates[0]);
   const latitude = Number(coordinates[1]);
@@ -173,7 +172,7 @@ function RoomCountdown({
   }, [fallbackSeconds, nextMatchAt]);
 
   return (
-    <Text className="font-semibold text-ui-highlight">
+    <Text className="font-semibold text-ui-forest">
       {formatCountdown(remainingSeconds)}
     </Text>
   );
@@ -191,17 +190,17 @@ function RoomStatPill({
   return (
     <View
       className={`flex-row items-center gap-1.5 rounded-full px-3 py-1.5 ${
-        isHighlighted ? "bg-ui-primary" : "bg-ui-light/15"
+        isHighlighted ? "bg-ui-champagne" : "bg-ui-paper/15"
       }`}
     >
       <Icon
         name={icon}
         size={14}
-        color={isHighlighted ? COLORS.shade : COLORS.light}
+        color={isHighlighted ? COLORS.ink : COLORS.paper}
       />
       <Text
         className={`text-xs font-bold ${
-          isHighlighted ? "text-ui-shade" : "text-ui-light"
+          isHighlighted ? "text-ui-ink" : "text-ui-paper"
         }`}
       >
         {label}
@@ -211,7 +210,6 @@ function RoomStatPill({
 }
 
 export default function RoomDetailScreen() {
-  const insets = useSafeAreaInsets();
   const { roomId } = useLocalSearchParams<{ roomId: string }>();
   const { socket, revalidateSocket } = useSocket();
   const queryClient = useQueryClient();
@@ -280,10 +278,10 @@ export default function RoomDetailScreen() {
         "Your community details have been updated.",
       );
     },
-    onError: (roomError: any) => {
+    onError: (roomError: unknown) => {
       Alert.alert(
         "Could not update community",
-        roomError?.response?.data?.message || "Please try again in a moment.",
+        toUserFacingError(roomError, "Please try again in a moment."),
       );
     },
   });
@@ -301,10 +299,10 @@ export default function RoomDetailScreen() {
         }),
       );
     },
-    onError: (startError: any) => {
+    onError: (startError: unknown) => {
       Alert.alert(
         "Could not start matching",
-        startError?.response?.data?.message || "Please try again in a moment.",
+        toUserFacingError(startError, "Please try again in a moment."),
       );
     },
   });
@@ -327,7 +325,7 @@ export default function RoomDetailScreen() {
   }, [invalidate, roomId, socket]);
 
   const roomAddress = String(room?.location?.formattedAddress || "").trim();
-  const roomCoordinates = getRoomCoordinates(room);
+  const roomCoordinates = getRoomCoordinates(room?.location);
   const mapQuery = roomCoordinates
     ? `${roomCoordinates.latitude},${roomCoordinates.longitude}`
     : roomAddress;
@@ -391,7 +389,7 @@ export default function RoomDetailScreen() {
 
   const handlePickCoverImage = useCallback(() => {
     pickImageAsync(
-      (asset: any) => {
+      (asset) => {
         setEditedCoverImageUri(asset.uri);
       },
       { aspect: [4, 3], quality: 0.85 },
@@ -405,7 +403,7 @@ export default function RoomDetailScreen() {
   const renderRoomChat = useCallback<ListRenderItem<MatchRoomSummary>>(
     ({ item: chat }) => {
       const matchedUser = (chat?.participants || []).find(
-        (participant: any) => !isSameId(participant?._id, currentUser?._id),
+        (participant) => !isSameId(participant?._id, currentUser?._id),
       );
       return <UserChat room={chat} matchedUser={matchedUser} />;
     },
@@ -418,12 +416,12 @@ export default function RoomDetailScreen() {
 
   if (!room) {
     return (
-      <View className="flex-1 items-center justify-center bg-ui-light px-6">
-        <Text className="text-center text-ui-shade">Community not found.</Text>
+      <View className="flex-1 items-center justify-center bg-ui-paper px-6">
+        <Text className="text-center text-ui-ink">Community not found.</Text>
         <Button
           text="Back to community"
           className="mt-4"
-          onClick={() => router.replace("/rooms" as any)}
+          onClick={() => router.replace("/community")}
         />
       </View>
     );
@@ -470,16 +468,20 @@ export default function RoomDetailScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-ui-surface-page px-4 pt-6"
-      contentContainerClassName="pb-10"
+      className="flex-1 bg-ui-surface-page px-4 pt-4"
+      contentContainerClassName="pb-6"
     >
-      <View className="overflow-hidden rounded-[32px] border border-ui-border bg-ui-light">
-        <ImageBackground
-          source={{ uri: room.imageUrl || ROOM_COVER_IMAGE_URL }}
-          resizeMode="cover"
-          style={{ minHeight: 360, justifyContent: "space-between" }}
+      <View className="overflow-hidden rounded-[24px] border border-ui-parchment bg-ui-paper">
+        <View
+          className="relative justify-between overflow-hidden"
+          style={{ minHeight: 320 }}
         >
-          <View className="absolute inset-0 bg-black/45" />
+          <CommunityCoverImage
+            uri={room.imageUrl}
+            className="absolute inset-0 h-full w-full"
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View className="absolute inset-0 bg-ui-ink/45" />
 
           <View className="flex-row items-center justify-between p-4">
             <Pressable
@@ -488,9 +490,9 @@ export default function RoomDetailScreen() {
               onPress={() => {
                 router.back();
               }}
-              className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/90 active:opacity-75"
+              className="h-11 w-11 items-center justify-center rounded-full bg-ui-paper/90 active:opacity-75"
             >
-              <Icon name="ArrowLeft" size={22} color={COLORS.shade} />
+              <Icon name="ArrowLeft" size={22} color={COLORS.ink} />
             </Pressable>
 
             <View className="flex-row items-center gap-2">
@@ -502,9 +504,9 @@ export default function RoomDetailScreen() {
                     triggerSelectionHaptic();
                     setIsCreatorSheetOpen(true);
                   }}
-                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/90 active:opacity-75"
+                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-paper/90 active:opacity-75"
                 >
-                  <Icon name="Settings" size={21} color={COLORS.shade} />
+                  <Icon name="Settings" size={21} color={COLORS.ink} />
                 </Pressable>
               ) : null}
               {canLeaveRoom ? (
@@ -512,7 +514,7 @@ export default function RoomDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Leave community"
                   onPress={handleConfirmLeaveRoom}
-                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/90 active:opacity-75"
+                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-paper/90 active:opacity-75"
                 >
                   <Icon name="LogOut" size={21} color={COLORS.danger} />
                 </Pressable>
@@ -520,9 +522,9 @@ export default function RoomDetailScreen() {
             </View>
           </View>
 
-          <View className="p-5">
+          <View className="p-4">
             <View className="mb-4 flex-row items-center gap-2">
-              <View className="rounded-full bg-ui-light/90 px-3 py-1">
+              <View className="rounded-full bg-ui-paper/90 px-3 py-1">
                 <RoomCountdown
                   nextMatchAt={room.nextMatchAt}
                   fallbackSeconds={room.secondsUntilNextMatch}
@@ -531,13 +533,13 @@ export default function RoomDetailScreen() {
             </View>
 
             <Text
-              className="text-4xl font-bold leading-10 text-ui-light"
+              className="text-4xl font-bold leading-10 text-ui-paper"
               accessibilityRole="header"
             >
               {room.title}
             </Text>
             {room.description ? (
-              <Text className="mt-2 text-base leading-6 text-ui-light/80">
+              <Text className="mt-2 text-base leading-6 text-ui-paper/80">
                 {room.description}
               </Text>
             ) : null}
@@ -554,20 +556,20 @@ export default function RoomDetailScreen() {
               />
             </View>
           </View>
-        </ImageBackground>
+        </View>
 
-        <View className="p-5">
-          <View className="rounded-[24px] bg-ui-shade/5 p-4">
+        <View className="p-4">
+          <View className="rounded-[24px] bg-ui-ink/5 p-3">
             <View className="flex-row items-start gap-3">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
-                <Icon name="MapPin" size={18} color={COLORS.highlight} />
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
+                <Icon name="MapPin" size={18} color={COLORS.forest} />
               </View>
               <View className="flex-1">
-                <Text className="font-bold text-ui-shade">
+                <Text className="font-bold text-ui-ink">
                   Community location
                 </Text>
                 <Text
-                  className="mt-1 text-sm leading-5 text-ui-muted"
+                  className="mt-1 text-sm leading-5 text-ui-slate"
                   numberOfLines={2}
                 >
                   {roomAddress || "Location details are not available yet."}
@@ -580,37 +582,37 @@ export default function RoomDetailScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Copy community address"
                 onPress={handleCopyAddress}
-                className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ui-light px-3 active:opacity-75"
+                className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ui-paper px-3 active:opacity-75"
               >
-                <Icon name="Copy" size={16} color={COLORS.shade} />
-                <Text className="font-semibold text-ui-shade">Copy</Text>
+                <Icon name="Copy" size={16} color={COLORS.ink} />
+                <Text className="font-semibold text-ui-ink">Copy</Text>
               </Pressable>
 
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Open community in map"
                 onPress={handleOpenMap}
-                className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-3 active:opacity-75"
+                className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-ui-forest px-3 active:opacity-75"
               >
-                <Icon name="Map" size={16} color={COLORS.light} />
-                <Text className="font-semibold text-ui-light">Open map</Text>
+                <Icon name="Map" size={16} color={COLORS.paper} />
+                <Text className="font-semibold text-ui-paper">Open map</Text>
               </Pressable>
             </View>
           </View>
 
-          <View className="mt-4 rounded-[24px] bg-ui-foreground p-4">
+          <View className="mt-3 rounded-[24px] bg-ui-midnight p-3">
             <View className="flex-row items-center justify-start gap-3">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-primary">
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-champagne">
                 <Icon
                   name={
                     inPool ? "Sparkles" : isFollowed ? "Pin" : "HeartHandshake"
                   }
                   size={18}
-                  color={COLORS.shade}
+                  color={COLORS.ink}
                 />
               </View>
               <View className="flex-1">
-                <Text className="font-bold text-ui-light">
+                <Text className="font-bold text-ui-paper">
                   {inPool
                     ? "You are in this matching pool."
                     : isFollowed
@@ -618,13 +620,13 @@ export default function RoomDetailScreen() {
                       : "Pin this community to join the next cycle."}
                 </Text>
                 {userState?.poolStatus === "matched" ? (
-                  <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                  <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
                     You matched in this community. Rejoin when you want another
                     cycle.
                   </Text>
                 ) : null}
                 {userState?.poolStatus === "insufficient_credits" ? (
-                  <Text className="mt-1 text-sm leading-5 text-ui-primary">
+                  <Text className="mt-1 text-sm leading-5 text-ui-paper/80">
                     Add credits, then rejoin this community.
                   </Text>
                 ) : null}
@@ -679,17 +681,14 @@ export default function RoomDetailScreen() {
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingBottom: Math.max(insets.bottom, 24),
-            }}
           >
             <View className="w-full px-4 pb-3">
-              <View className="flex-row items-center gap-4 rounded-[28px] bg-ui-foreground p-4">
+              <View className="flex-row items-center gap-4 rounded-[24px] bg-ui-midnight p-4">
                 <Pressable
                   onPress={
                     isEditingRoom ? handleCancelEditing : closeCreatorSheet
                   }
-                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/10 active:opacity-75"
+                  className="h-11 w-11 items-center justify-center rounded-full bg-ui-paper/10 active:opacity-75"
                   hitSlop={4}
                   accessibilityRole="button"
                   accessibilityLabel={
@@ -699,18 +698,18 @@ export default function RoomDetailScreen() {
                   <Icon
                     name={isEditingRoom ? "ArrowLeft" : "X"}
                     size={22}
-                    className="text-ui-light"
+                    className="text-ui-paper"
                   />
                 </Pressable>
 
                 <View className="flex-1">
-                  <Text className="text-xs font-semibold text-ui-light/60">
+                  <Text className="text-xs font-semibold text-ui-paper/60">
                     {isEditingRoom ? "Editing community" : "Creator controls"}
                   </Text>
-                  <Text className="mt-1 text-2xl font-bold leading-7 text-ui-light">
+                  <Text className="mt-1 text-2xl font-bold leading-7 text-ui-paper">
                     {isEditingRoom ? room.title : "Shape this community"}
                   </Text>
-                  <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                  <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
                     {isEditingRoom
                       ? "Keep it honest, specific, and easy to join."
                       : "Edit details or run the next cycle before the countdown ends."}
@@ -725,7 +724,7 @@ export default function RoomDetailScreen() {
                       }
                     }}
                     disabled={!canSaveRoomEdits || updateRoomMutation.isPending}
-                    className={`h-11 w-11 items-center justify-center rounded-full bg-ui-primary ${
+                    className={`h-11 w-11 items-center justify-center rounded-full bg-ui-champagne ${
                       !canSaveRoomEdits || updateRoomMutation.isPending
                         ? "opacity-40"
                         : "active:opacity-80"
@@ -738,11 +737,11 @@ export default function RoomDetailScreen() {
                         !canSaveRoomEdits || updateRoomMutation.isPending,
                     }}
                   >
-                    <Icon name="Check" size={22} className="text-ui-shade" />
+                    <Icon name="Check" size={22} className="text-ui-ink" />
                   </Pressable>
                 ) : (
-                  <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary">
-                    <Icon name="Sparkles" size={20} className="text-ui-shade" />
+                  <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-champagne">
+                    <Icon name="Sparkles" size={20} className="text-ui-ink" />
                   </View>
                 )}
               </View>
@@ -751,25 +750,25 @@ export default function RoomDetailScreen() {
             <View className="w-full px-4 pb-4">
               {isEditingRoom ? (
                 <View className="gap-3">
-                  <View className="rounded-[24px] border border-ui-border bg-ui-light p-4">
+                  <View className="rounded-[24px] border border-ui-parchment bg-ui-paper p-4">
                     <View className="flex-row items-center justify-between gap-3">
                       <View className="flex-1">
-                        <Text className="font-semibold text-ui-shade">
+                        <Text className="font-semibold text-ui-ink">
                           Cover image
                         </Text>
-                        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                        <Text className="mt-1 text-sm leading-5 text-ui-slate">
                           Upload a fresh image to update this community&apos;s
                           cover.
                         </Text>
                       </View>
                       <Pressable
                         onPress={handlePickCoverImage}
-                        className="rounded-full border border-ui-border bg-ui-light px-4 py-2 active:opacity-75"
+                        className="rounded-full border border-ui-parchment bg-ui-paper px-4 py-2 active:opacity-75"
                         hitSlop={4}
                         accessibilityRole="button"
                         accessibilityLabel="Change community cover image"
                       >
-                        <Text className="font-semibold text-ui-shade">
+                        <Text className="font-semibold text-ui-ink">
                           {editedCoverImageUri || room.imageUrl
                             ? "Change"
                             : "Upload"}
@@ -784,17 +783,14 @@ export default function RoomDetailScreen() {
                       accessibilityLabel="Upload community cover image"
                     >
                       {editedCoverImageUri || room.imageUrl ? (
-                        <Image
-                          source={{
-                            uri: editedCoverImageUri || room.imageUrl,
-                          }}
-                          className="h-44 w-full overflow-hidden rounded-2xl bg-ui-background"
-                          style={{ resizeMode: "cover" }}
+                        <CommunityCoverImage
+                          uri={editedCoverImageUri || room.imageUrl}
+                          className="h-44 w-full overflow-hidden rounded-2xl bg-ui-porcelain"
                         />
                       ) : (
-                        <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-border bg-ui-light px-4">
-                          <Icon name="Image" size={28} color={COLORS.muted} />
-                          <Text className="mt-2 text-center text-sm text-ui-muted">
+                        <View className="h-40 items-center justify-center rounded-2xl border border-dashed border-ui-parchment bg-ui-paper px-4">
+                          <Icon name="Image" size={28} color={COLORS.slate} />
+                          <Text className="mt-2 text-center text-sm text-ui-slate">
                             Tap to upload a community cover image
                           </Text>
                         </View>
@@ -849,32 +845,32 @@ export default function RoomDetailScreen() {
                 <View className="gap-3">
                   <Pressable
                     onPress={handleStartEditing}
-                    className="rounded-[24px] border border-ui-border bg-ui-light p-4 active:opacity-85"
+                    className="rounded-[24px] border border-ui-parchment bg-ui-paper p-4 active:opacity-85"
                     accessibilityRole="button"
                     accessibilityLabel="Edit community details"
                   >
                     <View className="flex-row items-center gap-3">
-                      <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-highlight/10">
+                      <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-forest/10">
                         <Icon
                           name="Pencil"
                           size={20}
-                          color={COLORS.highlight}
+                          color={COLORS.forest}
                         />
                       </View>
                       <View className="flex-1">
-                        <Text className="text-base font-bold text-ui-shade">
+                        <Text className="text-base font-bold text-ui-ink">
                           Edit community details
                         </Text>
-                        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                        <Text className="mt-1 text-sm leading-5 text-ui-slate">
                           Update the community name, description, and cover
                           image.
                         </Text>
                       </View>
-                      <View className="h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ui-shade/5">
+                      <View className="h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ui-ink/5">
                         <Icon
                           name="ChevronRight"
                           size={18}
-                          color={COLORS.shade}
+                          color={COLORS.ink}
                         />
                       </View>
                     </View>
@@ -887,33 +883,33 @@ export default function RoomDetailScreen() {
                     accessibilityState={{
                       disabled: startMatchMutation.isPending,
                     }}
-                    className={`rounded-[24px] border border-ui-highlight/20 bg-ui-highlight/10 p-4 active:opacity-85 ${
+                    className={`rounded-[24px] border border-ui-forest/20 bg-ui-forest/10 p-4 active:opacity-85 ${
                       startMatchMutation.isPending ? "opacity-70" : ""
                     }`}
                   >
                     <View className="flex-row items-center gap-3">
-                      <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary">
-                        <Icon name="Zap" size={20} color={COLORS.highlight} />
+                      <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-champagne">
+                        <Icon name="Zap" size={20} color={COLORS.forest} />
                       </View>
                       <View className="flex-1">
-                        <Text className="text-base font-bold text-ui-shade">
+                        <Text className="text-base font-bold text-ui-ink">
                           {startMatchMutation.isPending
                             ? "Starting cycle..."
                             : "Start match now"}
                         </Text>
-                        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                        <Text className="mt-1 text-sm leading-5 text-ui-slate">
                           Run this community&apos;s next cycle before the
                           countdown ends.
                         </Text>
                       </View>
-                      <View className="h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ui-highlight">
-                        <Icon name="Zap" size={16} color={COLORS.light} />
+                      <View className="h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ui-forest">
+                        <Icon name="Zap" size={16} color={COLORS.paper} />
                       </View>
                     </View>
                   </Pressable>
 
-                  <View className="mt-1 rounded-[24px] bg-ui-shade/5 p-4">
-                    <Text className="text-xs font-semibold uppercase tracking-wide text-ui-muted">
+                  <View className="mt-1 rounded-[24px] bg-ui-ink/5 p-4">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-ui-slate">
                       What creators can do
                     </Text>
                     <View className="mt-2 gap-2">
@@ -921,9 +917,9 @@ export default function RoomDetailScreen() {
                         <Icon
                           name="BadgeCheck"
                           size={14}
-                          color={COLORS.highlight}
+                          color={COLORS.forest}
                         />
-                        <Text className="text-sm text-ui-shade">
+                        <Text className="text-sm text-ui-ink">
                           Edit name, description, and cover image
                         </Text>
                       </View>
@@ -931,9 +927,9 @@ export default function RoomDetailScreen() {
                         <Icon
                           name="Sparkles"
                           size={14}
-                          color={COLORS.highlight}
+                          color={COLORS.forest}
                         />
-                        <Text className="text-sm text-ui-shade">
+                        <Text className="text-sm text-ui-ink">
                           Run the next match cycle on demand
                         </Text>
                       </View>
@@ -948,10 +944,10 @@ export default function RoomDetailScreen() {
 
       <View className="mb-6 mt-6">
         <View className="mb-3">
-          <Text className="text-xl font-bold text-ui-shade">
+          <Text className="text-xl font-bold text-ui-ink">
             Inside this community
           </Text>
-          <Text className="mt-1 text-sm text-ui-muted">
+          <Text className="mt-1 text-sm text-ui-slate">
             See who is waiting and the chats created from this room.
           </Text>
         </View>
@@ -1011,14 +1007,14 @@ function CommunityEmptyPanel({
   copy: string;
 }) {
   return (
-    <View className="items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8">
-      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
-        <Icon name={icon} size={24} color={COLORS.highlight} />
+    <View className="items-center rounded-[24px] border border-ui-parchment bg-ui-paper px-6 py-8">
+      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-forest/10">
+        <Icon name={icon} size={24} color={COLORS.forest} />
       </View>
-      <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+      <Text className="mt-4 text-center text-xl font-bold text-ui-ink">
         {title}
       </Text>
-      <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+      <Text className="mt-2 text-center text-sm leading-5 text-ui-slate">
         {copy}
       </Text>
     </View>
@@ -1027,6 +1023,8 @@ function CommunityEmptyPanel({
 
 function MemberCard({ member }: { member: LocationRoomMember }) {
   const displayName = member.nickname || member.username || "Lumore User";
+  const [failedPhoto, setFailedPhoto] = useState(false);
+  useEffect(() => setFailedPhoto(false), [member.profilePicture]);
   const detailText = [
     member.dob ? `${calculateAge(member.dob)} yrs` : null,
     member.gender,
@@ -1035,29 +1033,32 @@ function MemberCard({ member }: { member: LocationRoomMember }) {
     .join(" / ");
 
   return (
-    <View className="mb-3 flex-row items-center rounded-[24px] border border-ui-border bg-ui-light p-3">
-      <View className="mr-3 h-12 w-12 overflow-hidden rounded-full bg-ui-highlight/10">
-        {member.profilePicture ? (
+    <View className="mb-3 flex-row items-center rounded-[24px] border border-ui-parchment bg-ui-paper p-3">
+      <View className="mr-3 h-12 w-12 overflow-hidden rounded-full bg-ui-forest/10">
+        {member.profilePicture && !failedPhoto ? (
           <Image
             source={{ uri: member.profilePicture }}
-            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+            className="h-full w-full"
+            style={StyleSheet.absoluteFillObject}
+            onError={() => setFailedPhoto(true)}
           />
         ) : (
           <View className="h-full w-full items-center justify-center">
-            <Text className="text-xl font-bold text-ui-highlight">
+            <Text className="text-xl font-bold text-ui-forest">
               {displayName.charAt(0)}
             </Text>
           </View>
         )}
       </View>
       <View className="flex-1">
-        <Text className="font-bold text-ui-shade">{displayName}</Text>
-        <Text className="text-sm text-ui-muted">
+        <Text className="font-bold text-ui-ink">{displayName}</Text>
+        <Text className="text-sm text-ui-slate">
           {detailText || "Waiting in the pool"}
         </Text>
       </View>
-      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-primary/30">
-        <Icon name="Sparkles" size={16} color={COLORS.shade} />
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-champagne/30">
+        <Icon name="Sparkles" size={16} color={COLORS.ink} />
       </View>
     </View>
   );
@@ -1066,12 +1067,12 @@ function MemberCard({ member }: { member: LocationRoomMember }) {
 function RoomDetailSkeleton() {
   return (
     <View className="flex-1 bg-ui-surface-page px-4 pt-6">
-      <View className="overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+      <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
         <Skeleton width={44} height={44} radius={9999} />
         <Skeleton width="72%" height={34} style={{ marginTop: 220 }} />
         <Skeleton width="90%" height={12} style={{ marginTop: 14 }} />
       </View>
-      <View className="mt-4 rounded-[28px] border border-ui-border bg-ui-light p-5">
+      <View className="mt-4 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
         <Skeleton width="70%" height={18} />
         <Skeleton width="90%" height={12} style={{ marginTop: 12 }} />
         <Skeleton width="100%" height={44} style={{ marginTop: 18 }} />

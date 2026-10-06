@@ -10,14 +10,18 @@ import {
 import Skeleton from "@/src/components/ui/Skeleton";
 import { TextAreaInput } from "@/src/components/ui/TextInput";
 import { useUser } from "@/src/hooks/useUser";
+import type { ProfilePost } from "@/src/domain/profile/types";
+import { fetchProfileCompatibility } from "@/src/features/explore/api";
 import {
   deletePost,
   fetchUserThisOrThatAnswers,
-  startDiditVerification,
+  startHaloKycVerification,
   updatePost,
 } from "@/src/libs/apis";
 import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
+import OptionIcon from "@/src/libs/OptionIcon";
+import { interestOptions } from "@/src/libs/options";
 import { extractFullAddressParts } from "@/src/service/providers/LocationProvider";
 import { queryClient } from "@/src/service/query-client";
 import { getUser } from "@/src/service/storage";
@@ -29,12 +33,14 @@ import {
 import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
 import { ThisOrThatAnswer } from "@/src/utils/types";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
-  Image,
+  Image as NativeImage,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -65,15 +71,21 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const targetUserId = profileUserId || currentUserId;
   const isOwner = targetUserId === currentUserId;
 
-  const { user, isLoading: isUserLoading } = useUser(targetUserId) as any;
+  const { user, isLoading: isUserLoading } = useUser(targetUserId);
   const { posts, isLoading: isPostsLoading } = useUserPosts(targetUserId);
   const { userPrefrence, isLoading: isPreferenceLoading } =
     useUserPrefrence(targetUserId);
+  const sharedInterests = Array.isArray(user?.interests)
+    ? user.interests.filter(
+        (interest: unknown): interest is string =>
+          typeof interest === "string" && interest.trim().length > 0,
+      )
+    : [];
   const shouldBlurProfilePicture =
     !isOwner && !user?.isViewerUnlockedByUser && Boolean(user?.profilePicture);
   const scrollRef = useRef<ScrollView>(null);
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [selectedPost, setSelectedPost] = useState<ProfilePost | null>(null);
   const [actionError, setActionError] = useState("");
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [editText, setEditText] = useState("");
@@ -87,6 +99,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     queryFn: () =>
       fetchUserThisOrThatAnswers({ userId: targetUserId, page: 1, limit: 10 }),
     enabled: !!targetUserId,
+  });
+
+  const { data: compatibility, isLoading: isCompatibilityLoading } = useQuery({
+    queryKey: ["profile-compatibility", currentUserId, targetUserId],
+    queryFn: () => fetchProfileCompatibility(targetUserId),
+    enabled: Boolean(targetUserId && !isOwner),
   });
 
   const thisOrThatAnswers: ThisOrThatAnswer[] = thisOrThatRes?.data || [];
@@ -260,7 +278,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     };
   }, [user, userPrefrence]);
 
-  const openPostActions = (post: any) => {
+  const openPostActions = (post: ProfilePost) => {
     setSelectedPost(post);
     setActionError("");
     setActionSheetOpen(true);
@@ -281,7 +299,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     setIsUpdatingPost(false);
   };
 
-  const getEditablePostText = (post: any) => {
+  const getEditablePostText = (post: ProfilePost) => {
     if (post?.type === "PROMPT") return post?.content?.promptAnswer || "";
     if (post?.type === "IMAGE") return post?.content?.caption || "";
     return post?.content?.text || "";
@@ -303,7 +321,10 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         title: "Edit prompt answer",
         label: "Your answer",
         placeholder: "Write an answer that feels easy to reply to.",
-        helper: selectedPost?.content?.promptId?.text || undefined,
+        helper:
+          typeof selectedPost.content.promptId === "object"
+            ? selectedPost.content.promptId?.text
+            : undefined,
         required: true,
       };
     }
@@ -341,8 +362,9 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
       selectedPost?.type === "PROMPT"
         ? {
             promptId:
-              selectedPost?.content?.promptId?._id ||
-              selectedPost?.content?.promptId,
+              typeof selectedPost.content.promptId === "object"
+                ? selectedPost.content.promptId?._id
+                : selectedPost.content.promptId,
             promptAnswer: trimmedText,
           }
         : selectedPost?.type === "IMAGE"
@@ -405,7 +427,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
     triggerSelectionHaptic();
     try {
       setIsStartingVerification(true);
-      const response = await startDiditVerification();
+      const response = await startHaloKycVerification();
       if (response?.verificationUrl) {
         await WebBrowser.openBrowserAsync(response.verificationUrl);
         return;
@@ -428,8 +450,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor={COLORS.highlight}
-              colors={[COLORS.highlight]}
+              tintColor={COLORS.forest}
+              colors={[COLORS.forest]}
             />
           ) : undefined
         }
@@ -451,16 +473,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={onRefresh}
-            tintColor={COLORS.highlight}
-            colors={[COLORS.highlight]}
+            tintColor={COLORS.forest}
+            colors={[COLORS.forest]}
           />
         ) : undefined
       }
     >
       <View className="flex-1 w-full">
-        <View className="overflow-hidden rounded-[32px] border border-ui-border bg-ui-light p-5">
+        <View className="overflow-hidden rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <View className="flex-row items-center gap-5">
-            <View className="h-28 w-28 shrink-0 overflow-hidden rounded-[28px] bg-ui-background">
+            <View className="h-28 w-28 shrink-0 overflow-hidden rounded-[24px] bg-ui-porcelain">
               <Image
                 source={{
                   uri: user?.profilePicture
@@ -468,6 +490,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
                 }}
                 blurRadius={shouldBlurProfilePicture ? 12 : 0}
+                contentFit="cover"
                 accessible
                 accessibilityLabel={
                   shouldBlurProfilePicture
@@ -475,7 +498,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     : `Profile photo of ${user?.nickname || user?.username || "user"}`
                 }
                 style={{
-                  resizeMode: "cover",
                   width: "100%",
                   height: "100%",
                 }}
@@ -483,7 +505,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </View>
             <View className="flex-1">
               <Text
-                className="text-[28px] font-bold leading-8 text-ui-shade"
+                className="font-display text-[28px] leading-8 text-ui-ink"
                 accessibilityRole="header"
               >
                 {user?.isViewerUnlockedByUser &&
@@ -491,7 +513,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 user.nickname ? (
                   <>
                     <Text>{user.realName}</Text>
-                    <Text className="text-base font-medium text-ui-muted">
+                    <Text className="text-base font-medium text-ui-slate">
                       {"\n"}@{user.nickname}
                     </Text>
                   </>
@@ -504,20 +526,20 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   <Icon
                     name="BadgeCheck"
                     size={16}
-                    color={COLORS.highlight}
+                    color={COLORS.forest}
                     className="flex-shrink-0"
                   />
                 ) : isOwner ? (
                   <Icon
                     name="BadgeAlert"
                     size={16}
-                    className="flex-shrink-0 text-ui-muted"
+                    className="flex-shrink-0 text-ui-slate"
                   />
                 ) : null}
               </Text>
               <View className="mt-3 flex-row flex-wrap items-center gap-2">
                 {user?.dob ? (
-                  <View className="flex-row items-center gap-1 rounded-full bg-ui-highlight/5 px-2.5 py-1.5">
+                  <View className="flex-row items-center gap-1 rounded-full bg-ui-forest/5 px-2.5 py-1.5">
                     <Icon
                       name="CakeSlice"
                       size={16}
@@ -530,7 +552,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 ) : null}
 
                 {user?.gender ? (
-                  <View className="flex-row items-center gap-1 rounded-full bg-ui-highlight/5 px-2.5 py-1.5">
+                  <View className="flex-row items-center gap-1 rounded-full bg-ui-forest/5 px-2.5 py-1.5">
                     <Icon name="UserRound" size={16} />
                     <Text className="text-sm font-medium capitalize">
                       {user.gender}
@@ -539,7 +561,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 ) : null}
 
                 {user?.distance != null ? (
-                  <View className="flex-row items-center gap-1 rounded-full bg-ui-highlight/5 px-2.5 py-1.5">
+                  <View className="flex-row items-center gap-1 rounded-full bg-ui-forest/5 px-2.5 py-1.5">
                     <Icon
                       name="Footprints"
                       size={16}
@@ -554,13 +576,45 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </View>
           </View>
 
-          <View className="mt-6 border-t border-ui-border pt-5">
-            <Text className="text-sm font-semibold text-ui-muted">
+          <View className="mt-6 border-t border-ui-parchment pt-5">
+            <Text className="text-sm font-semibold text-ui-slate">
               {isOwner ? "About you" : "About"}
             </Text>
-            <Text className="mt-2 text-base leading-6 text-ui-shade">
+            <Text className="mt-2 text-base leading-6 text-ui-ink">
               {user?.bio ? user?.bio : "No bio added yet."}
             </Text>
+            {sharedInterests.length ? (
+              <View className="mt-4 border-t border-ui-parchment pt-4">
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-sm font-semibold text-ui-slate">
+                    Interests
+                  </Text>
+                </View>
+                <View className="mt-2 flex-row flex-wrap gap-2">
+                  {sharedInterests.map((interest : string) => (
+                    <View
+                      key={interest}
+                      className="flex-row items-center gap-1.5 rounded-full bg-ui-forest/5 px-3 py-2"
+                    >
+                      <OptionIcon
+                        icon={
+                          interestOptions.find(
+                            (option) => option.value === interest,
+                          )?.icon
+                        }
+                        size={14}
+                        color={COLORS.forest}
+                      />
+                      <Text className="text-sm font-medium capitalize text-ui-ink">
+                        {interestOptions.find(
+                          (option) => option.value === interest,
+                        )?.label || interest}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ) : null}
           </View>
 
           {isOwner ? (
@@ -570,12 +624,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   triggerSelectionHaptic();
                   router.navigate("/(subpage)/edit-profile");
                 }}
-                className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-4 active:opacity-80"
+                className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-ui-forest px-4 active:opacity-80"
                 accessibilityRole="button"
                 accessibilityLabel="Edit profile details"
               >
-                <Icon name="Pencil" size={16} color={COLORS.light} />
-                <Text className="font-semibold text-ui-light">
+                <Icon name="Pencil" size={16} color={COLORS.paper} />
+                <Text className="font-semibold text-ui-paper">
                   Edit profile
                 </Text>
               </Pressable>
@@ -584,16 +638,16 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   triggerSelectionHaptic();
                   router.navigate("/(subpage)/edit-preference");
                 }}
-                className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full border border-ui-highlight/30 px-4 active:bg-ui-highlight/5"
+                className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-ui-forest/30 px-4 active:bg-ui-forest/5"
                 accessibilityRole="button"
                 accessibilityLabel="Edit match preferences"
               >
                 <Icon
                   name="SlidersHorizontal"
                   size={16}
-                  color={COLORS.highlight}
+                  color={COLORS.forest}
                 />
-                <Text className="font-semibold text-ui-highlight">
+                <Text className="font-semibold text-ui-forest">
                   Preferences
                 </Text>
               </Pressable>
@@ -601,47 +655,83 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           ) : null}
         </View>
 
+        {!isOwner ? (
+          <View className="mt-5 flex-row items-center justify-between gap-4 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
+            <View className="flex-1 flex-row items-center gap-3">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-champagne">
+                <Icon name="Sparkles" size={20} color={COLORS.ink} />
+              </View>
+              <View className="flex-1">
+                <Text className="font-semibold text-ui-ink">
+                  Profile compatibility
+                </Text>
+                <Text className="mt-0.5 text-xs leading-4 text-ui-slate">
+                  Freshly calculated from your preferences and this profile.
+                </Text>
+              </View>
+            </View>
+            <View className="min-w-20 items-center rounded-2xl bg-ui-champagne px-3 py-2">
+              {isCompatibilityLoading ? (
+                <ActivityIndicator size="small" color={COLORS.ink} />
+              ) : compatibility ? (
+                <>
+                  <Text className="text-xl font-semibold text-ui-ink">
+                    {Math.round(compatibility.score)}
+                  </Text>
+                  <Text className="text-xs font-semibold text-ui-ink">
+                    / 100
+                  </Text>
+                </>
+              ) : (
+                <Text className="text-xs font-semibold text-ui-slate">
+                  Unavailable
+                </Text>
+              )}
+            </View>
+          </View>
+        ) : null}
+
         {isOwner ? (
-          <View className="mt-5 rounded-[28px] bg-ui-foreground p-5">
+          <View className="mt-5 rounded-[24px] bg-ui-midnight p-5">
             <View className="flex-row items-start justify-between gap-4">
               <View className="flex-1">
                 <Text
-                  className="text-xl font-bold text-ui-light"
+                  className="text-xl font-bold text-ui-paper"
                   accessibilityRole="header"
                 >
                   Make your profile magnetic
                 </Text>
-                <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
                   Complete a few more details to help better matches find you.
                 </Text>
               </View>
-              <View className="h-11 min-w-14 items-center justify-center rounded-full bg-ui-primary px-3">
-                <Text className="font-bold text-ui-shade">
+              <View className="h-11 min-w-14 items-center justify-center rounded-full bg-ui-champagne px-3">
+                <Text className="font-bold text-ui-ink">
                   {profileCompletion}%
                 </Text>
               </View>
             </View>
-            <Text className="mt-5 text-sm font-medium text-ui-light">
+            <Text className="mt-5 text-sm font-medium text-ui-paper">
               Profile details
             </Text>
-            <View className="mt-2 h-2.5 w-full rounded-full bg-ui-light/15">
+            <View className="mt-2 h-2.5 w-full rounded-full bg-ui-paper/15">
               <View
-                className="h-2.5 rounded-full bg-ui-primary"
+                className="h-2.5 rounded-full bg-ui-champagne"
                 style={{ width: `${profileCompletion}%` }}
               />
             </View>
             <View className="mt-4">
               <View className="flex-row items-center justify-between">
-                <Text className="text-sm font-medium text-ui-light">
+                <Text className="text-sm font-medium text-ui-paper">
                   Match preferences
                 </Text>
-                <Text className="text-sm font-semibold text-ui-light">
+                <Text className="text-sm font-semibold text-ui-paper">
                   {preferenceCompletion}%
                 </Text>
               </View>
-              <View className="mt-2 h-2.5 w-full rounded-full bg-ui-light/15">
+              <View className="mt-2 h-2.5 w-full rounded-full bg-ui-paper/15">
                 <View
-                  className="h-2.5 rounded-full bg-ui-accent"
+                  className="h-2.5 rounded-full bg-ui-aubergine"
                   style={{ width: `${preferenceCompletion}%` }}
                 />
               </View>
@@ -650,7 +740,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
         ) : null}
 
         {isOwner ? (
-          <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+          <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
             <SectionHeading
               title="Your space"
               subtitle="Shortcuts for everything around your profile"
@@ -694,7 +784,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   isStartingVerification ||
                   user?.verificationStatus === "pending"
                 }
-                className={`mt-4 min-h-12 flex-row items-center justify-center gap-2 rounded-full border border-ui-highlight/30 bg-ui-highlight/10 px-4 py-3 active:opacity-80 ${
+                className={`mt-4 min-h-12 flex-row items-center justify-center gap-2 rounded-2xl border border-ui-forest/30 bg-ui-forest/10 px-4 py-3 active:opacity-80 ${
                   isStartingVerification ||
                   user?.verificationStatus === "pending"
                     ? "opacity-70"
@@ -708,8 +798,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                     user?.verificationStatus === "pending",
                 }}
               >
-                <Icon name="BadgeCheck" size={18} color={COLORS.highlight} />
-                <Text className="font-semibold text-ui-highlight">
+                <Icon name="BadgeCheck" size={18} color={COLORS.forest} />
+                <Text className="font-semibold text-ui-forest">
                   {user?.verificationStatus === "pending"
                     ? "Verification pending"
                     : isStartingVerification
@@ -721,7 +811,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </View>
         ) : null}
 
-        <View className="mt-5 w-full rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="mt-5 w-full rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <SectionHeading
             title="The essentials"
             subtitle="A quick glimpse at personality and lifestyle"
@@ -730,7 +820,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             {traitsHr.map((trait, index) => (
               <View
                 key={index}
-                className="mb-2 mr-2 flex-row items-center gap-2 rounded-full bg-ui-highlight/5 px-3 py-2.5"
+                className="mb-2 mr-2 flex-row items-center gap-2 rounded-full bg-ui-forest/5 px-3 py-2.5"
               >
                 <Icon name={trait!.icon} size={16} className="" />
                 <Text className="text-sm">{trait!.value}</Text>
@@ -740,7 +830,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
           {traitsHr.length || traitsVr.length ? (
             <>
               {traitsVr.length ? (
-                <View className="mt-3 h-px w-full bg-ui-border" />
+                <View className="mt-3 h-px w-full bg-ui-parchment" />
               ) : null}
               <View>
                 {traitsVr.map((trait, index) => (
@@ -754,8 +844,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               </View>
             </>
           ) : (
-            <View className="mt-3 rounded-2xl bg-ui-highlight/5 p-4">
-              <Text className="text-sm leading-5 text-ui-muted">
+            <View className="mt-3 rounded-2xl bg-ui-forest/5 p-4">
+              <Text className="text-sm leading-5 text-ui-slate">
                 {isOwner
                   ? "Add profile details to build your snapshot."
                   : "No public details yet."}
@@ -766,7 +856,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
         {!isOwner ? <ProfileNativeAd /> : null}
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <View className="flex-row items-center justify-between">
             <SectionHeading
               title="This or That"
@@ -778,12 +868,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   triggerSelectionHaptic();
                   router.navigate("/(subpage)/games/this-or-that");
                 }}
-                className="min-h-11 justify-center rounded-full bg-ui-highlight/10 px-4 active:opacity-75"
+                className="min-h-11 justify-center rounded-full bg-ui-forest/10 px-4 active:opacity-75"
                 hitSlop={8}
                 accessibilityRole="button"
                 accessibilityLabel="Play This or That"
               >
-                <Text className="text-sm font-semibold text-ui-highlight">
+                <Text className="text-sm font-semibold text-ui-forest">
                   Play
                 </Text>
               </Pressable>
@@ -801,17 +891,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               {thisOrThatAnswers.map((answer) => (
                 <View
                   key={answer._id}
-                  className="w-64 overflow-hidden rounded-3xl bg-ui-highlight/5"
+                  className="w-64 overflow-hidden rounded-3xl bg-ui-forest/5"
                 >
                   {answer.selectedImageUrl ? (
-                    <Image
+                    <NativeImage
                       source={{ uri: answer.selectedImageUrl }}
                       className="h-28 w-full"
-                      style={{ resizeMode: "cover" }}
+                      resizeMode="cover"
                     />
                   ) : null}
                   <View className="p-3">
-                    <Text className="text-xs font-medium capitalize text-ui-muted">
+                    <Text className="text-xs font-medium capitalize text-ui-slate">
                       {answer.question?.category || "general"}
                     </Text>
                     <Text className="text-sm font-semibold mt-1">
@@ -822,8 +912,8 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               ))}
             </ScrollView>
           ) : (
-            <View className="mt-4 rounded-2xl bg-ui-highlight/5 p-4">
-              <Text className="text-sm text-ui-muted">
+            <View className="mt-4 rounded-2xl bg-ui-forest/5 p-4">
+              <Text className="text-sm text-ui-slate">
                 No answers yet. A few quick choices can make your profile feel
                 more personal.
               </Text>
@@ -843,12 +933,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                   triggerSelectionHaptic();
                   router.navigate("/create-post");
                 }}
-                className="min-h-11 justify-center rounded-full bg-ui-highlight/10 px-4 active:opacity-75"
+                className="min-h-11 justify-center rounded-full bg-ui-forest/10 px-4 active:opacity-75"
                 hitSlop={8}
                 accessibilityRole="button"
                 accessibilityLabel="Create a new post"
               >
-                <Text className="text-sm font-semibold text-ui-highlight">
+                <Text className="text-sm font-semibold text-ui-forest">
                   Create
                 </Text>
               </Pressable>
@@ -858,7 +948,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <PostsSectionSkeleton />
           ) : posts?.length ? (
             <View className="gap-3">
-              {posts.map((post: any) => (
+              {posts.map((post) => (
                 <PostCard
                   key={post._id}
                   post={post}
@@ -868,12 +958,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
               ))}
             </View>
           ) : (
-            <View className="rounded-[28px] border border-ui-border bg-ui-light p-5">
-              <Icon name="Sparkles" size={24} color={COLORS.highlight} />
-              <Text className="mt-3 text-base font-semibold text-ui-shade">
+            <View className="rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
+              <Icon name="Sparkles" size={24} color={COLORS.forest} />
+              <Text className="mt-3 text-base font-semibold text-ui-ink">
                 {isOwner ? "Show a little more of you" : "Nothing shared yet"}
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 {isOwner
                   ? "Share a thought, prompt, or photo to give people an easy conversation starter."
                   : "Posts will appear here when this person shares something."}
@@ -892,12 +982,12 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <Text className="text-base font-semibold mb-2">Post actions</Text>
             <Pressable
               onPress={openEditPostSheet}
-              className="mb-3 min-h-12 w-full flex-row items-center gap-3 rounded-full bg-ui-highlight/10 px-4 py-3 active:opacity-75"
+              className="mb-3 min-h-12 w-full flex-row items-center gap-3 rounded-full bg-ui-forest/10 px-4 py-3 active:opacity-75"
               accessibilityRole="button"
               accessibilityLabel="Edit post"
             >
-              <Icon name="Pencil" size={18} color={COLORS.highlight} />
-              <Text className="text-base font-semibold text-ui-highlight">
+              <Icon name="Pencil" size={18} color={COLORS.forest} />
+              <Text className="text-base font-semibold text-ui-forest">
                 Edit post
               </Text>
             </Pressable>
@@ -906,17 +996,17 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 triggerSelectionHaptic();
                 handleDeletePost();
               }}
-              className="min-h-12 w-full flex-row items-center gap-3 rounded-full border border-red-200 bg-red-50 px-4 py-3 active:opacity-75"
+              className="min-h-12 w-full flex-row items-center gap-3 rounded-2xl border border-ui-danger/25 bg-ui-danger/5 px-4 py-3 active:opacity-75"
               accessibilityRole="button"
               accessibilityLabel="Delete post"
             >
               <Icon name="Trash2" size={18} color={COLORS.danger} />
-              <Text className="text-base font-medium text-red-600">
+              <Text className="text-base font-medium text-ui-danger">
                 Delete post
               </Text>
             </Pressable>
             {actionError ? (
-              <Text className="text-red-500 text-sm mt-2">{actionError}</Text>
+              <Text className="text-ui-danger text-sm mt-2">{actionError}</Text>
             ) : null}
           </View>
         </ActionsheetContent>
@@ -979,12 +1069,12 @@ const PostEditSheetContent = ({
   <View className="w-full">
     <View className="mb-5 rounded-[26px] bg-ui-surface-page p-4">
       <Text
-        className="text-xl font-bold leading-7 text-ui-shade"
+        className="text-xl font-bold leading-7 text-ui-ink"
         accessibilityRole="header"
       >
         {title}
       </Text>
-      <Text className="mt-1 text-sm leading-5 text-ui-muted">
+      <Text className="mt-1 text-sm leading-5 text-ui-slate">
         Update how this appears on your profile.
       </Text>
     </View>
@@ -1001,7 +1091,7 @@ const PostEditSheetContent = ({
       />
 
       <View>
-        <Text className="mb-2 text-sm font-semibold text-ui-shade">
+        <Text className="mb-2 text-sm font-semibold text-ui-ink">
           Visibility
         </Text>
         <VisibilityToggle
@@ -1019,26 +1109,26 @@ const PostEditSheetContent = ({
       <Pressable
         onPress={onCancel}
         disabled={isSaving}
-        className={`min-h-12 flex-1 items-center justify-center rounded-full border border-ui-border px-4 ${
+        className={`min-h-12 flex-1 items-center justify-center rounded-full border border-ui-parchment px-4 ${
           isSaving ? "opacity-60" : "active:opacity-75"
         }`}
         accessibilityRole="button"
         accessibilityLabel="Cancel editing post"
         accessibilityState={{ disabled: isSaving }}
       >
-        <Text className="font-semibold text-ui-shade">Cancel</Text>
+        <Text className="font-semibold text-ui-ink">Cancel</Text>
       </Pressable>
       <Pressable
         onPress={onSave}
         disabled={isSaving}
-        className={`min-h-12 flex-1 items-center justify-center rounded-full bg-ui-highlight px-4 ${
+        className={`min-h-12 flex-1 items-center justify-center rounded-2xl bg-ui-forest px-4 ${
           isSaving ? "opacity-60" : "active:opacity-80"
         }`}
         accessibilityRole="button"
         accessibilityLabel="Save post changes"
         accessibilityState={{ disabled: isSaving }}
       >
-        <Text className="font-semibold text-ui-light">
+        <Text className="font-semibold text-ui-paper">
           {isSaving ? "Saving..." : "Save changes"}
         </Text>
       </Pressable>
@@ -1055,20 +1145,20 @@ const SectionHeading = ({
 }) => (
   <View className="flex-1 pr-3">
     <Text
-      className="text-xl font-bold leading-6 text-ui-shade"
+      className="text-xl font-bold leading-6 text-ui-ink"
       accessibilityRole="header"
     >
       {title}
     </Text>
     {subtitle ? (
-      <Text className="mt-1 text-sm leading-5 text-ui-muted">{subtitle}</Text>
+      <Text className="mt-1 text-sm leading-5 text-ui-slate">{subtitle}</Text>
     ) : null}
   </View>
 );
 
 const ProfileScreenSkeleton = ({ isOwner }: { isOwner: boolean }) => (
   <View className="flex-1 w-full">
-    <View className="rounded-[32px] border border-ui-border bg-ui-light p-5">
+    <View className="rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
       <View className="flex-row gap-4 items-center">
         <Skeleton width={112} height={112} radius={28} />
         <View className="flex-1">
@@ -1093,7 +1183,7 @@ const ProfileScreenSkeleton = ({ isOwner }: { isOwner: boolean }) => (
       ) : null}
     </View>
 
-    <View className="mt-4 rounded-2xl bg-white border border-ui-shade/10 p-4">
+    <View className="mt-4 rounded-2xl bg-ui-paper border border-ui-ink/10 p-4">
       <Skeleton width={90} height={13} />
       <View className="flex-row flex-wrap mt-3">
         {Array.from({ length: 6 }).map((_, index) => (
@@ -1139,7 +1229,7 @@ const ThisOrThatSectionSkeleton = () => (
     {Array.from({ length: 2 }).map((_, index) => (
       <View
         key={`this-or-that-skeleton-${index}`}
-        className="w-56 rounded-xl border border-ui-shade/10 bg-ui-light overflow-hidden p-3"
+        className="w-56 rounded-xl border border-ui-ink/10 bg-ui-paper overflow-hidden p-3"
       >
         <Skeleton width="100%" height={112} radius={10} />
         <Skeleton width="40%" height={10} style={{ marginTop: 12 }} />
@@ -1155,7 +1245,7 @@ const PostsSectionSkeleton = () => (
     {Array.from({ length: 3 }).map((_, index) => (
       <View
         key={`post-skeleton-${index}`}
-        className="border border-ui-shade/10 rounded-2xl bg-white p-4"
+        className="border border-ui-ink/10 rounded-2xl bg-ui-paper p-4"
       >
         <Skeleton width={index % 2 ? "74%" : "62%"} height={13} />
         <Skeleton width="100%" height={14} style={{ marginTop: 12 }} />
@@ -1180,13 +1270,13 @@ const ActionPill = ({
       triggerSelectionHaptic();
       onPress();
     }}
-    className="min-h-12 flex-row items-center gap-2 rounded-full bg-ui-highlight/5 px-3.5 py-2.5 active:opacity-70"
+    className="min-h-12 flex-row items-center gap-2 rounded-full bg-ui-forest/5 px-3.5 py-2.5 active:opacity-70"
     hitSlop={4}
     accessibilityRole="button"
     accessibilityLabel={`Open ${label}`}
   >
-    <Icon name={icon} size={16} color={COLORS.highlight} />
-    <Text className="text-sm font-medium text-ui-shade">{label}</Text>
+    <Icon name={icon} size={16} color={COLORS.forest} />
+    <Text className="text-sm font-medium text-ui-ink">{label}</Text>
   </Pressable>
 );
 
@@ -1201,11 +1291,11 @@ const InfoItemVerticle = ({
   size?: number;
   value: string | number;
 }) => (
-  <View className="min-w-20 flex-row items-center gap-3 border-b border-ui-border py-3.5">
-    <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-highlight/5">
+  <View className="min-w-20 flex-row items-center gap-3 border-b border-ui-parchment py-3.5">
+    <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-forest/5">
       <Icon name={icon} type={type} size={size} className="" />
     </View>
-    <Text className="flex-1 text-base leading-6 text-ui-shade">{value}</Text>
+    <Text className="flex-1 text-base leading-6 text-ui-ink">{value}</Text>
   </View>
 );
 
@@ -1214,24 +1304,36 @@ const PostCard = ({
   canEdit,
   onOpenActions,
 }: {
-  post: any;
+  post: ProfilePost;
   canEdit: boolean;
   onOpenActions: () => void;
 }) => {
   return (
-    <View className="relative overflow-hidden rounded-[28px] bg-ui-light">
+    <View
+      className={`relative overflow-hidden rounded-[24px] border ${
+        post.type === "PROMPT"
+          ? "border-ui-midnight bg-ui-midnight"
+          : "border-ui-parchment bg-ui-paper"
+      }`}
+    >
       {canEdit ? (
         <Pressable
           onPress={() => {
             triggerSelectionHaptic();
             onOpenActions();
           }}
-          className="absolute right-3 top-3 z-10 h-11 w-11 items-center justify-center rounded-full bg-ui-light/90 active:opacity-75"
+          className={`absolute right-3 top-3 z-10 h-11 w-11 items-center justify-center rounded-full active:opacity-75 ${
+            post.type === "PROMPT" ? "bg-ui-paper/15" : "bg-ui-paper/90"
+          }`}
           hitSlop={4}
           accessibilityRole="button"
           accessibilityLabel="Open post actions"
         >
-          <Icon name="EllipsisVertical" size={17} color={COLORS.shade} />
+          <Icon
+            name="EllipsisVertical"
+            size={17}
+            color={post.type === "PROMPT" ? COLORS.paper : COLORS.ink}
+          />
         </Pressable>
       ) : null}
       <View className="min-h-32">
@@ -1243,70 +1345,126 @@ const PostCard = ({
   );
 };
 
-const PromptPost = ({ post }: { post: any }) => {
-  const promptText = post?.content?.promptId?.text || "";
+const PromptPost = ({ post }: { post: ProfilePost }) => {
+  const promptText =
+    typeof post.content.promptId === "object"
+      ? post.content.promptId?.text || ""
+      : "";
   const answer = post?.content?.promptAnswer || "";
   return (
-    <View className="p-5">
-      <View className="mb-4 h-1 w-12 rounded-full bg-ui-accent" />
-      <Text className="text-[15px] font-semibold leading-5 text-ui-muted">
-        {promptText || "A prompt worth answering"}
-      </Text>
-      <Text className="mt-3 text-[26px] font-bold leading-9 text-ui-shade">
-        {answer || "No answer added yet."}
-      </Text>
+    <View className="p-6">
+      <View className="flex-row items-center gap-2">
+        <View className="h-1 w-7 rounded-full bg-ui-champagne" />
+        <Text className="text-[11px] font-bold uppercase tracking-[1.5px] text-ui-champagne">
+          Get to know me
+        </Text>
+      </View>
+      <View className="mt-6 pr-8">
+        <Text className="text-base font-medium leading-6 text-ui-paper/75">
+          {promptText || "A prompt worth answering"}
+        </Text>
+        <ExpandablePostText
+          text={answer || "No answer added yet."}
+          className="mt-3 text-[27px] font-semibold leading-8 text-ui-paper"
+        />
+      </View>
     </View>
   );
 };
 
-const ImagePost = ({ post }: { post: any }) => {
+const ExpandablePostText = ({
+  text,
+  className,
+  numberOfLines = 4,
+}: {
+  text: string;
+  className: string;
+  numberOfLines?: number;
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const canExpand = text.length > 150;
+
+  return (
+    <View>
+      <Text
+        className={className}
+        numberOfLines={canExpand && !expanded ? numberOfLines : undefined}
+        ellipsizeMode="tail"
+      >
+        {text}
+      </Text>
+      {canExpand ? (
+        <Pressable
+          onPress={() => setExpanded((value) => !value)}
+          className="mt-2 min-h-11 self-start justify-center py-1"
+          accessibilityRole="button"
+          accessibilityLabel={expanded ? "Show less post text" : "Read more post text"}
+          accessibilityState={{ expanded }}
+        >
+          <Text className="text-sm font-bold text-ui-champagne">
+            {expanded ? "Show less" : "Read more"}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+};
+
+const ImagePost = ({ post }: { post: ProfilePost }) => {
   const imageSource = post?.content?.imageUrls || post?.content?.imageUrl;
   const imageUrl = Array.isArray(imageSource) ? imageSource[0] : imageSource;
   const [imageAspectRatio, setImageAspectRatio] = useState(1);
+  const [imageUnavailable, setImageUnavailable] = useState(false);
   return (
     <View>
-      {imageUrl ? (
+      {imageUrl && !imageUnavailable ? (
         <Image
           source={{ uri: imageUrl }}
           className="w-full"
           accessibilityLabel="User created profile post image"
+          contentFit="cover"
+          transition={180}
+          cachePolicy="memory-disk"
           style={{
             aspectRatio: Math.max(0.78, Math.min(imageAspectRatio, 1.12)),
-            resizeMode: "cover",
           }}
-          onLoad={({ nativeEvent }) => {
-            const width = nativeEvent?.source?.width;
-            const height = nativeEvent?.source?.height;
+          onError={() => setImageUnavailable(true)}
+          onLoad={(event) => {
+            const width = event?.source?.width;
+            const height = event?.source?.height;
             if (width && height) {
               setImageAspectRatio(width / height);
             }
           }}
         />
       ) : (
-        <View className="h-72 items-center justify-center bg-ui-surface-page">
-          <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-ui-accent/10">
-            <Icon name="ImageOff" size={18} color={COLORS.accent} />
+        <View className="h-72 items-center justify-center bg-ui-midnight px-6">
+          <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-ui-aubergine/10">
+            <Icon name="ImageOff" size={18} color={COLORS.aubergine} />
           </View>
-          <Text className="text-sm font-medium text-ui-shade">
+          <Text className="text-sm font-medium text-ui-paper">
             Image unavailable
           </Text>
         </View>
       )}
       {post?.content?.caption ? (
-        <View className="px-5 py-4">
-          <Text className="text-[22px] font-bold leading-8 text-ui-shade">
-            {post.content.caption}
-          </Text>
+        <View className="bg-ui-midnight px-5 pb-5 pt-4">
+          <View className="mb-3 h-1 w-10 rounded-full bg-ui-champagne" />
+          <ExpandablePostText
+            text={post.content.caption}
+            numberOfLines={3}
+            className="text-[21px] font-bold leading-7 text-ui-paper"
+          />
         </View>
       ) : null}
     </View>
   );
 };
 
-const TextPost = ({ post }: { post: any }) => (
+const TextPost = ({ post }: { post: ProfilePost }) => (
   <View className="p-5">
-    <View className="mb-4 h-1 w-12 rounded-full bg-ui-highlight" />
-    <Text className="text-[26px] font-bold leading-9 text-ui-shade">
+    <View className="mb-4 h-1 w-12 rounded-full bg-ui-forest" />
+    <Text className="text-[26px] font-bold leading-9 text-ui-ink">
       {post?.content?.text || "No text added yet."}
     </Text>
   </View>

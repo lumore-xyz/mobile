@@ -94,8 +94,8 @@ export const ChatMessages = React.memo(function ChatMessages({
         ))}
         {isPartnerTyping ? (
           <View className="items-start px-1 py-1" accessibilityLiveRegion="polite">
-            <View className="rounded-full border border-ui-border bg-ui-light px-3 py-2">
-              <Text className="text-xs font-medium text-ui-muted">Typing…</Text>
+            <View className="rounded-full border border-ui-parchment bg-ui-paper px-3 py-2">
+              <Text className="text-xs font-medium text-ui-slate">Typing…</Text>
             </View>
           </View>
         ) : null}

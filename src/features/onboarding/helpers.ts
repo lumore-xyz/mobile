@@ -7,25 +7,32 @@ const GOAL_FIELD_MAP: Record<string, "primary" | "secondary" | "tertiary"> = {
   "tertiary-goal": "tertiary",
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
 export function getInitialValuesForScreen(
   screen: Screen,
-  user: Record<string, any> | undefined,
-  userPreference: Record<string, any> | undefined,
+  user: object | undefined,
+  userPreference: object | undefined,
 ) {
   const initialValues: Record<string, unknown> = {};
+  const userValues = isRecord(user) ? user : undefined;
+  const preferenceValues = isRecord(userPreference) ? userPreference : undefined;
 
   screen.fields.forEach((field) => {
-    if (field.place === "user" && user) {
-      initialValues[field.name] = user[field.name];
+    if (field.place === "user" && userValues) {
+      initialValues[field.name] = userValues[field.name];
       return;
     }
 
-    if (field.place === "prefrence" && userPreference) {
+    if (field.place === "prefrence" && preferenceValues) {
       if (GOAL_FIELD_MAP[field.name]) {
-        initialValues[field.name] =
-          userPreference?.goal?.[GOAL_FIELD_MAP[field.name]];
+        const goals = preferenceValues.goal;
+        initialValues[field.name] = isRecord(goals)
+          ? goals[GOAL_FIELD_MAP[field.name]]
+          : undefined;
       } else {
-        initialValues[field.name] = userPreference[field.name];
+        initialValues[field.name] = preferenceValues[field.name];
       }
     }
   });
@@ -164,7 +171,7 @@ export function validateScreen(
       return z.number();
     }
 
-    return z.any();
+    return z.unknown();
   };
 
   screen.fields.forEach((field) => {
@@ -183,7 +190,7 @@ export function buildOnboardingPayload(
   formValues: Record<string, unknown>,
 ) {
   const userData: Record<string, unknown> = {};
-  const userPreferenceData: Record<string, any> = {};
+  const userPreferenceData: Record<string, unknown> = {};
   let password = "";
 
   screen.fields.forEach((field) => {
@@ -198,8 +205,10 @@ export function buildOnboardingPayload(
 
     if (field.place === "prefrence") {
       if (GOAL_FIELD_MAP[field.name]) {
-        userPreferenceData.goal ??= {};
-        userPreferenceData.goal[GOAL_FIELD_MAP[field.name]] = value;
+        const existingGoals = userPreferenceData.goal;
+        const goals = isRecord(existingGoals) ? existingGoals : {};
+        goals[GOAL_FIELD_MAP[field.name]] = value;
+        userPreferenceData.goal = goals;
       } else {
         userPreferenceData[field.name] = value;
       }

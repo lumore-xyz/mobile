@@ -1,32 +1,35 @@
-export const COLORS = {
-  light: '#FAFAFA',
-  shade: '#0A0A09',
-  background: '#F1E9DA',
-  foreground: '#2E294E',
-  primary: '#FFD400',
-  accent: '#D90368',
-  highlight: '#541388',
-  muted: '#6F697B',
-  border: '#DED5C7',
+export const PALETTE = {
+  paper: '#FFFEFB',
+  ink: '#242624',
+  porcelain: '#F7F4EE',
+  midnight: '#17252B',
+  champagne: '#C7A66A',
+  aubergine: '#563B49',
+  forest: '#30463E',
+  slate: '#6D716D',
+  parchment: '#EAE3D7',
   danger: '#B4233D',
 } as const;
 
+export const COLORS = PALETTE;
+
 export const THEME = {
   surface: {
-    page: COLORS.background,
-    raised: COLORS.light,
-    dark: COLORS.foreground,
+    page: PALETTE.porcelain,
+    raised: PALETTE.paper,
+    inset: PALETTE.parchment,
+    dark: PALETTE.midnight,
   },
   text: {
-    primary: COLORS.shade,
-    secondary: COLORS.muted,
-    inverse: COLORS.light,
+    primary: PALETTE.ink,
+    secondary: PALETTE.slate,
+    inverse: PALETTE.paper,
   },
   action: {
-    premium: COLORS.highlight,
-    emotional: COLORS.accent,
-    celebration: COLORS.primary,
-    destructive: COLORS.danger,
+    premium: PALETTE.forest,
+    emotional: PALETTE.aubergine,
+    celebration: PALETTE.champagne,
+    destructive: PALETTE.danger,
   },
-  border: COLORS.border,
+  border: PALETTE.parchment,
 } as const;

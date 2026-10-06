@@ -58,22 +58,22 @@ const ProfileNativeAd = () => {
   return (
     <NativeAdView
       nativeAd={nativeAd}
-      className="mt-4 overflow-hidden rounded-2xl border border-ui-shade/10 bg-white"
+      className="mt-4 overflow-hidden rounded-2xl border border-ui-ink/10 bg-ui-paper"
     >
       <View className="p-3">
         <View className="mb-3 flex-row items-center justify-between">
-          <View className="rounded bg-ui-highlight px-2 py-1">
-            <Text className="text-[10px] font-semibold uppercase text-white">
+          <View className="rounded bg-ui-forest px-2 py-1">
+            <Text className="text-[10px] font-semibold uppercase text-ui-paper">
               Ad
             </Text>
           </View>
-          <Text className="pr-7 text-[10px] text-ui-shade/50">Sponsored</Text>
+          <Text className="pr-7 text-[10px] text-ui-ink/50">Sponsored</Text>
         </View>
 
         {nativeAd.mediaContent ? (
           <NativeMediaView
             resizeMode="cover"
-            className="mb-3 h-36 w-full overflow-hidden rounded-xl bg-ui-light"
+            className="mb-3 h-36 w-full overflow-hidden rounded-xl bg-ui-paper"
           />
         ) : null}
 
@@ -82,7 +82,7 @@ const ProfileNativeAd = () => {
             <NativeAsset assetType={NativeAssetType.ICON}>
               <Image
                 source={{ uri: nativeAd.icon.url }}
-                className="h-12 w-12 rounded-md bg-ui-light"
+                className="h-12 w-12 rounded-md bg-ui-paper"
                 resizeMode="cover"
               />
             </NativeAsset>
@@ -91,7 +91,7 @@ const ProfileNativeAd = () => {
           <View className="min-w-0 flex-1">
             <NativeAsset assetType={NativeAssetType.HEADLINE}>
               <Text
-                className="text-base font-semibold text-ui-shade"
+                className="text-base font-semibold text-ui-ink"
                 numberOfLines={2}
               >
                 {nativeAd.headline}
@@ -100,7 +100,7 @@ const ProfileNativeAd = () => {
 
             {nativeAd.advertiser ? (
               <NativeAsset assetType={NativeAssetType.ADVERTISER}>
-                <Text className="mt-0.5 text-xs text-ui-shade/60">
+                <Text className="mt-0.5 text-xs text-ui-ink/60">
                   {nativeAd.advertiser}
                 </Text>
               </NativeAsset>
@@ -108,7 +108,7 @@ const ProfileNativeAd = () => {
 
             {nativeAd.body ? (
               <NativeAsset assetType={NativeAssetType.BODY}>
-                <Text className="mt-2 text-sm text-ui-shade" numberOfLines={2}>
+                <Text className="mt-2 text-sm text-ui-ink" numberOfLines={2}>
                   {nativeAd.body}
                 </Text>
               </NativeAsset>
@@ -120,9 +120,9 @@ const ProfileNativeAd = () => {
           <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
             <View
               className="mt-3 min-h-11 items-center justify-center rounded-md px-4"
-              style={{ backgroundColor: COLORS.highlight }}
+              style={{ backgroundColor: COLORS.forest }}
             >
-              <Text className="text-sm font-semibold text-white">
+              <Text className="text-sm font-semibold text-ui-paper">
                 {nativeAd.callToAction}
               </Text>
             </View>

@@ -18,7 +18,6 @@ import {
   Pressable,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as z from "zod";
 import FieldEditorContent from "./FieldEditorContent";
 
@@ -26,10 +25,8 @@ interface FieldEditorSheetProps {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   fieldType: string;
-  onUpdate: (field: string, value: any) => Promise<void>;
-  currentValue: any;
-  isLoading: boolean;
-  form: any;
+  onUpdate: (field: string, value: unknown) => Promise<void>;
+  currentValue: unknown;
   schemaType?: "profile" | "preferences" | "settings";
   currentUsername?: string;
 }
@@ -43,8 +40,8 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
   schemaType = "profile",
   currentUsername,
 }) => {
-  const insets = useSafeAreaInsets();
   const [value, setValue] = useState(currentValue);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const isUsernameField = schemaType === "profile" && fieldType === "username";
   const usernameAvailability = useUsernameAvailability({
@@ -53,8 +50,9 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
     enabled: isOpen && isUsernameField,
   });
   const isSubmitDisabled =
-    isUsernameField &&
-    (usernameAvailability.isChecking || !usernameAvailability.canSubmit);
+    isSubmitting ||
+    (isUsernameField &&
+      (usernameAvailability.isChecking || !usernameAvailability.canSubmit));
   const safeFieldType = fieldType || "";
   const formattedFieldType = safeFieldType
     .replace(/([A-Z])/g, " $1")
@@ -68,13 +66,20 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
     }
   }, [currentValue, fieldType, isOpen]);
 
-  const handleValueChange = (nextValue: any) => {
+  const handleValueChange = (nextValue: unknown) => {
     setValue(nextValue);
     setErrorMessage("");
   };
 
-  const getFieldSchema = (schema: any, fieldPath: string) => {
-    return fieldPath.split(".").reduce((acc, key) => acc?.shape?.[key], schema);
+  const getFieldSchema = (schema: z.ZodType, fieldPath: string) => {
+    let currentSchema = schema;
+    for (const key of fieldPath.split(".")) {
+      if (!(currentSchema instanceof z.ZodObject)) return undefined;
+      const nextSchema = currentSchema.shape[key];
+      if (!nextSchema) return undefined;
+      currentSchema = nextSchema;
+    }
+    return currentSchema;
   };
 
   const validateField = async () => {
@@ -100,6 +105,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
   };
 
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     if (isSubmitDisabled) {
       setErrorMessage(
         usernameAvailability.message || "Please choose an available username.",
@@ -108,6 +114,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
     }
 
     try {
+      setIsSubmitting(true);
       setErrorMessage("");
       await validateField();
       await onUpdate(fieldType, value);
@@ -126,6 +133,8 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
       }
 
       setErrorMessage("Unable to update this field. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -156,29 +165,31 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
 
         <View className="w-full flex-1">
           <View className="w-full px-4 pb-3">
-            <View className="flex-row items-center justify-between gap-4 rounded-[28px] bg-ui-foreground p-4">
+            <View className="flex-row items-center justify-between gap-4 rounded-[24px] bg-ui-midnight p-4">
               <Pressable
-              onPress={handleCancelPress}
-              className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/10 active:opacity-75"
-              hitSlop={4}
-              accessibilityRole="button"
-              accessibilityLabel="Cancel edit"
-            >
-              <Icon
-                name="X"
-                size={22}
-                className="text-ui-light"
-              />
+                onPress={handleCancelPress}
+                disabled={isSubmitting}
+                className="h-11 w-11 items-center justify-center rounded-full bg-ui-paper/10 active:opacity-75"
+                hitSlop={4}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel edit"
+                accessibilityState={{ disabled: isSubmitting }}
+              >
+                <Icon name="X" size={22} className="text-ui-paper" />
               </Pressable>
 
               <View className="flex-1">
-                <Text className="text-xs font-semibold text-ui-light/60">
-                  Editing profile
+                <Text className="text-xs font-semibold text-ui-paper/60">
+                  {schemaType === "preferences"
+                    ? "Editing preferences"
+                    : schemaType === "settings"
+                      ? "Editing account settings"
+                      : "Editing profile"}
                 </Text>
-                <Text className="mt-1 capitalize text-2xl font-bold leading-7 text-ui-light">
+                <Text className="mt-1 capitalize text-2xl font-bold leading-7 text-ui-paper">
                   {formattedFieldType || "Field"}
                 </Text>
-                <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+                <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
                   Keep it honest, specific, and easy to reply to.
                 </Text>
               </View>
@@ -186,7 +197,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
               <Pressable
                 onPress={handleSubmitPress}
                 disabled={isSubmitDisabled}
-                className={`h-11 w-11 items-center justify-center rounded-full bg-ui-primary ${
+                className={`h-11 w-11 items-center justify-center rounded-full bg-ui-champagne ${
                   isSubmitDisabled ? "opacity-40" : "active:opacity-80"
                 }`}
                 hitSlop={4}
@@ -194,11 +205,7 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
                 accessibilityLabel="Save edit"
                 accessibilityState={{ disabled: isSubmitDisabled }}
               >
-                <Icon
-                  name="Check"
-                  size={22}
-                  className="text-ui-shade"
-                />
+                <Icon name="Check" size={22} className="text-ui-ink" />
               </Pressable>
             </View>
           </View>
@@ -207,11 +214,8 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
             className="w-full flex-1 px-4"
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
-            contentContainerStyle={{
-              paddingBottom: Math.max(insets.bottom, 24),
-            }}
           >
-            <View className="rounded-[28px] border border-ui-border bg-ui-light p-4">
+            <View className="rounded-[24px] border border-ui-parchment bg-ui-paper p-4">
               {safeFieldType ? (
                 <FieldEditorContent
                   fieldType={safeFieldType}
@@ -223,8 +227,8 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
                 />
               ) : null}
               {errorMessage ? (
-                <View className="mt-4 rounded-2xl bg-red-50 p-3">
-                  <Text className="text-sm font-medium text-red-600">
+                <View className="mt-4 rounded-2xl bg-ui-danger/5 p-3">
+                  <Text className="text-sm font-medium text-ui-danger">
                     {errorMessage}
                   </Text>
                 </View>

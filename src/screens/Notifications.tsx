@@ -43,7 +43,7 @@ const goBack = () => {
   if (typeof router.canGoBack === "function" && router.canGoBack()) {
     router.back();
   } else {
-    router.navigate("/explore" as any);
+    router.navigate("/explore");
   }
 };
 
@@ -114,6 +114,12 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     triggerSelectionHaptic();
     markAllRead.mutate();
   }, [markAllRead]);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !isFetchingMore) {
+      loadMore();
+    }
+  }, [hasMore, isFetchingMore, loadMore]);
 
   const renderItem = useCallback(
     ({ item }: { item: NotificationItem }) => (
@@ -201,20 +207,16 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
               <RefreshControl
                 refreshing={isRefreshing}
                 onRefresh={handleRefresh}
-                tintColor={COLORS.highlight}
-                colors={[COLORS.highlight]}
+                tintColor={COLORS.forest}
+                colors={[COLORS.forest]}
               />
             }
-            onEndReached={() => {
-              if (hasMore && !isFetchingMore) {
-                loadMore();
-              }
-            }}
+            onEndReached={handleLoadMore}
             onEndReachedThreshold={0.4}
             ListFooterComponent={
               <View className="py-3">
                 {isFetchingMore ? (
-                  <ActivityIndicator color={COLORS.highlight} />
+                  <ActivityIndicator color={COLORS.forest} />
                 ) : hasMore ? (
                   <Button
                     text="Load more"
@@ -223,7 +225,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
                     className="rounded-2xl"
                   />
                 ) : visibleItems.length >= 10 ? (
-                  <Text className="text-center text-xs text-ui-shade/60">
+                  <Text className="text-center text-xs text-ui-ink/60">
                     You&apos;re all caught up.
                   </Text>
                 ) : null}
@@ -235,7 +237,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
 
       {error && items.length > 0 ? (
         <View className="px-4 pb-4" accessibilityLiveRegion="polite">
-          <View className="flex-row items-center gap-2 rounded-2xl bg-red-50 px-4 py-3">
+          <View className="flex-row items-center gap-2 rounded-2xl bg-ui-danger/5 px-4 py-3">
             <Icon name="CircleAlert" size={18} color={COLORS.danger} />
             <Text className="flex-1 text-sm text-ui-danger">
               Could not refresh notifications. Pull down to try again.
@@ -264,16 +266,16 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
   // Standalone mode: back arrow + title + right action.
   if (onClose) {
     return (
-      <View className="h-16 flex-row items-center justify-between border-b border-ui-border bg-ui-light px-4">
+      <View className="h-16 flex-row items-center justify-between border-b border-ui-parchment bg-ui-paper px-4">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Close notifications"
           onPress={onClose}
-          className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/5 active:opacity-70"
+          className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest/5 active:opacity-70"
         >
-          <Icon name="X" size={20} color={COLORS.shade} />
+          <Icon name="X" size={20} color={COLORS.ink} />
         </Pressable>
-        <Text className="text-base font-semibold text-ui-dark">
+        <Text className="text-base font-semibold text-ui-ink">
           Notifications
         </Text>
         {(showMarkAll || isMarkingAll) && onMarkAll ? (
@@ -283,12 +285,12 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
             onPress={onMarkAll}
             disabled={isMarkingAll}
             accessibilityState={{ disabled: isMarkingAll, busy: isMarkingAll }}
-            className="min-h-11 items-center justify-center rounded-full bg-ui-highlight/10 px-3 active:opacity-70"
+            className="min-h-11 items-center justify-center rounded-full bg-ui-forest/10 px-3 active:opacity-70"
           >
             {isMarkingAll ? (
-              <ActivityIndicator size="small" color={COLORS.highlight} />
+              <ActivityIndicator size="small" color={COLORS.forest} />
             ) : (
-              <Text className="text-xs font-semibold text-ui-highlight">Mark all read</Text>
+              <Text className="text-xs font-semibold text-ui-forest">Mark all read</Text>
             )}
           </Pressable>
         ) : (
@@ -304,20 +306,20 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         accessibilityRole="button"
         accessibilityLabel="Go back"
         onPress={goBack}
-        className="h-11 w-11 items-center justify-center rounded-full active:bg-ui-highlight/5"
+        className="h-11 w-11 items-center justify-center rounded-full active:bg-ui-forest/5"
         hitSlop={8}
       >
         <Icon
           name="ArrowLeft"
           size={24}
-          color={COLORS.shade}
+          color={COLORS.ink}
         />
       </Pressable>
       <View className="flex-1 px-3">
-        <Text className="text-[28px] font-bold leading-8 text-ui-shade" accessibilityRole="header">
+        <Text className="text-[28px] font-bold leading-8 text-ui-ink" accessibilityRole="header">
           Notifications
         </Text>
-        <Text className="mt-0.5 text-xs text-ui-muted">
+        <Text className="mt-0.5 text-xs text-ui-slate">
           The moments worth coming back to
         </Text>
       </View>
@@ -328,12 +330,12 @@ const ScreenHeader: React.FC<ScreenHeaderProps> = ({
           accessibilityRole="button"
           accessibilityLabel="Mark all notifications as read"
           accessibilityState={{ disabled: isMarkingAll, busy: isMarkingAll }}
-          className="min-h-11 justify-center rounded-full bg-ui-highlight/10 px-3 active:opacity-70"
+          className="min-h-11 justify-center rounded-full bg-ui-forest/10 px-3 active:opacity-70"
         >
           {isMarkingAll ? (
-            <ActivityIndicator size="small" color={COLORS.highlight} />
+            <ActivityIndicator size="small" color={COLORS.forest} />
           ) : (
-            <Text className="text-sm font-semibold text-ui-highlight">Mark all read</Text>
+            <Text className="text-sm font-semibold text-ui-forest">Mark all read</Text>
           )}
         </Pressable>
       ) : (
@@ -364,31 +366,31 @@ const NotificationHero = ({
       : "A calm inbox";
 
   return (
-    <View className="mx-4 mt-3 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+    <View className="mx-4 mt-3 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
       <View className="flex-row items-start justify-between gap-4">
         <View className="flex-1">
-          <Text className="text-2xl font-bold text-ui-light" accessibilityRole="header">
+          <Text className="text-2xl font-bold text-ui-paper" accessibilityRole="header">
             What needs your attention
           </Text>
-          <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+          <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
             Matches, messages, feedback, and community moments gathered in one place.
           </Text>
         </View>
-        <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary">
+        <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-champagne">
           <Icon
             name={hasUnread ? "BellRing" : "Check"}
             size={20}
-            color={COLORS.shade}
+            color={COLORS.ink}
           />
         </View>
       </View>
 
       <View className="mt-5 flex-row items-end justify-between gap-3">
         <View className="min-w-0 flex-1">
-          <Text className="text-3xl font-bold text-ui-light">
+          <Text className="text-3xl font-bold text-ui-paper">
             {hasUnread ? unreadCount : totalCount}
           </Text>
-          <Text className="mt-0.5 text-sm text-ui-light/70">
+          <Text className="mt-0.5 text-sm text-ui-paper/70">
             {countLabel}
           </Text>
         </View>
@@ -399,12 +401,12 @@ const NotificationHero = ({
             accessibilityState={{ disabled: isMarkingAll, busy: isMarkingAll }}
             disabled={isMarkingAll}
             onPress={onMarkAll}
-            className="min-h-11 items-center justify-center rounded-full bg-ui-light/10 px-4 active:opacity-75"
+            className="min-h-11 items-center justify-center rounded-full bg-ui-paper/10 px-4 active:opacity-75"
           >
             {isMarkingAll ? (
-              <ActivityIndicator size="small" color={COLORS.light} />
+              <ActivityIndicator size="small" color={COLORS.paper} />
             ) : (
-              <Text className="text-sm font-semibold text-ui-light">
+              <Text className="text-sm font-semibold text-ui-paper">
                 Mark all
               </Text>
             )}
@@ -416,7 +418,7 @@ const NotificationHero = ({
 };
 
 const NotificationHeroSkeleton: React.FC = () => (
-  <View className="overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+  <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
     <View className="flex-row items-start justify-between gap-4">
       <View className="flex-1">
         <Skeleton width="72%" height={24} />
@@ -431,7 +433,7 @@ const NotificationHeroSkeleton: React.FC = () => (
 );
 
 const NotificationSkeleton: React.FC = () => (
-  <View className="flex-row gap-3 rounded-[24px] border border-ui-border bg-ui-light p-4">
+  <View className="flex-row gap-3 rounded-[24px] border border-ui-parchment bg-ui-paper p-4">
     <Skeleton width={40} height={40} radius={9999} />
     <View className="flex-1 gap-2">
       <Skeleton width="55%" height={14} />
@@ -453,7 +455,7 @@ const NotificationFilters = ({
   unreadCount: number;
 }) => (
   <View
-    className="mx-4 mt-3 flex-row rounded-full border border-ui-border bg-ui-light p-1.5"
+    className="mx-4 mt-3 flex-row rounded-full border border-ui-parchment bg-ui-paper p-1.5"
     accessibilityRole="tablist"
   >
     {([
@@ -471,23 +473,23 @@ const NotificationFilters = ({
             }
           }}
           className={`min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-full px-3 active:opacity-75 ${
-            selected ? "bg-ui-highlight" : "bg-transparent"
+            selected ? "bg-ui-forest" : "bg-transparent"
           }`}
           accessibilityRole="tab"
           accessibilityLabel={`${item.label}, ${item.count}`}
           accessibilityState={{ selected }}
         >
           <Text
-            className={`text-sm font-semibold ${selected ? "text-ui-light" : "text-ui-muted"}`}
+            className={`text-sm font-semibold ${selected ? "text-ui-paper" : "text-ui-slate"}`}
           >
             {item.label}
           </Text>
           <View
             className={`min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 ${
-              selected ? "bg-ui-primary" : "bg-ui-shade/10"
+              selected ? "bg-ui-champagne" : "bg-ui-ink/10"
             }`}
           >
-            <Text className="text-xs font-bold text-ui-shade">{item.count}</Text>
+            <Text className="text-xs font-bold text-ui-ink">{item.count}</Text>
           </View>
         </Pressable>
       );
@@ -496,14 +498,14 @@ const NotificationFilters = ({
 );
 
 const UnreadEmptyState = ({ onShowAll }: { onShowAll: () => void }) => (
-  <View className="mx-4 mt-6 items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8">
-    <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
-      <Icon name="CheckCheck" size={24} color={COLORS.highlight} />
+  <View className="mx-4 mt-6 items-center rounded-[24px] border border-ui-parchment bg-ui-paper px-6 py-8">
+    <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-forest/10">
+      <Icon name="CheckCheck" size={24} color={COLORS.forest} />
     </View>
-    <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+    <Text className="mt-4 text-center text-xl font-bold text-ui-ink">
       No unread updates
     </Text>
-    <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+    <Text className="mt-2 text-center text-sm leading-5 text-ui-slate">
       You have seen everything new. Your earlier notifications are still available.
     </Text>
     <Button
@@ -528,19 +530,19 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onRefresh, isRefreshing }) => (
       <RefreshControl
         refreshing={isRefreshing}
         onRefresh={onRefresh}
-        tintColor={COLORS.highlight}
-        colors={[COLORS.highlight]}
+        tintColor={COLORS.forest}
+        colors={[COLORS.forest]}
       />
     }
   >
-    <View className="items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8">
-      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
-        <Icon name="Bell" size={24} color={COLORS.highlight} />
+    <View className="items-center rounded-[24px] border border-ui-parchment bg-ui-paper px-6 py-8">
+      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-forest/10">
+        <Icon name="Bell" size={24} color={COLORS.forest} />
       </View>
-      <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+      <Text className="mt-4 text-center text-xl font-bold text-ui-ink">
         You&apos;re all caught up
       </Text>
-      <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+      <Text className="mt-2 text-center text-sm leading-5 text-ui-slate">
         New matches, feedback, verification updates, and community activity will
         show up here.
       </Text>
@@ -556,16 +558,16 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onRefresh, isRefreshing }) => (
 
 const NotificationErrorState = ({ onRetry }: { onRetry: () => void }) => (
   <View
-    className="mx-4 mt-8 items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8"
+    className="mx-4 mt-8 items-center rounded-[24px] border border-ui-parchment bg-ui-paper px-6 py-8"
     accessibilityLiveRegion="polite"
   >
-    <View className="h-14 w-14 items-center justify-center rounded-full bg-red-50">
+    <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-danger/5">
       <Icon name="CloudOff" size={24} color={COLORS.danger} />
     </View>
-    <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+    <Text className="mt-4 text-center text-xl font-bold text-ui-ink">
       Notifications are taking a moment
     </Text>
-    <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+    <Text className="mt-2 text-center text-sm leading-5 text-ui-slate">
       We could not load your updates. Check your connection and try again.
     </Text>
     <Button text="Try again" onClick={onRetry} className="mt-5 px-6" />

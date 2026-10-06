@@ -32,31 +32,13 @@ const EditPreferenceScreen = () => {
     setIsEditFieldOpen(true);
   };
 
-  const handleFieldUpdate = async (field: keyof UserPreferences, value: any) => {
+  const handleFieldUpdate = async (field: string, value: unknown) => {
     try {
       setPreferences((prev) => {
-        const newPrefs = { ...prev } as UserPreferences;
-        if (field.includes(".")) {
-          const [parent, child] = field.split(".");
-          const parentKey = parent as keyof UserPreferences;
-          const parentValue = newPrefs[parentKey] as Record<string, any>;
-          // @ts-ignore
-          newPrefs[parentKey] = {
-            ...parentValue,
-            [child]: value,
-          } as typeof parentValue;
-        } else {
-          // @ts-ignore
-          newPrefs[field] = value as (typeof newPrefs)[typeof field];
-        }
-        return newPrefs;
+        return prev ? ({ ...prev, [field]: value } as UserPreferences) : prev;
       });
 
-      const updateData = field.includes(".")
-        ? { [field.split(".")[0]]: { [field.split(".")[1]]: value } }
-        : { [field]: value };
-
-      await updateUserPreferences(updateData);
+      await updateUserPreferences({ [field]: value });
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ["user-profile", userId],
@@ -126,12 +108,10 @@ const EditPreferenceScreen = () => {
         isOpen={isEditFieldOpen}
         setIsOpen={setIsEditFieldOpen}
         fieldType={editFieldType as string}
-        onUpdate={handleFieldUpdate as any}
+        onUpdate={handleFieldUpdate}
         currentValue={
           editFieldType && preferences ? preferences[editFieldType] : null
         }
-        isLoading={isLoading}
-        form={preferences as UserPreferences}
         schemaType="preferences"
       />
       <ScrollView
@@ -141,49 +121,49 @@ const EditPreferenceScreen = () => {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <View className="mb-5 overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text
-                className="text-[28px] font-bold leading-8 text-ui-light"
+                className="text-[28px] font-bold leading-8 text-ui-paper"
                 accessibilityRole="header"
               >
                 Tune the people you meet
               </Text>
-              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-2 text-sm leading-5 text-ui-paper/70">
                 Your preferences help Lumore find matches that feel intentional,
                 not random.
               </Text>
             </View>
-            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary">
-              <Icon name="SlidersHorizontal" size={20} color={COLORS.shade} />
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-champagne">
+              <Icon name="SlidersHorizontal" size={20} color={COLORS.ink} />
             </View>
           </View>
         </View>
 
-        <View className="rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-shade">
+              <Text className="text-xl font-bold text-ui-ink">
                 Match preference strength
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 Complete preferences make your pool more relevant.
               </Text>
             </View>
-            <View className="min-h-11 min-w-14 items-center justify-center rounded-full bg-ui-highlight px-3">
-              <Text className="font-bold text-ui-light">
+            <View className="min-h-11 min-w-14 items-center justify-center rounded-2xl bg-ui-forest px-3">
+              <Text className="font-bold text-ui-paper">
                 {completionPercent}%
               </Text>
             </View>
           </View>
-          <View className="mt-4 h-2.5 w-full rounded-full bg-ui-highlight/10">
+          <View className="mt-4 h-2.5 w-full rounded-full bg-ui-forest/10">
             <View
-              className="h-2.5 rounded-full bg-ui-highlight"
+              className="h-2.5 rounded-full bg-ui-forest"
               style={{ width: `${completionPercent}%` }}
             />
           </View>
-          <Text className="mt-3 text-sm leading-5 text-ui-muted">
+          <Text className="mt-3 text-sm leading-5 text-ui-slate">
             {missingCount > 0
               ? `${missingCount} preference${missingCount === 1 ? "" : "s"} left to complete.`
               : "You’re all set — your preferences are complete."}
@@ -193,27 +173,27 @@ const EditPreferenceScreen = () => {
         <View className="mt-4 flex-row gap-3">
           <Pressable
             onPress={() => handleEditField("interestedIn")}
-            className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-4 active:opacity-80"
+            className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-ui-forest px-4 active:opacity-80"
             accessibilityRole="button"
             accessibilityLabel="Edit interested in preference"
           >
-            <Icon name="Heart" size={17} color={COLORS.light} />
-            <Text className="font-semibold text-ui-light">Interested in</Text>
+            <Icon name="Heart" size={17} color={COLORS.paper} />
+            <Text className="font-semibold text-ui-paper">Interested in</Text>
           </Pressable>
           <Pressable
             onPress={() => handleEditField("goal")}
-            className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full border border-ui-highlight/25 bg-ui-light px-4 active:bg-ui-highlight/5"
+            className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-ui-forest/25 bg-ui-paper px-4 active:bg-ui-forest/5"
             accessibilityRole="button"
             accessibilityLabel="Edit relationship goals"
           >
-            <Icon name="Target" size={17} color={COLORS.highlight} />
-            <Text className="font-semibold text-ui-highlight">Goals</Text>
+            <Icon name="Target" size={17} color={COLORS.forest} />
+            <Text className="font-semibold text-ui-forest">Goals</Text>
           </Pressable>
         </View>
 
         <PrefrenceFieldsList
           preferences={preferences}
-          onEdit={handleEditField as any}
+          onEdit={handleEditField}
         />
       </ScrollView>
     </View>
@@ -224,7 +204,7 @@ const EditPreferenceSkeleton = () => (
   <View>
     <Skeleton width="100%" height={132} radius={32} />
 
-    <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+    <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
       <Skeleton width={150} height={14} />
       <Skeleton width={210} height={11} style={{ marginTop: 10 }} />
       <Skeleton width="100%" height={8} radius={999} style={{ marginTop: 12 }} />
@@ -235,7 +215,7 @@ const EditPreferenceSkeleton = () => (
       {Array.from({ length: 8 }).map((_, index) => (
         <View
           key={`edit-preference-skeleton-${index}`}
-          className="rounded-[22px] bg-ui-light p-4"
+          className="rounded-[22px] bg-ui-paper p-4"
         >
           <Skeleton width={index % 2 ? "42%" : "56%"} height={12} />
           <Skeleton width="82%" height={12} style={{ marginTop: 10 }} />

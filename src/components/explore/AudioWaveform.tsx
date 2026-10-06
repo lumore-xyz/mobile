@@ -1,4 +1,5 @@
 import { DEFAULT_WAVEFORM_BAR_COUNT, normalizeWaveformSamples } from "@/src/utils/audioWaveform";
+import { COLORS } from "@/src/libs/constants/theme";
 import React, { useMemo } from "react";
 import { View } from "react-native";
 
@@ -22,8 +23,8 @@ export const AudioWaveform = React.memo(function AudioWaveform({
   height = 42,
   barWidth = 3,
   gap = 4,
-  activeColor = "#FFFFFF",
-  inactiveColor = "rgba(255,255,255,0.45)",
+  activeColor = COLORS.paper,
+  inactiveColor = `${COLORS.paper}73`,
 }: AudioWaveformProps) {
   const bars = useMemo(
     () => normalizeWaveformSamples(samples, barCount, seed),

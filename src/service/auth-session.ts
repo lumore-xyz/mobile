@@ -15,7 +15,7 @@ type DecodedToken = {
 
 let refreshRequest: Promise<string | null> | null = null;
 
-export const isTokenExpired = (
+const isTokenExpired = (
   token: string | null | undefined,
   skewSeconds = 30,
 ) => {

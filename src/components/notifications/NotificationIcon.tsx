@@ -1,41 +1,40 @@
 import React from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import Icon from "../../libs/Icon";
 import { COLORS } from "../../libs/constants/theme";
-import type { NotificationEntityType } from "../../libs/notifications/constants";
 
 interface NotificationIconProps {
-  entityType: NotificationEntityType | string | null;
+  entityType: string | null;
   type: string | null;
   size?: number;
 }
 
 const ENTITY_ICONS: Record<string, { name: string; color: string }> = {
-  match: { name: "Heart", color: COLORS.accent },
-  community: { name: "MapPin", color: COLORS.foreground },
-  feedback: { name: "MessageCircleMore", color: COLORS.highlight },
-  game: { name: "Gamepad2", color: COLORS.accent },
-  account: { name: "ShieldCheck", color: COLORS.highlight },
-  system: { name: "Bell", color: COLORS.highlight },
+  match: { name: "Heart", color: COLORS.aubergine },
+  community: { name: "MapPin", color: COLORS.midnight },
+  feedback: { name: "MessageCircleMore", color: COLORS.forest },
+  game: { name: "Gamepad2", color: COLORS.aubergine },
+  account: { name: "ShieldCheck", color: COLORS.forest },
+  system: { name: "Bell", color: COLORS.forest },
 };
 
 const TYPE_OVERRIDES: Record<string, { name: string; color: string }> = {
   FEEDBACK_RECEIVED: {
     name: "MessageCircleMore",
-    color: COLORS.highlight,
+    color: COLORS.forest,
   },
   ACCOUNT_VERIFICATION_APPROVED: {
     name: "ShieldCheck",
-    color: COLORS.highlight,
+    color: COLORS.forest,
   },
   ACCOUNT_VERIFICATION_COMPLETED: {
     name: "ShieldCheck",
-    color: COLORS.highlight,
+    color: COLORS.forest,
   },
   ACCOUNT_VERIFICATION_REVOKED: {
     name: "ShieldHalf",
-    color: COLORS.primary,
+    color: COLORS.champagne,
   },
   ACCOUNT_VERIFICATION_REJECTED: {
     name: "ShieldX",
@@ -43,7 +42,7 @@ const TYPE_OVERRIDES: Record<string, { name: string; color: string }> = {
   },
   GAME_SUBMISSION_APPROVED: {
     name: "CircleCheck",
-    color: COLORS.highlight,
+    color: COLORS.forest,
   },
   GAME_SUBMISSION_REJECTED: {
     name: "CircleX",
@@ -51,27 +50,27 @@ const TYPE_OVERRIDES: Record<string, { name: string; color: string }> = {
   },
   COMMUNITY_INVITE_RECEIVED: {
     name: "MailOpen",
-    color: COLORS.foreground,
+    color: COLORS.midnight,
   },
   COMMUNITY_JOINED: {
     name: "LogIn",
-    color: COLORS.foreground,
+    color: COLORS.midnight,
   },
   COMMUNITY_ROLE_UPDATED: {
     name: "Key",
-    color: COLORS.foreground,
+    color: COLORS.midnight,
   },
   MATCH_CREATED: {
     name: "Heart",
-    color: COLORS.accent,
+    color: COLORS.aubergine,
   },
   MATCH_CREATED_FROM_COMMUNITY: {
     name: "Heart",
-    color: COLORS.accent,
+    color: COLORS.aubergine,
   },
   SYSTEM_MESSAGE: {
     name: "Bell",
-    color: COLORS.highlight,
+    color: COLORS.forest,
   },
 };
 
@@ -96,17 +95,6 @@ const NotificationIcon: React.FC<NotificationIconProps> = ({
         color={config.color}
       />
     </View>
-  );
-};
-
-export const NotificationTypeBadge: React.FC<{ type?: string | null }> = ({
-  type,
-}) => {
-  if (!type) return null;
-  return (
-    <Text className="text-[10px] uppercase tracking-wide text-ui-shade/60">
-      {type.replace(/_/g, " ")}
-    </Text>
   );
 };
 

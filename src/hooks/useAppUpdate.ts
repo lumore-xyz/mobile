@@ -14,7 +14,7 @@ import {
   isVersionLessThan,
 } from "../utils/version";
 
-export type AppUpdateStatus = "idle" | "checking" | "up-to-date" | "optional" | "force";
+type AppUpdateStatus = "idle" | "checking" | "up-to-date" | "optional" | "force";
 
 export type AppUpdateState = {
   status: AppUpdateStatus;
@@ -72,14 +72,6 @@ const writeCache = (
     storage.set(getCachedAppVersionKey(platform), JSON.stringify(entry));
   } catch {
     // Cache failures are non-fatal.
-  }
-};
-
-const clearCache = (platform: AppVersionPlatform) => {
-  try {
-    storage.remove(getCachedAppVersionKey(platform));
-  } catch {
-    // Ignore.
   }
 };
 
@@ -196,8 +188,4 @@ export const useAppUpdate = (): AppUpdateState => {
     error,
     refresh,
   };
-};
-
-export const clearAppUpdateCache = (platform?: AppVersionPlatform) => {
-  clearCache(platform || getPlatformKey());
 };

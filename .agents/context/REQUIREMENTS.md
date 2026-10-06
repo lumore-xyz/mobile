@@ -2,26 +2,27 @@
 
 ## Product Description
 
-Lumore is a modern dating mobile app focused on meaningful connection, profile expression, chat, local/community discovery, notifications, credits, and interactive games. The desired product feeling is classy, smooth, warm, intimate, and bold, guided by the Lover and Outlaw brand archetypes.
+Lumore is a premium, curated matchmaking app for accomplished people seeking thoughtful, compatible partners. It supports profile expression, daily introductions, chat, local/community discovery, notifications, credits, and interactive games. The product should feel cultivated, assured, intimate, discreet, and welcoming; curation and privacy create its sense of selectivity.
 
 ## Current Requirements
 
 - Users can authenticate through standard auth flows and Google Sign-In.
 - Users can complete onboarding and manage their profile and preferences.
-- Users can explore potential matches and view profile details.
+- Users can unlock daily Explore suggestions for one credit, view ranked profiles and match notes, and start a conversation without another charge.
 - Users can chat with matches, including media/audio-oriented chat UI.
 - Users can create posts and participate in community/location room flows.
 - Users can receive and open notifications.
 - Users can view and earn credits, including ad-backed credit flows.
 - Users can access settings, feedback, referral, games, and app-update flows.
-- UI must follow `.agents/context/DESIGN_SYSTEM.md`.
+- Introductions should foreground meaningful compatibility and clear match context without treating scores as a measure of personal worth.
+- The product should communicate discretion, privacy, hospitality, and quality through its service and visual language, without status-coded ranking or pressure tactics.
+- UI must follow `.agents/context/DESIGN_SYSTEM.md` across every flow.
 - Changes must pass lint and typecheck unless a blocker is documented.
 
 ## Future Requirements
 
-- Create a more distinctive, premium dating-app visual language across all main flows.
+- Review the implemented palette and editorial typography across all main flows at device sizes; correct remaining inconsistencies and contrast issues.
 - Reduce generic white-card UI and boxy layouts.
-- Centralize semantic design tokens so screens do not rely on scattered raw hex values.
 - Improve accessibility for touch targets, labels, contrast, screen reader roles, and dynamic text.
 - Add tests for high-risk logic and user-facing workflows.
 - Keep project decisions and todo planning documented in `.agents/context`.

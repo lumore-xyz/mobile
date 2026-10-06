@@ -6,7 +6,7 @@ Route users to the correct first screen after app launch based on session validi
 
 ## Current Behavior
 
-The splash flow checks whether stored access/refresh tokens can produce a valid session. It then routes unauthenticated users to login, incomplete users to onboarding, and onboarded users to explore.
+The splash flow checks whether stored access/refresh tokens can produce a valid session. It then routes unauthenticated users to login, incomplete users to onboarding, and onboarded users to explore. Local user JSON is validated before its identity fields are exposed, and onboarding flags are read as explicit boolean strings.
 
 ## Key Files
 

@@ -1,5 +1,7 @@
 import Icon from "@/src/libs/Icon";
+import { COLORS } from "@/src/libs/constants/theme";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import UPDATE_HERO from "@/assets/images/app-update-hero.png";
 import {
   Image,
   Linking,
@@ -7,7 +9,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
+  Pressable,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -42,8 +44,8 @@ const UpdateButtonGradient = () => (
   >
     <Defs>
       <LinearGradient id="updateGradient" x1="0" x2="1" y1="0" y2="0">
-        <Stop offset="0" stopColor="#5120AE" />
-        <Stop offset="1" stopColor="#7C3CE3" />
+        <Stop offset="0" stopColor={COLORS.forest} />
+        <Stop offset="1" stopColor={COLORS.midnight} />
       </LinearGradient>
     </Defs>
     <Rect width={100} height={54} fill="url(#updateGradient)" />
@@ -141,7 +143,7 @@ const AppUpdatePrompt = ({ enabled = true }: Props) => {
             >
               <Image
                 accessibilityIgnoresInvertColors
-                source={require("../../../assets/images/app-update-hero.png")}
+                source={UPDATE_HERO}
                 resizeMode="contain"
                 style={[styles.heroImage, compact && styles.compactHeroImage]}
               />
@@ -166,7 +168,7 @@ const AppUpdatePrompt = ({ enabled = true }: Props) => {
                 <Icon
                   name="Download"
                   size={27}
-                  color="#6137BE"
+                  color={COLORS.forest}
                 />
               </View>
 
@@ -192,40 +194,38 @@ const AppUpdatePrompt = ({ enabled = true }: Props) => {
 
             <View style={styles.changesCard}>
               <View style={styles.changesHeadingRow}>
-                <Icon name="Sparkle" size={22} color="#633CB8" />
+                <Icon name="Sparkle" size={22} color={COLORS.forest} />
                 <Text style={styles.changesHeading}>What&apos;s new?</Text>
               </View>
 
               {WHATS_NEW.map((item) => (
                 <View key={item} style={styles.changeRow}>
-                  <Icon name="CircleCheck" size={17} color="#633CB8" />
+                  <Icon name="CircleCheck" size={17} color={COLORS.forest} />
                   <Text style={styles.changeText}>{item}</Text>
                 </View>
               ))}
             </View>
 
-            <TouchableOpacity
+            <Pressable
               accessibilityRole="button"
               accessibilityLabel="Update Lumore now"
-              activeOpacity={0.84}
               onPress={() => {
                 void openStore();
               }}
-              style={styles.updateButton}
+              style={({ pressed }) => [styles.updateButton, pressed && { opacity: 0.84 }]}
             >
               <UpdateButtonGradient />
               <Text style={styles.updateButtonText}>Update Now 🚀</Text>
-            </TouchableOpacity>
+            </Pressable>
 
             {!isForce ? (
-              <TouchableOpacity
+              <Pressable
                 accessibilityRole="button"
-                activeOpacity={0.72}
                 onPress={onLater}
-                style={styles.laterButton}
+                style={({ pressed }) => [styles.laterButton, pressed && { opacity: 0.72 }]}
               >
                 <Text style={styles.laterButtonText}>Later</Text>
-              </TouchableOpacity>
+              </Pressable>
             ) : null}
           </ScrollView>
         </View>
@@ -240,13 +240,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
-    backgroundColor: "rgba(10, 9, 16, 0.72)",
+    backgroundColor: `${COLORS.ink}B8`,
   },
   card: {
     overflow: "hidden",
     borderRadius: 30,
-    backgroundColor: "#FFFBF7",
-    shadowColor: "#100724",
+    backgroundColor: COLORS.paper,
+    shadowColor: COLORS.midnight,
     shadowOffset: { width: 0, height: 18 },
     shadowOpacity: 0.28,
     shadowRadius: 30,
@@ -261,18 +261,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 18,
-  },
-  closeButton: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    zIndex: 10,
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-    backgroundColor: "#EEEAE7",
   },
   heroViewport: {
     height: 244,
@@ -301,36 +289,23 @@ const styles = StyleSheet.create({
   },
   title: {
     flexShrink: 1,
-    color: "#251551",
+    color: COLORS.midnight,
     fontSize: 24,
     fontWeight: "800",
     letterSpacing: -0.7,
     textAlign: "center",
   },
-  goldAccent: {
-    marginRight: 10,
-    color: "#D9A536",
-    fontSize: 34,
-    fontWeight: "900",
-    lineHeight: 38,
-    transform: [{ rotate: "-35deg" }],
-  },
-  rightAccent: {
-    marginRight: 0,
-    marginLeft: 10,
-    transform: [{ rotate: "35deg" }],
-  },
   message: {
     alignSelf: "center",
     maxWidth: 350,
     marginTop: 10,
-    color: "#66646E",
+    color: COLORS.slate,
     fontSize: 15,
     lineHeight: 22,
     textAlign: "center",
   },
   brandName: {
-    color: "#7140CB",
+    color: COLORS.forest,
     fontWeight: "700",
   },
   versionCard: {
@@ -341,10 +316,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: "#E7E0DB",
+    borderColor: COLORS.parchment,
     borderRadius: 18,
-    backgroundColor: "#FFFCF9",
-    shadowColor: "#6A4C2E",
+    backgroundColor: COLORS.paper,
+    shadowColor: COLORS.midnight,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -357,19 +332,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
     borderRadius: 14,
-    backgroundColor: "#F1E8FF",
+    backgroundColor: `${COLORS.forest}10`,
   },
   versionColumn: {
     flex: 1,
     minWidth: 0,
   },
   versionLabel: {
-    color: "#68636D",
+    color: COLORS.slate,
     fontSize: 12,
     lineHeight: 17,
   },
   versionValue: {
-    color: "#201345",
+    color: COLORS.midnight,
     fontSize: 18,
     fontWeight: "800",
     lineHeight: 24,
@@ -378,7 +353,7 @@ const styles = StyleSheet.create({
     width: 1,
     height: 44,
     marginHorizontal: 14,
-    backgroundColor: "#DFD8D4",
+    backgroundColor: COLORS.parchment,
   },
   latestVersionRow: {
     flexDirection: "row",
@@ -389,10 +364,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: "#E4F2D7",
+    backgroundColor: COLORS.champagne,
   },
   newBadgeText: {
-    color: "#4D8B39",
+    color: COLORS.ink,
     fontSize: 10,
     fontWeight: "800",
   },
@@ -401,9 +376,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 15,
     borderWidth: 1,
-    borderColor: "#E3D5FF",
+    borderColor: `${COLORS.forest}26`,
     borderRadius: 18,
-    backgroundColor: "#F8F3FF",
+    backgroundColor: `${COLORS.forest}0A`,
   },
   changesHeadingRow: {
     flexDirection: "row",
@@ -412,7 +387,7 @@ const styles = StyleSheet.create({
     marginBottom: 7,
   },
   changesHeading: {
-    color: "#6039B5",
+    color: COLORS.forest,
     fontSize: 16,
     fontWeight: "800",
   },
@@ -424,7 +399,7 @@ const styles = StyleSheet.create({
   },
   changeText: {
     flex: 1,
-    color: "#363044",
+    color: COLORS.midnight,
     fontSize: 13,
     lineHeight: 18,
   },
@@ -443,7 +418,7 @@ const styles = StyleSheet.create({
   },
   updateButtonText: {
     zIndex: 1,
-    color: "#FFFFFF",
+    color: COLORS.paper,
     fontSize: 17,
     fontWeight: "800",
   },
@@ -457,12 +432,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 12,
     borderWidth: 1.5,
-    borderColor: "#6B35CF",
+    borderColor: COLORS.forest,
     borderRadius: 16,
-    backgroundColor: "#FFFBF7",
+    backgroundColor: COLORS.paper,
   },
   laterButtonText: {
-    color: "#6330C4",
+    color: COLORS.forest,
     fontSize: 16,
     fontWeight: "700",
   },

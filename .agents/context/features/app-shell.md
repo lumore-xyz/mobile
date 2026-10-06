@@ -6,7 +6,7 @@ Provide the global runtime wrapper for navigation, state, gestures, safe areas, 
 
 ## Current Behavior
 
-Root layout configures Google Sign-In, screen protection, OneSignal, safe areas, keyboard avoidance, Gluestack UI, provider tree, Expo Router stack, app update prompt, and status bar. The provider tree supplies React Query, gestures, ads, location, options, referral attribution, sockets, notification sync, confetti, and explore matchmaking.
+Root layout configures Google Sign-In, screen protection, OneSignal, safe areas, keyboard avoidance, Gluestack UI, provider tree, Expo Router stack, app update prompt, and status bar. The provider tree supplies React Query, gestures, ads, location, options, referral attribution, sockets, notification sync, confetti, and global realtime event handling.
 
 ## Key Files
 

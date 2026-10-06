@@ -4,11 +4,13 @@ import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
 import { createLocationRoom, getFormattedAddress } from "@/src/libs/apis";
 import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
+import { toUserFacingError } from "@/src/utils/userFacingError";
 import { useLocation } from "@/src/service/providers/LocationProvider";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 export default function CreateRoomScreen() {
   const { latitude, longitude, error } = useLocation();
@@ -53,12 +55,12 @@ export default function CreateRoomScreen() {
         imageUri: coverImageUri || undefined,
       }),
     onSuccess: (data) => {
-      router.replace(`/rooms/${data.room._id}` as any);
+      router.replace(`/community/${data.room._id}`);
     },
-    onError: (roomError: any) => {
+    onError: (roomError: unknown) => {
       Alert.alert(
         "Could not create community",
-        roomError?.response?.data?.message || "Please try again in a moment.",
+        toUserFacingError(roomError, "Please try again in a moment."),
       );
     },
   });
@@ -69,16 +71,16 @@ export default function CreateRoomScreen() {
       contentContainerClassName="pb-10"
       keyboardShouldPersistTaps="handled"
     >
-      <View className="mb-5 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+      <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
         <View className="flex-row items-start justify-between gap-4">
           <View className="flex-1">
             <Text
-              className="text-3xl font-bold text-ui-light"
+              className="font-display text-3xl text-ui-paper"
               accessibilityRole="header"
             >
               Create community
             </Text>
-            <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+            <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
               Start a local 24-hour pool for the people around your moment.
             </Text>
           </View>
@@ -86,40 +88,40 @@ export default function CreateRoomScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             onPress={() => router.back()}
-            className="h-11 w-11 items-center justify-center rounded-full bg-ui-light/10 active:opacity-75"
+            className="h-11 w-11 items-center justify-center rounded-full bg-ui-paper/10 active:opacity-75"
           >
-            <Icon name="X" size={21} color={COLORS.light} />
+            <Icon name="X" size={21} color={COLORS.paper} />
           </Pressable>
         </View>
 
         <View className="mt-5 flex-row items-end justify-between gap-3">
           <View>
-            <Text className="text-3xl font-bold text-ui-light">
+            <Text className="font-display text-3xl text-ui-paper">
               {hasLocation ? "Ready" : "Locating"}
             </Text>
-            <Text className="mt-0.5 text-sm text-ui-light/70">
+            <Text className="mt-0.5 text-sm text-ui-paper/70">
               {hasLocation ? "Nearby pool setup" : "Waiting for your area"}
             </Text>
           </View>
-          <View className="rounded-full bg-ui-primary px-3 py-1.5">
-            <Text className="text-xs font-bold text-ui-shade">24h cycle</Text>
+          <View className="rounded-full bg-ui-champagne px-3 py-1.5">
+            <Text className="text-xs font-bold text-ui-ink">24h cycle</Text>
           </View>
         </View>
       </View>
 
-      <View className="gap-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+      <View className="gap-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
         <View>
           <View className="mb-3 flex-row items-center justify-between gap-3">
             <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-shade">
+              <Text className="text-xl font-bold text-ui-ink">
                 Name the room
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 Make it specific enough that nearby people know the vibe.
               </Text>
             </View>
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/10">
-              <Icon name="Sparkles" size={20} color={COLORS.highlight} />
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest/10">
+              <Icon name="Sparkles" size={20} color={COLORS.forest} />
             </View>
           </View>
 
@@ -137,9 +139,9 @@ export default function CreateRoomScreen() {
             }
           />
 
-          <View className="mt-3 h-1.5 overflow-hidden rounded-full bg-ui-shade/10">
+          <View className="mt-3 h-1.5 overflow-hidden rounded-full bg-ui-ink/10">
             <View
-              className="h-1.5 rounded-full bg-ui-highlight"
+              className="h-1.5 rounded-full bg-ui-forest"
               style={{ width: `${titleProgress}%` }}
             />
           </View>
@@ -152,18 +154,18 @@ export default function CreateRoomScreen() {
             action={setDescription}
             placeholder="Who should join this community?"
           />
-          <Text className="mt-2 text-xs text-ui-muted">
+          <Text className="mt-2 text-xs text-ui-slate">
             {trimmedDescription.length
               ? `${trimmedDescription.length} characters`
               : "A short description helps people decide quickly."}
           </Text>
         </View>
 
-        <View className="rounded-[24px] border border-ui-border bg-ui-shade/5 p-4">
+        <View className="rounded-[24px] border border-ui-parchment bg-ui-ink/5 p-4">
           <View className="flex-row items-center justify-between gap-3">
             <View className="flex-1">
-              <Text className="font-bold text-ui-shade">Cover image</Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="font-bold text-ui-ink">Cover image</Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 Optional, but a good cover makes the room feel alive nearby.
               </Text>
             </View>
@@ -173,9 +175,9 @@ export default function CreateRoomScreen() {
                 coverImageUri ? "Change cover image" : "Upload cover image"
               }
               onPress={handlePickCoverImage}
-              className="min-h-11 items-center justify-center rounded-full border border-ui-border bg-ui-light px-4 active:opacity-75"
+              className="min-h-11 items-center justify-center rounded-full border border-ui-parchment bg-ui-paper px-4 active:opacity-75"
             >
-              <Text className="font-semibold text-ui-shade">
+              <Text className="font-semibold text-ui-ink">
                 {coverImageUri ? "Change" : "Upload"}
               </Text>
             </Pressable>
@@ -194,18 +196,18 @@ export default function CreateRoomScreen() {
             {coverImageUri ? (
               <Image
                 source={{ uri: coverImageUri }}
-                className="h-48 w-full rounded-[24px] bg-ui-background"
-                style={{ resizeMode: "cover" }}
+                className="h-48 w-full rounded-[24px] bg-ui-porcelain"
+                contentFit="cover"
               />
             ) : (
-              <View className="h-44 items-center justify-center rounded-[24px] border border-dashed border-ui-border bg-ui-light px-4">
-                <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
-                  <Icon name="ImagePlus" size={24} color={COLORS.highlight} />
+              <View className="h-44 items-center justify-center rounded-[24px] border border-dashed border-ui-parchment bg-ui-paper px-4">
+                <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-forest/10">
+                  <Icon name="ImagePlus" size={24} color={COLORS.forest} />
                 </View>
-                <Text className="mt-3 text-center text-sm font-semibold text-ui-shade">
+                <Text className="mt-3 text-center text-sm font-semibold text-ui-ink">
                   Tap to upload a community cover image
                 </Text>
-                <Text className="mt-1 text-center text-xs text-ui-muted">
+                <Text className="mt-1 text-center text-xs text-ui-slate">
                   A cafe, campus corner, event, or neighborhood shot works well.
                 </Text>
               </View>
@@ -213,22 +215,22 @@ export default function CreateRoomScreen() {
           </Pressable>
         </View>
 
-        <View className="rounded-[24px] bg-ui-foreground p-4">
+        <View className="rounded-[24px] bg-ui-midnight p-4">
           <View className="flex-row items-start gap-3">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-primary">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-champagne">
               <Icon
                 name={hasLocation ? "MapPin" : "LocateFixed"}
                 size={18}
-                color={COLORS.shade}
+                color={COLORS.ink}
               />
             </View>
             <View className="flex-1">
-              <Text className="font-bold text-ui-light">Community location</Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+              <Text className="font-bold text-ui-paper">Community location</Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
                 {address || coordinatesLabel}
               </Text>
               {error ? (
-                <Text className="mt-2 text-sm leading-5 text-ui-primary">
+                <Text className="mt-2 text-sm leading-5 text-ui-paper/80">
                   {error}
                 </Text>
               ) : null}
@@ -244,7 +246,7 @@ export default function CreateRoomScreen() {
         />
 
         {!canSubmit ? (
-          <Text className="text-center text-xs leading-5 text-ui-muted">
+          <Text className="text-center text-xs leading-5 text-ui-slate">
             Add a name with at least 3 characters and allow location access to
             create.
           </Text>

@@ -125,7 +125,3 @@ export const useDeleteNotification = () => {
     },
   });
 };
-
-export const notificationHelpers = {
-  isUnread: (notification: NotificationItem) => !notification.isRead,
-};

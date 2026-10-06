@@ -1,0 +1,51 @@
+export interface ProfileUser {
+  _id: string;
+  username?: string;
+  email?: string;
+  nickname?: string;
+  realName?: string;
+  phoneNumber?: string;
+  profilePicture?: string;
+  bio?: string;
+  dob?: string;
+  gender?: string;
+  orientation?: string;
+  height?: number;
+  distance?: number;
+  diet?: string;
+  zodiacSign?: string;
+  bloodGroup?: string;
+  work?: string;
+  institution?: string;
+  religion?: string;
+  maritalStatus?: string;
+  homeTown?: string;
+  hometown?: string;
+  interests?: string[];
+  languages?: string[];
+  personalityType?: string;
+  location?: { formattedAddress?: string };
+  web3Wallet?: { addresses?: string[] };
+  fieldVisibility?: Record<string, string | undefined>;
+  lifestyle?: { drinking?: string; smoking?: string; pets?: string };
+  isViewerUnlockedByUser?: boolean;
+  isViewerUnlockedUser?: boolean;
+  isVerified?: boolean;
+  verificationStatus?: string;
+}
+
+export interface ProfilePostContent {
+  promptId?: string | { _id?: string; text?: string };
+  promptAnswer?: string;
+  imageUrls?: string[];
+  imageUrl?: string;
+  caption?: string;
+  text?: string;
+}
+
+export interface ProfilePost {
+  _id: string;
+  type: "PROMPT" | "IMAGE" | "TEXT";
+  content: ProfilePostContent;
+  visibility?: string;
+}

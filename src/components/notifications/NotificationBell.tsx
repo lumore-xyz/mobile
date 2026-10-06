@@ -19,8 +19,8 @@ interface NotificationBellProps {
 const NotificationBell: React.FC<NotificationBellProps> = ({
   size = 22,
   onPress,
-  badgeColor = COLORS.accent,
-  iconColor = COLORS.shade,
+  badgeColor = COLORS.aubergine,
+  iconColor = COLORS.ink,
   className = "",
 }) => {
   const { data: unreadCount } = useNotificationUnreadCount();
@@ -29,7 +29,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
 
   const handlePress = () => {
     if (onPress) onPress();
-    else router.navigate("/notifications" as any);
+    else router.navigate("/notifications");
   };
 
   return (
@@ -46,7 +46,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
           className="absolute -right-0.5 -top-0.5 min-w-[18px] items-center justify-center rounded-full px-1.5"
           style={{ backgroundColor: badgeColor, minHeight: 18 }}
         >
-          <Text className="text-[10px] font-bold text-ui-light">{display}</Text>
+          <Text className="text-[10px] font-bold text-ui-paper">{display}</Text>
         </View>
       ) : null}
     </Pressable>

@@ -6,7 +6,7 @@ import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import Icon from "@/src/libs/Icon";
 import { COLORS } from "@/src/libs/constants/theme";
 
-export type MultiSelectChipOption = SelectOption;
+type MultiSelectChipOption = SelectOption;
 
 interface MultiSelectChipInputProps {
   label: string;
@@ -69,19 +69,19 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
 
   return (
     <View
-      className={`rounded-[24px] border bg-ui-surface-page p-4 ${errorText ? "border-red-500" : "border-ui-border"}`}
+      className={`rounded-[24px] border bg-ui-surface-page p-4 ${errorText ? "border-ui-danger" : "border-ui-parchment"}`}
     >
       <View className="flex-row items-center justify-between gap-2">
         <View className="flex-1">
-          <Text className="text-lg font-bold text-ui-shade">{label}</Text>
+          <Text className="text-lg font-bold text-ui-ink">{label}</Text>
           {placeholder ? (
-            <Text className="mt-1 text-sm leading-5 text-ui-muted">
+            <Text className="mt-1 text-sm leading-5 text-ui-slate">
               {placeholder}
             </Text>
           ) : null}
         </View>
         {multiple && max ? (
-          <Text className="rounded-full bg-ui-highlight/10 px-3 py-1 text-xs font-semibold text-ui-highlight">
+          <Text className="rounded-full bg-ui-forest/10 px-3 py-1 text-xs font-semibold text-ui-forest">
             {selectedValues.length}/{max}
           </Text>
         ) : null}
@@ -107,8 +107,8 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
                   disabled={isDisabled}
                   className={`min-h-11 flex-row items-center justify-center gap-2 rounded-full border px-3.5 py-2.5 ${
                     isSelected
-                      ? "border-ui-highlight bg-ui-highlight"
-                      : "border-ui-border bg-ui-light"
+                      ? "border-ui-forest bg-ui-forest"
+                      : "border-ui-parchment bg-ui-paper"
                   } ${isDisabled ? "opacity-45" : ""} self-start`}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
@@ -118,29 +118,29 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
                   <Text
                     className={`text-sm ${
                       isSelected
-                        ? "font-semibold text-ui-light"
-                        : "font-medium text-ui-shade"
+                        ? "font-semibold text-ui-paper"
+                        : "font-medium text-ui-ink"
                     }`}
                   >
                     {option.label}
                   </Text>
                   {isSelected ? (
-                    <Icon name="Check" size={14} color={COLORS.light} />
+                    <Icon name="Check" size={14} color={COLORS.paper} />
                   ) : null}
                 </Pressable>
               );
             })
           ) : (
-            <Text className="text-sm text-ui-muted">{placeholder}</Text>
+            <Text className="text-sm text-ui-slate">{placeholder}</Text>
           )}
         </View>
       </ScrollView>
 
       {helperText && !errorText ? (
-        <Text className="mt-3 text-sm leading-5 text-ui-muted">{helperText}</Text>
+        <Text className="mt-3 text-sm leading-5 text-ui-slate">{helperText}</Text>
       ) : null}
       {errorText ? (
-        <Text className="mt-3 text-sm font-medium text-red-500">
+        <Text className="mt-3 text-sm font-medium text-ui-danger">
           {errorText}
         </Text>
       ) : null}

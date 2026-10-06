@@ -21,7 +21,10 @@ import {
   DEFAULT_WAVEFORM_BAR_COUNT,
   normalizeWaveformSamples,
 } from "@/src/utils/audioWaveform";
-import { toUserFacingError } from "@/src/utils/userFacingError";
+import {
+  getHttpErrorStatus,
+  toUserFacingError,
+} from "@/src/utils/userFacingError";
 import * as ImagePicker from "expo-image-picker";
 import React, {
   useCallback,
@@ -544,9 +547,9 @@ export const ChatScreen = () => {
           () => {},
         );
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (requestId !== uploadRequestIdRef.current) return;
-      const status = Number(error?.response?.status || 0);
+      const status = getHttpErrorStatus(error);
       const fallbackMessage =
         status === 413
           ? "Image is too large. Please choose a smaller image."
@@ -810,7 +813,7 @@ export const ChatScreen = () => {
       });
       setReplyingTo(null);
       socketDebug("ChatScreen", "voice note send completed");
-    } catch (error: any) {
+    } catch (error: unknown) {
       isRecordingVoiceRef.current = false;
       setIsRecordingVoice(false);
       void expoAudio
@@ -819,7 +822,7 @@ export const ChatScreen = () => {
           playsInSilentMode: true,
         })
         .catch(() => {});
-      const status = Number(error?.response?.status || 0);
+      const status = getHttpErrorStatus(error);
       setUploadError(
         toUserFacingError(
           error,
@@ -1068,7 +1071,7 @@ export const ChatScreen = () => {
 
 const ChatScreenSkeleton = () => (
   <View className="bg-ui-surface-page" style={{ flex: 1 }}>
-    <View className="border-b border-ui-border bg-ui-light px-4 py-3">
+    <View className="border-b border-ui-parchment bg-ui-paper px-4 py-3">
       <View className="flex-row items-center">
         <Skeleton width={40} height={40} radius={999} />
         <View className="ml-3 flex-1">
@@ -1090,7 +1093,7 @@ const ChatScreenSkeleton = () => (
       </View>
     </View>
 
-    <View className="border-t border-ui-border bg-ui-light px-3 py-3">
+    <View className="border-t border-ui-parchment bg-ui-paper px-3 py-3">
       <Skeleton width="100%" height={56} radius={999} />
     </View>
   </View>

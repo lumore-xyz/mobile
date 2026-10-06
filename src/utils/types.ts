@@ -1,40 +1,9 @@
-export type CreditsBalance = {
-  credits: number;
-  rewardGrantedToday?: boolean;
-  dailyRewardAmount?: number;
-  rewardedAdsMaxPerHour?: number;
-  rewardedAdsWatchedInWindow?: number;
-  rewardedAdsRemainingInWindow?: number;
-  rewardedAdsNextEligibleAt?: string | null;
-};
-
-export type RewardedAdCreditClaimData = {
-  granted: boolean;
-  reason?: "HOURLY_LIMIT_REACHED" | "DUPLICATE_CLAIM" | "USER_NOT_FOUND" | string;
-  amountAwarded?: number;
-  credits: number;
-  rewardedAdsMaxPerHour?: number;
-  rewardedAdsWatchedInWindow?: number;
-  rewardedAdsRemainingInWindow?: number;
-  rewardedAdsNextEligibleAt?: string | null;
-};
-
 export type CreditHistoryItem = {
   _id: string;
   type: string;
   amount: number;
   balanceAfter: number;
   createdAt: string;
-};
-
-export type CreditHistoryResponse = {
-  items: CreditHistoryItem[];
-  pagination?: {
-    page: number;
-    limit: number;
-    total: number;
-    hasMore: boolean;
-  };
 };
 
 export type ReferralSummary = {

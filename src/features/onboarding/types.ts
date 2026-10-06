@@ -1,6 +1,6 @@
 import type { SelectOption } from "@/src/libs/options";
 
-export type FieldType =
+type FieldType =
   | "text"
   | "number"
   | "email"

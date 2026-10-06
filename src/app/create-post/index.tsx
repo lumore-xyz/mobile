@@ -4,68 +4,68 @@ import Icon from "@/src/libs/Icon";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import { router } from "expo-router";
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
 const CreatePost = () => {
   return (
-    <View className="h-full bg-ui-surface-page">
-      <View className="h-full flex-1 p-4">
-        <View className="mb-5 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+    <View className="flex-1 bg-ui-surface-page">
+      <ScrollView
+        className="flex-1 px-4"
+        contentContainerClassName="pb-8 pt-4"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="mb-6 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text
-                className="text-3xl font-bold text-ui-light"
+                className="font-display text-[32px] leading-9 text-ui-paper"
                 accessibilityRole="header"
               >
                 Create post
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
                 Choose a format that feels like you: quick, visual, or a little
                 more unfiltered.
               </Text>
             </View>
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary">
-              <Icon name="Sparkles" size={20} color={COLORS.shade} />
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-champagne">
+              <Icon name="Sparkles" size={20} color={COLORS.ink} />
             </View>
           </View>
 
-          <View className="mt-5 flex-row items-end justify-between gap-3">
-            <View>
-              <Text className="text-3xl font-bold text-ui-light">3</Text>
-              <Text className="mt-0.5 text-sm text-ui-light/70">
-                ways to share
-              </Text>
-            </View>
-            <View className="rounded-full bg-ui-light/10 px-3 py-1.5">
-              <Text className="text-xs font-semibold text-ui-light">
-                Profile story
-              </Text>
-            </View>
-          </View>
         </View>
 
-        <PostCard
+        <View className="mb-2">
+          <Text className="text-xl font-bold text-ui-ink">Choose a format</Text>
+          <Text className="mt-1 text-sm leading-5 text-ui-slate">
+            Start with the kind of story you want to tell.
+          </Text>
+        </View>
+        <PostOption
           title="Prompts"
-          description="Answer a quick question with personality and a little spark."
+          description="Answer a question that gives people an easy opener."
           icon="MessageCircleMore"
           tone="highlight"
+          hint="A little structure"
           onPress={() => router.push("/create-post/prompts")}
         />
-        <PostCard
+        <PostOption
           title="Image"
-          description="Share a photo with a caption that gives it context."
+          description="Pair a photo with the detail that makes it yours."
           icon="ImagePlus"
           tone="accent"
+          hint="A moment in focus"
           onPress={() => router.push("/create-post/image")}
         />
-        <PostCard
+        <PostOption
           title="Free text"
-          description="Write a thought, a story, a quote, or whatever is sitting with you."
+          description="Write a thought, memory, or something you believe."
           icon="PencilLine"
           tone="foreground"
+          hint="Your own words"
           onPress={() => router.push("/create-post/free-text")}
         />
-      </View>
+      </ScrollView>
       <MobileNav />
     </View>
   );
@@ -73,31 +73,33 @@ const CreatePost = () => {
 
 export default CreatePost;
 
-const PostCard = ({
+const PostOption = ({
   title,
   description,
   icon,
   tone,
+  hint,
   onPress,
 }: {
   title: string;
   description: string;
   icon: string;
   tone: "highlight" | "accent" | "foreground";
+  hint: string;
   onPress: () => void;
 }) => {
   const toneClass =
     tone === "accent"
-      ? "bg-ui-accent/10"
+      ? "bg-ui-aubergine/10"
       : tone === "foreground"
-        ? "bg-ui-foreground/10"
-        : "bg-ui-highlight/10";
+        ? "bg-ui-midnight/10"
+        : "bg-ui-forest/10";
   const iconColor =
     tone === "accent"
-      ? COLORS.accent
+      ? COLORS.aubergine
       : tone === "foreground"
-        ? COLORS.foreground
-        : COLORS.highlight;
+        ? COLORS.midnight
+        : COLORS.forest;
 
   return (
     <Pressable
@@ -107,21 +109,22 @@ const PostCard = ({
         triggerSelectionHaptic();
         onPress();
       }}
-      className="mb-4 rounded-[28px] border border-ui-border bg-ui-light p-4 active:opacity-90"
+      className="min-h-[116px] flex-row items-center gap-4 border-b border-ui-parchment py-5 active:opacity-70"
     >
-      <View className="flex-row items-center gap-3">
-        <View className={`h-12 w-12 items-center justify-center rounded-full ${toneClass}`}>
-          <Icon name={icon} size={21} color={iconColor} />
-        </View>
-        <View className="flex-1">
-          <Text className="text-lg font-bold text-ui-shade">{title}</Text>
-          <Text className="mt-1 text-sm leading-5 text-ui-muted">
-            {description}
-          </Text>
-        </View>
-        <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-shade/5">
-          <Icon name="ChevronRight" size={18} color={COLORS.muted} />
-        </View>
+      <View className={`h-14 w-14 items-center justify-center rounded-[20px] ${toneClass}`}>
+        <Icon name={icon} size={23} color={iconColor} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-lg font-bold text-ui-ink">{title}</Text>
+        <Text className="mt-1 text-sm leading-5 text-ui-slate">
+          {description}
+        </Text>
+        <Text className="mt-2 text-xs font-semibold text-ui-forest">
+          {hint}
+        </Text>
+      </View>
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-forest/5">
+        <Icon name="ArrowUpRight" size={17} color={COLORS.forest} />
       </View>
     </Pressable>
   );

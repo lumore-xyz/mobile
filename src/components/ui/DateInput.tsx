@@ -42,6 +42,15 @@ const parseTypedDate = (value: string): Date | null => {
   return isValidDate ? parsedDate : null;
 };
 
+const getDateFromAge = (age: number): Date => {
+  const today = new Date();
+  return new Date(
+    today.getFullYear() - age,
+    today.getMonth(),
+    today.getDate(),
+  );
+};
+
 const isDateWithinAgeRange = (value: Date, min: number, max: number) => {
   const youngestAllowedDate = getDateFromAge(min);
   const oldestAllowedDate = getDateFromAge(max);
@@ -94,8 +103,8 @@ const DateInput: React.FC<DateInputProps> = ({
 
   return (
     <View>
-      <Text className="mb-2 text-lg font-bold text-ui-shade">{label}</Text>
-      <View className="w-full flex-row items-center justify-between gap-3 rounded-[22px] border border-ui-border bg-ui-surface-page p-3">
+      <Text className="mb-2 text-lg font-bold text-ui-ink">{label}</Text>
+      <View className="w-full flex-row items-center justify-between gap-3 rounded-[22px] border border-ui-parchment bg-ui-surface-page p-3">
         <RNTextInput
           value={typedDate}
           onChangeText={(text) => {
@@ -109,17 +118,17 @@ const DateInput: React.FC<DateInputProps> = ({
           keyboardType="number-pad"
           autoCorrect={false}
           autoCapitalize="none"
-          className="min-h-11 flex-1 text-xl font-semibold text-ui-shade"
+          className="min-h-11 flex-1 text-xl font-semibold text-ui-ink"
           accessibilityLabel={`${label} input`}
         />
         <Pressable
           onPress={() => setIsOpen(true)}
-          className="min-h-11 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-4 active:opacity-80"
+          className="min-h-11 flex-row items-center justify-center gap-2 rounded-2xl bg-ui-forest px-4 active:opacity-80"
           accessibilityRole="button"
           accessibilityLabel={`Open ${label} picker`}
         >
-          <Icon name="CalendarDays" size={16} color={COLORS.light} />
-          <Text className="font-semibold text-ui-light">Change</Text>
+          <Icon name="CalendarDays" size={16} color={COLORS.paper} />
+          <Text className="font-semibold text-ui-paper">Change</Text>
         </Pressable>
         {isOpen ? (
           <DateTimePicker
@@ -147,15 +156,15 @@ const DateInput: React.FC<DateInputProps> = ({
         ) : null}
       </View>
       {helperText ? (
-        <Text className="mt-2 text-sm leading-5 text-ui-muted">{helperText}</Text>
+        <Text className="mt-2 text-sm leading-5 text-ui-slate">{helperText}</Text>
       ) : null}
       {localErrorText ? (
-        <Text className="mt-2 text-sm font-medium text-red-500">
+        <Text className="mt-2 text-sm font-medium text-ui-danger">
           {localErrorText}
         </Text>
       ) : null}
       {errorText ? (
-        <Text className="mt-2 text-sm font-medium text-red-500">
+        <Text className="mt-2 text-sm font-medium text-ui-danger">
           {errorText}
         </Text>
       ) : null}
@@ -164,18 +173,3 @@ const DateInput: React.FC<DateInputProps> = ({
 };
 
 export default DateInput;
-
-/**
- * Returns a Date object representing the birthday of someone with the given age.
- * @param age - The age in years (e.g., 18)
- * @returns Date - The date that represents the birth date for that age
- */
-export function getDateFromAge(age: number): Date {
-  const today = new Date();
-  const birthDate = new Date(
-    today.getFullYear() - age,
-    today.getMonth(),
-    today.getDate(),
-  );
-  return birthDate;
-}

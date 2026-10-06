@@ -1,11 +1,11 @@
-import axios from "axios";
+import { create } from 'axios';
 import { refreshAccessToken } from "./auth-session";
 import config from "./config";
 import { clearSession, getAccessToken, getRefreshToken } from "./storage";
 
 const resolveApiBaseUrl = () => `${config.BASE_URL}/api`;
 
-const apiClient = axios.create();
+const apiClient = create();
 
 type RetryableRequestConfig = {
   _retry?: boolean;
@@ -23,8 +23,7 @@ apiClient.interceptors.request.use(
 
     const token = getAccessToken();
     if (token) {
-      requestConfig.headers = (requestConfig.headers || {}) as any;
-      (requestConfig.headers as any).Authorization = `Bearer ${token}`;
+      requestConfig.headers.set("Authorization", `Bearer ${token}`);
     }
     return requestConfig;
   },

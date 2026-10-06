@@ -1,4 +1,5 @@
 import MobileNav from "@/src/components/MobileNav";
+import CommunityCoverImage from "@/src/components/community/CommunityCoverImage";
 import Button from "@/src/components/ui/Button";
 import Skeleton from "@/src/components/ui/Skeleton";
 import { EXPLORE_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
@@ -13,12 +14,11 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
-  ImageBackground,
-  ImageSourcePropType,
   ListRenderItem,
   Platform,
   Pressable,
   RefreshControl,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -30,9 +30,6 @@ const formatCountdown = (seconds?: number) => {
   if (hours <= 0) return `${minutes}m`;
   return `${hours}h ${minutes}m`;
 };
-
-const COMMUNITY_COVER_IMAGE_URL =
-  "https://cdn.pixabay.com/photo/2022/11/13/12/42/building-7589141_1280.jpg";
 
 const useTick = () => {
   const [tick, setTick] = useState(Date.now());
@@ -89,13 +86,13 @@ export default function RoomsScreen() {
         <CommunityHero roomCount={rooms.length} />
 
         {locationError ? (
-          <View className="mb-4 flex-row items-start gap-3 rounded-[24px] border border-ui-border bg-ui-primary/20 p-4">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-light">
-              <Icon name="MapPinOff" size={18} color={COLORS.shade} />
+          <View className="mb-4 flex-row items-start gap-3 rounded-[24px] border border-ui-parchment bg-ui-champagne/20 p-4">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-paper">
+              <Icon name="MapPinOff" size={18} color={COLORS.ink} />
             </View>
             <View className="flex-1">
-              <Text className="font-bold text-ui-shade">Location needs a nudge</Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">{locationError}</Text>
+              <Text className="font-bold text-ui-ink">Location needs a nudge</Text>
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">{locationError}</Text>
             </View>
           </View>
         ) : null}
@@ -119,8 +116,8 @@ export default function RoomsScreen() {
                 onRefresh={() => {
                   void refetch();
                 }}
-                tintColor={COLORS.highlight}
-                colors={[COLORS.highlight]}
+                tintColor={COLORS.forest}
+                colors={[COLORS.forest]}
               />
             }
             initialNumToRender={8}
@@ -137,13 +134,13 @@ export default function RoomsScreen() {
 
 function CommunityHero({ roomCount }: { roomCount: number }) {
   return (
-    <View className="mb-5 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+    <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
       <View className="flex-row items-start justify-between gap-4">
         <View className="flex-1">
-          <Text className="text-3xl font-bold text-ui-light" accessibilityRole="header">
+          <Text className="font-display text-3xl text-ui-paper" accessibilityRole="header">
             Community
           </Text>
-          <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+          <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
             Local rooms for campus corners, cafe evenings, events, and nearby sparks.
           </Text>
         </View>
@@ -154,21 +151,21 @@ function CommunityHero({ roomCount }: { roomCount: number }) {
             triggerSelectionHaptic();
             router.push("/community/create");
           }}
-          className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary active:opacity-75"
+          className="h-11 w-11 items-center justify-center rounded-full bg-ui-champagne active:opacity-75"
         >
-          <Icon name="Plus" size={22} color={COLORS.shade} />
+          <Icon name="Plus" size={22} color={COLORS.ink} />
         </Pressable>
       </View>
 
       <View className="mt-5 flex-row items-end justify-between gap-3">
         <View>
-          <Text className="text-3xl font-bold text-ui-light">{roomCount}</Text>
-          <Text className="mt-0.5 text-sm text-ui-light/70">
+          <Text className="text-3xl font-bold text-ui-paper">{roomCount}</Text>
+          <Text className="mt-0.5 text-sm text-ui-paper/70">
             {roomCount === 1 ? "nearby room" : "nearby rooms"}
           </Text>
         </View>
-        <View className="rounded-full bg-ui-light/10 px-3 py-1.5">
-          <Text className="text-xs font-semibold text-ui-light">
+        <View className="rounded-full bg-ui-paper/10 px-3 py-1.5">
+          <Text className="text-xs font-semibold text-ui-paper">
             25km radius
           </Text>
         </View>
@@ -189,9 +186,6 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
     typeof room.distanceKm === "number" && Number.isFinite(room.distanceKm)
       ? `${room.distanceKm.toFixed(room.distanceKm < 10 ? 1 : 0)}km away`
       : "Near you";
-  const imageSource: ImageSourcePropType = {
-    uri: room.imageUrl || COMMUNITY_COVER_IMAGE_URL,
-  };
   const countdown = useMemo(
     () => formatCountdown(room.secondsUntilNextMatch),
     [room.secondsUntilNextMatch],
@@ -199,63 +193,59 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
 
   const openRoom = () => {
     triggerSelectionHaptic();
-    router.push(`/community/${room._id}` as any);
+    router.push(`/community/${room._id}`);
   };
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Open ${room.title} community`}
-      className="mb-4 overflow-hidden rounded-[28px] border border-ui-border bg-ui-light active:opacity-90"
+      className="mb-4 overflow-hidden rounded-[24px] border border-ui-parchment bg-ui-paper active:opacity-90"
       onPress={openRoom}
     >
-      <ImageBackground
-        source={imageSource}
-        style={{
-          width: "100%",
-          height: 148,
-          overflow: "hidden",
-          justifyContent: "space-between",
-        }}
-        imageStyle={{ resizeMode: "cover" }}
-      >
-        <View className="absolute inset-0 bg-black/30" />
+      <View className="relative h-[148px] w-full justify-between overflow-hidden">
+        <CommunityCoverImage
+          uri={room.imageUrl}
+          className="absolute inset-0 h-full w-full"
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View className="absolute inset-0 bg-ui-ink/30" />
         <View className="flex-row items-start justify-between p-3">
-          <View className="rounded-full bg-ui-light/90 px-3 py-1">
-            <Text className="text-xs font-bold text-ui-foreground">
+          <View className="rounded-full bg-ui-paper/90 px-3 py-1">
+            <Text className="text-xs font-bold text-ui-midnight">
               {countdown}
             </Text>
           </View>
           {inPool || canRejoin || isPinned ? (
-            <View className="rounded-full bg-ui-primary px-3 py-1">
-              <Text className="text-xs font-bold text-ui-shade">
+            <View className="rounded-full bg-ui-champagne px-3 py-1">
+              <Text className="text-xs font-bold text-ui-ink">
                 {inPool ? "In pool" : canRejoin ? "Rejoin ready" : "Pinned"}
               </Text>
             </View>
           ) : null}
         </View>
-      </ImageBackground>
-      <View className="p-4">
+      </View>
+      <View className="p-3">
         <View className="flex-row items-start justify-between gap-3">
           <View className="flex-1">
-            <Text className="text-xl font-bold text-ui-shade" numberOfLines={1}>
+            <Text className="text-xl font-bold text-ui-ink" numberOfLines={1}>
               {room.title}
             </Text>
             {room.description ? (
               <Text
-                className="mt-1 text-sm leading-5 text-ui-muted"
+                className="mt-1 text-sm leading-5 text-ui-slate"
                 numberOfLines={2}
               >
                 {room.description}
               </Text>
             ) : null}
           </View>
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
-            <Icon name="ChevronRight" size={20} color={COLORS.highlight} />
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
+            <Icon name="ChevronRight" size={20} color={COLORS.forest} />
           </View>
         </View>
 
-        <View className="mt-4 flex-row flex-wrap items-center gap-2">
+        <View className="mt-3 flex-row flex-wrap items-center gap-2">
           <RoomMeta
             icon="Sparkles"
             text={`${poolCount} in pool`}
@@ -272,8 +262,8 @@ function RoomCard({ room }: { room: LocationRoomSummary }) {
           <RoomMeta icon="Navigation" text={distanceLabel} />
         </View>
 
-        <View className="mt-4 rounded-2xl bg-ui-highlight/5 px-4 py-3">
-          <Text className="text-sm font-medium text-ui-highlight">
+        <View className="mt-3 rounded-2xl bg-ui-forest/5 px-3 py-2.5">
+          <Text className="text-sm font-medium text-ui-forest">
             {inPool
               ? "You are waiting for this cycle."
               : canRejoin
@@ -298,17 +288,17 @@ function RoomMeta({
   return (
     <View
       className={`max-w-full flex-row items-center gap-1.5 rounded-full px-3 py-1.5 ${
-        isHighlighted ? "bg-ui-primary/30" : "bg-ui-shade/5"
+        isHighlighted ? "bg-ui-champagne/30" : "bg-ui-ink/5"
       }`}
     >
       <Icon
         name={icon}
         size={14}
-        color={isHighlighted ? COLORS.shade : COLORS.muted}
+        color={isHighlighted ? COLORS.ink : COLORS.slate}
       />
       <Text
         className={`max-w-[210px] text-xs font-semibold ${
-          isHighlighted ? "text-ui-shade" : "text-ui-muted"
+          isHighlighted ? "text-ui-ink" : "text-ui-slate"
         }`}
         numberOfLines={1}
       >
@@ -320,14 +310,14 @@ function RoomMeta({
 
 function EmptyRooms() {
   return (
-    <View className="mt-1 items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8">
-      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-highlight/10">
-        <Icon name="MapPin" size={24} color={COLORS.highlight} />
+    <View className="mt-1 items-center rounded-[24px] border border-ui-parchment bg-ui-paper px-6 py-8">
+      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-forest/10">
+        <Icon name="MapPin" size={24} color={COLORS.forest} />
       </View>
-      <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+      <Text className="mt-4 text-center text-xl font-bold text-ui-ink">
         No communities nearby yet
       </Text>
-      <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+      <Text className="mt-2 text-center text-sm leading-5 text-ui-slate">
         Start one for your campus, cafe, event, or neighborhood.
       </Text>
       <Button
@@ -345,16 +335,16 @@ function EmptyRooms() {
 function RoomsError({ onRetry }: { onRetry: () => void }) {
   return (
     <View
-      className="mt-1 items-center rounded-[28px] border border-ui-border bg-ui-light px-6 py-8"
+      className="mt-1 items-center rounded-[24px] border border-ui-parchment bg-ui-paper px-6 py-8"
       accessibilityLiveRegion="polite"
     >
-      <View className="h-14 w-14 items-center justify-center rounded-full bg-red-50">
+      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-danger/5">
         <Icon name="CloudOff" size={24} color={COLORS.danger} />
       </View>
-      <Text className="mt-4 text-center text-xl font-bold text-ui-shade">
+      <Text className="mt-4 text-center text-xl font-bold text-ui-ink">
         Communities are taking a moment
       </Text>
-      <Text className="mt-2 text-center text-sm leading-5 text-ui-muted">
+      <Text className="mt-2 text-center text-sm leading-5 text-ui-slate">
         We could not load nearby rooms. Check your connection and try again.
       </Text>
       <Button text="Try again" onClick={onRetry} className="mt-5 px-6" />
@@ -365,7 +355,7 @@ function RoomsError({ onRetry }: { onRetry: () => void }) {
 function RoomsSkeleton() {
   return (
     <View>
-      <View className="mb-4 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+      <View className="mb-4 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
         <Skeleton width="65%" height={28} />
         <Skeleton width="92%" height={12} style={{ marginTop: 12 }} />
         <Skeleton width="48%" height={12} style={{ marginTop: 8 }} />
@@ -373,7 +363,7 @@ function RoomsSkeleton() {
       {Array.from({ length: 4 }).map((_, index) => (
         <View
           key={`room-skeleton-${index}`}
-          className="mb-4 rounded-[28px] border border-ui-border bg-ui-light p-4"
+          className="mb-4 rounded-[24px] border border-ui-parchment bg-ui-paper p-4"
         >
           <Skeleton width="100%" height={130} radius={24} />
           <Skeleton width="60%" height={18} style={{ marginTop: 14 }} />

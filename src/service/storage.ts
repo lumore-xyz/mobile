@@ -1,8 +1,16 @@
 import { createMMKV } from "react-native-mmkv";
 
+export interface StoredUser {
+  _id?: string;
+  id?: string;
+  name?: string;
+  email?: string;
+  isAdmin?: boolean;
+}
+
 export const storage = createMMKV();
 export const ACCESS_TOKEN_KEY = "accessToken";
-export const REFRESH_TOKEN_KEY = "refreshToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
 export const USER_KEY = "user";
 
 export const setAccessToken = (token: string) => {
@@ -13,11 +21,11 @@ export const getAccessToken = () => {
   return storage.getString(ACCESS_TOKEN_KEY);
 };
 
-export const removeAccessToken = () => {
+const removeAccessToken = () => {
   storage.remove(ACCESS_TOKEN_KEY);
 };
 
-export const setRefreshToken = (token: string) => {
+const setRefreshToken = (token: string) => {
   storage.set(REFRESH_TOKEN_KEY, token);
 };
 
@@ -25,18 +33,39 @@ export const getRefreshToken = () => {
   return storage.getString(REFRESH_TOKEN_KEY);
 };
 
-export const removeRefreshToken = () => {
+const removeRefreshToken = () => {
   storage.remove(REFRESH_TOKEN_KEY);
 };
-export const setUser = (user: any) => {
+const setUser = (user: StoredUser) => {
   storage.set(USER_KEY, JSON.stringify(user));
 };
 
-export const getUser = () => {
-  return JSON.parse(storage.getString(USER_KEY) || "{}");
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+export const getUser = (): StoredUser => {
+  try {
+    const storedValue: unknown = JSON.parse(storage.getString(USER_KEY) || "{}");
+    if (!isRecord(storedValue)) return {};
+
+    return {
+      ...storedValue,
+      _id: typeof storedValue._id === "string" ? storedValue._id : undefined,
+      id: typeof storedValue.id === "string" ? storedValue.id : undefined,
+      name: typeof storedValue.name === "string" ? storedValue.name : undefined,
+      email:
+        typeof storedValue.email === "string" ? storedValue.email : undefined,
+      isAdmin:
+        typeof storedValue.isAdmin === "boolean"
+          ? storedValue.isAdmin
+          : undefined,
+    };
+  } catch {
+    return {};
+  }
 };
 
-export const removeUser = () => {
+const removeUser = () => {
   storage.remove(USER_KEY);
 };
 
@@ -47,7 +76,7 @@ export const setSession = ({
 }: {
   accessToken?: string;
   refreshToken?: string;
-  user?: any;
+  user?: StoredUser;
 }) => {
   if (accessToken) {
     setAccessToken(accessToken);
@@ -71,7 +100,8 @@ export const setIsOnboarded = (userId: string, isOnboarded: boolean) => {
 };
 
 export const getIsOnboarded = (userId: string): boolean | null => {
-  return storage.getString(`isOnboarded-${userId}`) ? true : false;
+  const value = storage.getString(`isOnboarded-${userId}`);
+  return value == null ? null : value === "true";
 };
 
 const PENDING_REFERRAL_CODE_KEY = "pendingReferralCode";

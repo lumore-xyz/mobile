@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import FieldEditorSheet from "../components/profile/FieldEditorSheet";
-import ProfileField from "../components/profile/ProfileField";
 import Button from "../components/ui/Button";
 import { useUser } from "../hooks/useUser";
 import { deleteAccount, updateUserData } from "../libs/apis";
@@ -18,17 +17,17 @@ interface UserSettings {
   web3Wallet: {
     addresses: string[];
   };
-  password?: string; // Optional for password updates
 }
+
+type UserSettingsUpdate = Partial<Pick<UserSettings, "email" | "phoneNumber">> & {
+  web3Wallet?: UserSettings["web3Wallet"];
+};
 
 const EditUserSettingsScreen = () => {
   const { logout } = useAuth();
-  const scrollRef = useRef<ScrollView>(null);
-  const _user = getUser();
-  const userId = _user?._id;
-  const { user, isUpdating } = useUser(
-    userId
-  ) as any;
+  const currentUser = getUser();
+  const userId = currentUser?._id;
+  const { user } = useUser(userId);
 
   const [isEditFieldOpen, setIsEditFieldOpen] = useState(false);
   const [editFieldType, setEditFieldType] = useState("");
@@ -58,25 +57,28 @@ const EditUserSettingsScreen = () => {
     setIsEditFieldOpen(true);
   };
 
-  const handleFieldUpdate = async (field: keyof UserSettings, value: any) => {
+  const handleFieldUpdate = async (field: string, value: unknown) => {
     try {
-      let updateData: any = {};
-
+      let updateData: UserSettingsUpdate;
       if (field === "web3Wallet") {
         updateData = {
           web3Wallet: {
-            addresses: Array.isArray(value) ? value : [value],
+            addresses: Array.isArray(value) ? value.map(String) : [String(value ?? "")],
           },
         };
-      } else {
+      } else if (field === "email" || field === "phoneNumber") {
         updateData = { [field]: value };
+      } else {
+        return;
       }
 
       await updateUserData(updateData);
 
       setSettings((prev) => ({
         ...prev,
-        ...updateData,
+        email: updateData.email ?? prev.email,
+        phoneNumber: updateData.phoneNumber ?? prev.phoneNumber,
+        web3Wallet: updateData.web3Wallet ?? prev.web3Wallet,
       }));
 
       setIsEditFieldOpen(false);
@@ -123,7 +125,7 @@ const EditUserSettingsScreen = () => {
         isOpen={isEditFieldOpen}
         setIsOpen={setIsEditFieldOpen}
         fieldType={editFieldType}
-        onUpdate={handleFieldUpdate as any}
+        onUpdate={handleFieldUpdate}
         currentValue={
           editFieldType === "web3Wallet"
             ? settings.web3Wallet.addresses[0]
@@ -131,33 +133,30 @@ const EditUserSettingsScreen = () => {
             ? (settings[editFieldType as keyof typeof settings] ?? null)
             : null
         }
-        isLoading={isUpdating}
-        form={settings as UserSettings}
         schemaType="settings"
       />
 
       <ScrollView
-        ref={scrollRef}
         className="px-4"
         contentContainerClassName="pb-10 pt-4"
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <View className="mb-5 overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text
-                className="text-[28px] font-bold leading-8 text-ui-light"
+                className="text-[28px] font-bold leading-8 text-ui-paper"
                 accessibilityRole="header"
               >
                 Account controls
               </Text>
-              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-2 text-sm leading-5 text-ui-paper/70">
                 Keep your contact details, wallet, and account access safe.
               </Text>
             </View>
-            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary">
-              <Icon name="ShieldCheck" size={20} color={COLORS.shade} />
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-champagne">
+              <Icon name="ShieldCheck" size={20} color={COLORS.ink} />
             </View>
           </View>
         </View>
@@ -167,15 +166,13 @@ const EditUserSettingsScreen = () => {
           description="These details help secure your account and keep you reachable."
           icon="AtSign"
         >
-          <ProfileField
+          <AccountSettingRow
             label="Email"
-            field="email"
             value={user?.email}
             onEdit={() => handleEditField("email")}
           />
-          <ProfileField
+          <AccountSettingRow
             label="Phone Number"
-            field="phoneNumber"
             value={user?.phoneNumber}
             onEdit={() => handleEditField("phoneNumber")}
           />
@@ -186,24 +183,23 @@ const EditUserSettingsScreen = () => {
           description="Connect a wallet if you want to use Web3-linked rewards later."
           icon="Wallet"
         >
-          <ProfileField
+          <AccountSettingRow
             label="Web3 Wallet"
-            field="web3Wallet"
             value={settings.web3Wallet.addresses[0]}
             onEdit={() => handleEditField("web3Wallet")}
           />
         </SettingsPanel>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <View className="flex-row items-start gap-3">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/10">
-              <Icon name="LogOut" size={19} color={COLORS.highlight} />
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest/10">
+              <Icon name="LogOut" size={19} color={COLORS.forest} />
             </View>
             <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-shade">
+              <Text className="text-xl font-bold text-ui-ink">
                 Session
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 Sign out from this device when you need a clean break.
               </Text>
             </View>
@@ -219,16 +215,16 @@ const EditUserSettingsScreen = () => {
           />
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-red-200 bg-red-50 p-5">
+        <View className="mt-5 rounded-[24px] border border-ui-danger/25 bg-ui-danger/5 p-5">
           <View className="flex-row items-start gap-3">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-red-100">
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-danger/10">
               <Icon name="TriangleAlert" size={19} color={COLORS.danger} />
             </View>
             <View className="flex-1">
-              <Text className="text-xl font-bold text-red-700">
+              <Text className="text-xl font-bold text-ui-danger">
                 Danger zone
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-red-700/80">
+              <Text className="mt-1 text-sm leading-5 text-ui-danger/80">
                 Deleting your account is permanent and cannot be undone.
               </Text>
             </View>
@@ -256,19 +252,51 @@ const SettingsPanel = ({
   icon: string;
   children: React.ReactNode;
 }) => (
-  <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
-    <View className="mb-1 flex-row items-start gap-3">
-      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
-        <Icon name={icon} size={18} color={COLORS.highlight} />
+  <View className="mt-8">
+    <View className="mb-2 flex-row items-start gap-3">
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
+        <Icon name={icon} size={18} color={COLORS.forest} />
       </View>
       <View className="flex-1">
-        <Text className="text-xl font-bold text-ui-shade">{title}</Text>
-        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+        <Text className="text-xl font-bold text-ui-ink">{title}</Text>
+        <Text className="mt-1 text-sm leading-5 text-ui-slate">
           {description}
         </Text>
       </View>
     </View>
     {children}
+  </View>
+);
+
+const AccountSettingRow = ({
+  label,
+  value,
+  onEdit,
+}: {
+  label: string;
+  value?: string;
+  onEdit: () => void;
+}) => (
+  <View className="border-b border-ui-parchment">
+    <Pressable
+      onPress={onEdit}
+      className="min-h-[68px] flex-row items-center justify-between gap-4 py-3 active:opacity-70"
+      accessibilityRole="button"
+      accessibilityLabel={`Edit ${label}`}
+    >
+      <View className="flex-1">
+        <Text className="text-[13px] font-medium text-ui-slate">{label}</Text>
+        <Text
+          className={`mt-1 text-base leading-6 ${value ? "text-ui-ink" : "text-ui-forest"}`}
+          numberOfLines={1}
+        >
+          {value || `Add ${label.toLowerCase()}`}
+        </Text>
+      </View>
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-forest/5">
+        <Icon name="ChevronRight" size={17} />
+      </View>
+    </Pressable>
   </View>
 );
 

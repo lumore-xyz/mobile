@@ -1,7 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
+import { AlertCircle } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { GoogleAuthButton } from "../components/auth/GoogleAuthButton";
 import { LegalAgreementText } from "../components/auth/LegalAgreementText";
 import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
@@ -14,6 +15,7 @@ import {
 import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
 import { getIsOnboarded, getUser } from "../service/storage";
+import { THEME } from "../libs/constants/theme";
 import { triggerSelectionHaptic } from "../utils/haptics";
 import { toUserFacingError } from "../utils/userFacingError";
 
@@ -41,7 +43,7 @@ export default function LoginScreen() {
       const isOnboarded = Boolean(getIsOnboarded(user?._id || ""));
       router.replace(isOnboarded ? "/explore" : "/(onboarding)/onboarding");
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const message = toUserFacingError(
         error,
         "We couldn’t sign you in. Please check your details and try again.",
@@ -111,9 +113,14 @@ export default function LoginScreen() {
 
   return (
     <AuthScreenLayout>
-      <Text className="text-2xl font-semibold text-ui-shade">Sign In</Text>
-      <Text className="mt-1 text-sm text-ui-shade/70">
-        Sign in with your email or username and password.
+      <Text
+        accessibilityRole="header"
+        className="font-display text-3xl text-ui-midnight"
+      >
+        Welcome back
+      </Text>
+      <Text className="mt-2 text-base leading-6 text-ui-slate">
+        Pick up where your last conversation left off.
       </Text>
 
       <View className="mt-4 gap-3">
@@ -152,35 +159,32 @@ export default function LoginScreen() {
           isInvalid={Boolean(passwordError)}
           errorText={passwordError}
         />
-        <View className="mb-1 flex flex-row items-center justify-between">
-          <TouchableOpacity
+        <View className="items-end">
+          <Pressable
             onPress={() => {
               triggerSelectionHaptic();
-              router.push("/forgot-password" as any);
+              router.push("/forgot-password");
             }}
-            className="min-h-11 justify-center"
+            className="min-h-11 justify-center active:opacity-70"
             hitSlop={8}
+            accessibilityRole="link"
           >
-            <Text className="text-sm font-medium text-ui-shade underline">
-              Forgot Password?
+            <Text className="text-sm font-semibold text-ui-forest">
+              Forgot password?
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              triggerSelectionHaptic();
-              router.push("/signup" as any);
-            }}
-            className="min-h-11 justify-center"
-            hitSlop={8}
-          >
-            <Text className="text-sm font-medium text-ui-shade underline">
-              New here? Create Account
-            </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {apiError ? (
-          <Text className="text-sm text-red-500">{apiError}</Text>
+          <View
+            accessibilityRole="alert"
+            className="flex-row gap-2 rounded-2xl bg-ui-danger/10 p-3"
+          >
+            <AlertCircle size={18} color={THEME.action.destructive} />
+            <Text className="flex-1 text-sm leading-5 text-ui-danger">
+              {apiError}
+            </Text>
+          </View>
         ) : null}
         <Button
           text={isSubmitting ? "Signing in..." : "Sign In"}
@@ -189,9 +193,9 @@ export default function LoginScreen() {
         />
 
         <View className="flex-row items-center gap-3">
-          <View className="h-px flex-1 bg-ui-shade/10" />
-          <Text className="text-xs text-ui-shade/60">or</Text>
-          <View className="h-px flex-1 bg-ui-shade/10" />
+          <View className="h-px flex-1 bg-ui-ink/10" />
+          <Text className="text-xs text-ui-ink/60">or</Text>
+          <View className="h-px flex-1 bg-ui-ink/10" />
         </View>
 
         <GoogleAuthButton
@@ -199,6 +203,22 @@ export default function LoginScreen() {
           isLoading={googleLoginMutation.isPending}
           disabled={credentialLoginMutation.isPending}
         />
+
+        <Pressable
+          onPress={() => {
+            triggerSelectionHaptic();
+            router.push("/signup");
+          }}
+          className="min-h-11 items-center justify-center active:opacity-70"
+          accessibilityRole="link"
+        >
+          <Text className="text-sm text-ui-slate">
+            New to Lumore?{" "}
+            <Text className="font-semibold text-ui-forest">
+              Create an account
+            </Text>
+          </Text>
+        </Pressable>
       </View>
       <LegalAgreementText />
     </AuthScreenLayout>

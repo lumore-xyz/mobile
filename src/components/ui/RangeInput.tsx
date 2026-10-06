@@ -1,6 +1,7 @@
 import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import React, { useCallback, useEffect, useState } from "react";
 import { Text, View } from "react-native";
+import { COLORS } from "@/src/libs/constants/theme";
 
 interface RangeInputProps {
   label: string;
@@ -61,13 +62,13 @@ const RangeInput: React.FC<RangeInputProps> = ({
   );
 
   return (
-    <View className="border rounded-lg px-6 py-4 border-ui-shade/20">
-      <Text className="font-medium text-typography-900 text-xl mb-2">
+    <View className="rounded-2xl border border-ui-parchment bg-ui-paper px-5 py-4">
+      <Text className="mb-2 text-base font-semibold text-ui-ink">
         {label}
       </Text>
 
       {/* Current Selected Range */}
-      <Text className="text-lg text-typography-700 mb-3">
+      <Text className="mb-3 text-base text-ui-slate">
         {sliderValues[0]} {unit} - {sliderValues[1]} {unit}
       </Text>
 
@@ -83,18 +84,18 @@ const RangeInput: React.FC<RangeInputProps> = ({
           height: 20,
           width: 20,
           borderRadius: 12,
-          backgroundColor: "#541388",
+          backgroundColor: COLORS.forest,
         }}
-        selectedStyle={{ backgroundColor: "#541388", height: 2 }}
-        unselectedStyle={{ backgroundColor: "#0A0A0960", height: 2 }}
+        selectedStyle={{ backgroundColor: COLORS.forest, height: 2 }}
+        unselectedStyle={{ backgroundColor: `${COLORS.ink}60`, height: 2 }}
       />
 
       {helperText ? (
-        <Text className="text-xl text-typography-500 mt-2">{helperText}</Text>
+        <Text className="mt-2 text-sm text-ui-slate">{helperText}</Text>
       ) : null}
 
       {errorText ? (
-        <Text className="text-red-500 mt-2">{errorText}</Text>
+        <Text className="text-ui-danger mt-2">{errorText}</Text>
       ) : null}
     </View>
   );

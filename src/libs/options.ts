@@ -12,18 +12,17 @@ export interface SelectOptionIcon {
   name: string;
 }
 
-export const ICON_LIBRARIES = Object.freeze(["Lucide"] as const);
-export type IconLibrary = (typeof ICON_LIBRARIES)[number];
+const ICON_LIBRARIES = Object.freeze(["Lucide"] as const);
+type IconLibrary = (typeof ICON_LIBRARIES)[number];
 
-export const isSupportedOptionIconLibrary = (
+const isSupportedOptionIconLibrary = (
   library: string | null | undefined,
 ): library is IconLibrary =>
   Boolean(library) &&
   (ICON_LIBRARIES as readonly string[]).includes(String(library));
 
-export const DYNAMIC_OPTIONS_CACHE_KEY = "lumore:dynamic-options";
-export const DYNAMIC_OPTIONS_VERSION_KEY = "lumore:dynamic-options-version";
-export const DYNAMIC_OPTIONS_UPDATED_EVENT = "lumore:options-updated";
+const DYNAMIC_OPTIONS_CACHE_KEY = "lumore:dynamic-options";
+const DYNAMIC_OPTIONS_VERSION_KEY = "lumore:dynamic-options-version";
 
 const cloneOptions = (options: SelectOption[]) =>
   options.map((option) => ({ ...option }));
@@ -209,7 +208,7 @@ export const relationshipTypeOptions = cloneOptions(
 );
 export const visibilityOptions = cloneOptions(defaultVisibilityOptions);
 
-export type DynamicOptionKey =
+type DynamicOptionKey =
   | "languageOptions"
   | "genderOptions"
   | "interestedInOptions"

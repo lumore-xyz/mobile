@@ -1,19 +1,24 @@
 import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
 import Icon from "@/src/libs/Icon";
 import React from "react";
-import { Text, View } from "react-native";
-import ProfileField from "./ProfileField";
+import { Pressable, Text, View } from "react-native";
+import type { UserPreferences } from "@/src/hooks/useUserPrefrence";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
 
 interface PrefrenceFieldsListProps {
-  preferences: any;
-  onEdit: (field: string) => void;
-  onVisibilityChange?: (field: string, visibility: string) => void;
+  preferences?: UserPreferences;
+  onEdit: (field: keyof UserPreferences) => void;
 }
+
+type PreferenceField = {
+  label: string;
+  field: keyof UserPreferences;
+  value?: string;
+};
 
 const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
   preferences,
   onEdit,
-  onVisibilityChange,
 }) => {
   const sectionIconByTitle: Record<string, string> = {
     Core: "Compass",
@@ -22,7 +27,7 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
     Compatibility: "Puzzle",
   };
 
-  const sections = [
+  const sections: { title: string; description: string; fields: PreferenceField[] }[] = [
     {
       title: "Core",
       description: "The basics that shape your matches.",
@@ -135,30 +140,50 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
       {sections.map((section) => (
         <View
           key={section.title}
-          className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4"
+          className="mt-8"
         >
-          <View className="mb-1 flex-row items-start gap-3">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+          <View className="mb-2 flex-row items-start gap-3">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
               <Icon name={sectionIconByTitle[section.title] || "SlidersHorizontal"} size={18} />
             </View>
             <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-shade">
+              <Text className="text-xl font-bold text-ui-ink">
                 {section.title}
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 {section.description}
               </Text>
             </View>
           </View>
-          {section.fields.map((field) => (
-            <ProfileField
-              key={field.field}
-              label={field.label}
-              field={field.field}
-              value={field.value}
-              onEdit={onEdit}
-            />
-          ))}
+          <View className="mt-2">
+            {section.fields.map((field) => (
+              <Pressable
+                key={field.field}
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  onEdit(field.field);
+                }}
+                className="min-h-[68px] flex-row items-center justify-between gap-4 border-b border-ui-parchment py-3 active:opacity-70"
+                accessibilityRole="button"
+                accessibilityLabel={`Edit ${field.label}`}
+              >
+                <View className="flex-1">
+                  <Text className="text-[13px] font-medium text-ui-slate">
+                    {field.label}
+                  </Text>
+                  <Text
+                    className={`mt-1 text-base leading-6 ${field.value ? "text-ui-ink" : "text-ui-forest"}`}
+                    numberOfLines={2}
+                  >
+                    {field.value || "Add a preference"}
+                  </Text>
+                </View>
+                <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-forest/5">
+                  <Icon name="ChevronRight" size={17} />
+                </View>
+              </Pressable>
+            ))}
+          </View>
         </View>
       ))}
     </>

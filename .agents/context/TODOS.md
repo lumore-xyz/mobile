@@ -4,9 +4,11 @@ Track planned work here. Move completed items to `CHANGELOGS.md` with a short re
 
 ## Planned
 
-- Create or refine shared primitives for soft cards, chips, sheets, and profile metadata.
-- Audit existing screens for boxy surfaces, hardcoded colors, low-contrast text, and inconsistent radii.
-- Redesign the highest-traffic dating flows first: explore/profile cards, chat, onboarding, edit profile, and match moments.
+- Validate MMKV/Nitro together before updating MMKV beyond 4.1.2: native Android/iOS builds and existing storage read/write checks. SDK 54 maintenance retained Nitro 0.33.9; MMKV 4.3.2 uses generator 0.35.9.
+
+- Reassess remaining npm audit roots (braces, decode-uri-component, image-size, node-forge) when upstream fixes land. As of 2026-10-03: 39 dependent-package findings remain. Latest Expo Router still depends on query-string 7. Metro needs its image file-path caller migrated before adopting image-size 2. Remove the scoped UUID override once xcode adopts a patched version, running tests/securityDependencies.test.cjs and an Android export.
+
+- Review the new palette and typography in Explore/profile, chat, onboarding, edit-profile, and community at device sizes; fix any clipping, text scaling, contrast, or touch-target issues found.
 - Add a lightweight testing strategy for validation helpers, service logic, and navigation-critical flows.
 
 ## Backlog

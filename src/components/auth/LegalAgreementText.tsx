@@ -11,20 +11,28 @@ interface LegalAgreementTextProps {
 export const LegalAgreementText: React.FC<LegalAgreementTextProps> = ({
   tone = "dark",
 }) => {
-  const textColor = tone === "light" ? "text-ui-light" : "text-ui-shade";
+  const textColor = tone === "light" ? "text-ui-paper" : "text-ui-ink";
 
   const openExternalUrl = (url: string) => {
     void Linking.openURL(url).catch(() => {});
   };
 
   return (
-    <Text className={`text-center mt-4 ${textColor}`}>
+    <Text className={`mt-5 text-center text-xs leading-5 ${textColor}`}>
       By signing in, you agree to our{" "}
-      <Text className="underline" onPress={() => openExternalUrl(TERMS_URL)}>
+      <Text
+        className="font-semibold underline"
+        onPress={() => openExternalUrl(TERMS_URL)}
+        accessibilityRole="link"
+      >
         Terms & Conditions
       </Text>{" "}
       and{" "}
-      <Text className="underline" onPress={() => openExternalUrl(PRIVACY_URL)}>
+      <Text
+        className="font-semibold underline"
+        onPress={() => openExternalUrl(PRIVACY_URL)}
+        accessibilityRole="link"
+      >
         Privacy Policy
       </Text>
       .

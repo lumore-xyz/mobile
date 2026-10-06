@@ -1,5 +1,5 @@
 import Button from "@/src/components/ui/Button";
-import { VStack } from "@/src/components/ui/vstack";
+import Icon from "@/src/libs/Icon";
 import { onboardingScreens } from "@/src/features/onboarding/config";
 import {
   buildOnboardingPayload,
@@ -26,10 +26,13 @@ import {
   setPendingReferralCode,
 } from "@/src/service/storage";
 import { toUserFacingError } from "@/src/utils/userFacingError";
+import { isAxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { triggerSelectionHaptic } from "@/src/utils/haptics";
+import LUMORE_WORDMARK from "@/assets/images/lumore-hr.png";
 
 const DUPLICATE_FIELD_MESSAGES: Record<string, string> = {
   phoneNumber: "This phone number is already in use. Please use another.",
@@ -37,12 +40,22 @@ const DUPLICATE_FIELD_MESSAGES: Record<string, string> = {
   username: "This username is already in use. Please use another.",
 };
 
-const extractApiMessage = (error: any) =>
-  String(
-    error?.response?.data?.message ||
-      error?.message ||
-      "Unable to save this step right now. Please try again.",
-  );
+const ONBOARDING_DESCRIPTIONS: Record<string, string> = {
+  intro: "A few details help your profile feel like you.",
+  contact: "Your contact details stay private and keep your account secure.",
+  identity: "Tell us who you are and who you would like to meet.",
+  tuning: "Set the age range and distance that feel right for you.",
+  intentions: "Shared intentions make it easier to find a real connection.",
+};
+
+const extractApiMessage = (error: unknown) => {
+  const responseMessage = isAxiosError<{ message?: unknown }>(error)
+    ? error.response?.data?.message
+    : undefined;
+  if (typeof responseMessage === "string") return responseMessage;
+  if (error instanceof Error) return error.message;
+  return "Unable to save this step right now. Please try again.";
+};
 
 const getFriendlyOnboardingError = (error: unknown) =>
   toUserFacingError(
@@ -140,6 +153,9 @@ const OnboardingScreen = ({
   const currentScreen = screens[screenIndex];
   const totalScreens = screens.length;
   const progress = ((screenIndex + 1) / totalScreens) * 100;
+  const description =
+    ONBOARDING_DESCRIPTIONS[currentScreen.id] ??
+    "A few thoughtful details help Lumore make better introductions.";
 
   useEffect(() => {
     if (!currentScreen) return;
@@ -218,7 +234,7 @@ const OnboardingScreen = ({
       try {
         await applyReferralCode(referralCode);
         removePendingReferralCode();
-      } catch (error: any) {
+      } catch (error: unknown) {
         const message = toUserFacingError(
           error,
           "That referral code didn’t work. Please check it and try again.",
@@ -240,7 +256,7 @@ const OnboardingScreen = ({
     setSubmitError("");
     try {
       await submitOnboardingData();
-    } catch (error: any) {
+    } catch (error: unknown) {
       const apiMessage = extractApiMessage(error);
       const fieldError = resolveFieldErrorFromApi(apiMessage, currentScreen);
 
@@ -274,44 +290,98 @@ const OnboardingScreen = ({
   };
 
   return (
-    <View className="flex-1 p-4">
-      <View className="w-full rounded-full border border-ui-highlight/20 overflow-hidden">
-        <View
-          style={{ width: `${progress}%` }}
-          className="rounded-full h-2 bg-ui-highlight"
-        />
-      </View>
-
-      <View className="flex-1 justify-start items-center mt-6 w-full">
-        <View className="w-full flex-1">
-          <View className="my-6">
-            <Text className="text-3xl font-bold text-ui-dark mb-2">
-              {currentScreen.title}
+    <View className="flex-1 bg-ui-surface-page">
+      <View className="px-5 pb-5 pt-4">
+        <View className="mb-6 flex-row items-center justify-between">
+          <Image
+            source={LUMORE_WORDMARK}
+            accessibilityLabel="Lumore"
+            resizeMode="contain"
+            className="h-12 w-28"
+          />
+          <View className="rounded-full bg-ui-forest/10 px-3 py-2">
+            <Text className="text-xs font-bold text-ui-forest">
+              STEP {screenIndex + 1} OF {totalScreens}
             </Text>
           </View>
-          <ScrollView>
-            <VStack className="gap-8">
-              {currentScreen.fields.map((field) => (
-                <View key={field.name} className="w-full">
-                  <OnboardingFieldRenderer
-                    field={field}
-                    value={formValues[field.name]}
-                    onChange={handleInputChange}
-                    errorText={errors[field.name]}
-                  />
-                </View>
-              ))}
-            </VStack>
-          </ScrollView>
         </View>
 
-        <View className="w-full mt-6">
-          {submitError ? (
-            <Text className="text-sm text-red-500 mb-3">{submitError}</Text>
+        <View
+          className="h-2 overflow-hidden rounded-full bg-ui-parchment/60"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <View
+            style={{ width: `${progress}%` }}
+            className="h-full rounded-full bg-ui-forest"
+          />
+        </View>
+
+        <Text
+          className="mt-7 font-display text-3xl leading-9 text-ui-midnight"
+          accessibilityRole="header"
+        >
+          {currentScreen.title}
+        </Text>
+        <Text className="mt-2 text-base leading-6 text-ui-slate">
+          {description}
+        </Text>
+      </View>
+
+      <ScrollView
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName="px-5 pb-6"
+      >
+        <View className="rounded-[24px] border border-ui-parchment/70 bg-ui-paper p-5">
+          <View className="gap-6">
+            {currentScreen.fields.map((field) => (
+              <OnboardingFieldRenderer
+                key={field.name}
+                field={field}
+                value={formValues[field.name]}
+                onChange={handleInputChange}
+                errorText={errors[field.name]}
+              />
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
+      <View className="border-t border-ui-parchment bg-ui-paper px-5 pb-4 pt-4">
+        {submitError ? (
+          <View
+            className="mb-3 flex-row items-center gap-2 rounded-2xl bg-ui-danger/10 px-4 py-3"
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
+            <Icon name="CircleAlert" size={18} className="text-ui-danger" />
+            <Text className="flex-1 text-sm font-medium leading-5 text-ui-danger">
+              {submitError}
+            </Text>
+          </View>
+        ) : null}
+        <View className="flex-row items-center gap-3">
+          {screenIndex > 0 ? (
+            <Pressable
+              onPress={() => {
+                triggerSelectionHaptic();
+                setScreenIndex((index) => Math.max(0, index - 1));
+              }}
+              className="min-h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full border border-ui-parchment bg-ui-paper active:opacity-70"
+              accessibilityRole="button"
+              accessibilityLabel="Go to previous onboarding step"
+            >
+              <Icon name="ArrowLeft" size={17} className="text-ui-midnight" />
+              <Text className="font-semibold text-ui-midnight">Back</Text>
+            </Pressable>
           ) : null}
           <Button
             onClick={handleNext}
-            text={screenIndex === totalScreens - 1 ? "Let's Go..." : "Next"}
+            text={screenIndex === totalScreens - 1 ? "Finish profile" : "Continue"}
+            className="flex-1"
           />
         </View>
       </View>

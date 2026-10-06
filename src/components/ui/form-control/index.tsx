@@ -26,7 +26,7 @@ const formControlStyle = tva({
 });
 
 const formControlErrorIconStyle = tva({
-  base: "text-error-700 fill-none",
+  base: "text-ui-danger fill-none",
   variants: {
     size: {
       "2xs": "h-3 w-3",
@@ -44,7 +44,7 @@ const formControlErrorStyle = tva({
 });
 
 const formControlErrorTextStyle = tva({
-  base: "text-error-700",
+  base: "text-ui-danger",
   variants: {
     isTruncated: {
       true: "web:truncate",
@@ -78,7 +78,7 @@ const formControlErrorTextStyle = tva({
       true: "italic",
     },
     highlight: {
-      true: "bg-yellow-500",
+      true: "bg-ui-forest",
     },
   },
 });
@@ -88,7 +88,7 @@ const formControlHelperStyle = tva({
 });
 
 const formControlHelperTextStyle = tva({
-  base: "text-typography-500",
+  base: "text-ui-slate",
   variants: {
     isTruncated: {
       true: "web:truncate",
@@ -122,7 +122,7 @@ const formControlHelperTextStyle = tva({
       true: "italic",
     },
     highlight: {
-      true: "bg-yellow-500",
+      true: "bg-ui-forest",
     },
   },
 });
@@ -132,7 +132,7 @@ const formControlLabelStyle = tva({
 });
 
 const formControlLabelTextStyle = tva({
-  base: "font-medium text-typography-900",
+  base: "font-medium text-ui-ink",
   variants: {
     isTruncated: {
       true: "web:truncate",
@@ -166,13 +166,13 @@ const formControlLabelTextStyle = tva({
       true: "italic",
     },
     highlight: {
-      true: "bg-yellow-500",
+      true: "bg-ui-forest",
     },
   },
 });
 
 const formControlLabelAstrickStyle = tva({
-  base: "font-medium text-typography-900",
+  base: "font-medium text-ui-ink",
   variants: {
     isTruncated: {
       true: "web:truncate",
@@ -206,7 +206,7 @@ const formControlLabelAstrickStyle = tva({
       true: "italic",
     },
     highlight: {
-      true: "bg-yellow-500",
+      true: "bg-ui-forest",
     },
   },
 });
@@ -234,7 +234,7 @@ const FormControlLabelAstrick = React.forwardRef<
   );
 });
 
-export const UIFormControl = createFormControl({
+const UIFormControl = createFormControl({
   Root: withStyleContext(View, SCOPE),
   Error: View,
   ErrorText: Text,
@@ -308,7 +308,7 @@ const FormControlErrorText = React.forwardRef<
         parentVariants: { size: parentSize },
         size,
         class: className,
-      } as any)}
+      } as Parameters<typeof formControlErrorTextStyle>[0])}
       ref={ref}
       {...props}
     />
@@ -356,7 +356,7 @@ const FormControlErrorIcon = React.forwardRef<
         parentVariants: { size: parentSize },
         size,
         class: className,
-      } as any)}
+      } as Parameters<typeof formControlErrorIconStyle>[0])}
       {...props}
     />
   );
@@ -395,7 +395,7 @@ const FormControlLabelText = React.forwardRef<
         parentVariants: { size: parentSize },
         size,
         class: className,
-      } as any)}
+      } as Parameters<typeof formControlLabelTextStyle>[0])}
       ref={ref}
       {...props}
     />
@@ -439,7 +439,7 @@ const FormControlHelperText = React.forwardRef<
         parentVariants: { size: parentSize },
         size,
         class: className,
-      } as any)}
+      } as Parameters<typeof formControlHelperTextStyle>[0])}
       ref={ref}
       {...props}
     />
@@ -464,6 +464,5 @@ export {
   FormControlHelper,
   FormControlHelperText,
   FormControlLabel,
-  FormControlLabelAstrick,
   FormControlLabelText,
 };

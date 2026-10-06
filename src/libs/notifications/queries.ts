@@ -5,7 +5,7 @@ import {
   type NotificationItem,
 } from "./constants";
 
-export { NOTIFICATION_PAGINATION, NOTIFICATION_SOCKET_EVENTS };
+export { NOTIFICATION_SOCKET_EVENTS };
 export type { NotificationItem };
 
 export const NOTIFICATION_QUERY_KEYS = {
@@ -28,9 +28,6 @@ export const isNotificationForUser = (
   notification: NotificationItem | null | undefined,
   userId: string | null,
 ) => Boolean(notification && userId && notification.userId === userId);
-
-export const isUnread = (notification: NotificationItem) =>
-  !notification.isRead;
 
 export const clampPageSize = (requested?: number) => {
   const raw = Number(requested) || NOTIFICATION_PAGINATION.DEFAULT_LIMIT;

@@ -33,17 +33,17 @@ const visibilityPresentationByValue: Record<
   public: {
     label: "Public",
     description: "Visible on your profile so more people can discover it.",
-    accentClass: "bg-ui-highlight",
+    accentClass: "bg-ui-forest",
   },
   unlocked: {
     label: "Unlocked",
     description: "Shown only to people who have unlocked or connected with you.",
-    accentClass: "bg-ui-accent",
+    accentClass: "bg-ui-aubergine",
   },
   private: {
     label: "Private",
     description: "Only you can see this until you decide to share it.",
-    accentClass: "bg-ui-shade",
+    accentClass: "bg-ui-ink",
   },
 };
 
@@ -81,15 +81,15 @@ const VisibilityToggle = ({
         accessibilityRole="button"
         accessibilityLabel={`Visibility: ${selectedPresentation?.label || "Public"}`}
         onPress={handleOpen}
-        className="min-h-11 flex-row items-center gap-2 rounded-full border border-ui-border bg-ui-light px-3 active:opacity-75"
+        className="min-h-11 flex-row items-center gap-2 rounded-full border border-ui-parchment bg-ui-paper px-3 active:opacity-75"
       >
-        <View className="h-8 w-8 items-center justify-center rounded-full bg-ui-highlight/10">
-          <Icon name={selectedIcon} size={15} color={COLORS.highlight} />
+        <View className="h-8 w-8 items-center justify-center rounded-full bg-ui-forest/10">
+          <Icon name={selectedIcon} size={15} color={COLORS.forest} />
         </View>
-        <Text className="min-w-0 flex-1 text-sm font-bold text-ui-shade" numberOfLines={1}>
+        <Text className="min-w-0 flex-1 text-sm font-bold text-ui-ink" numberOfLines={1}>
           {selectedPresentation?.label || selectedOption?.label || "Public"}
         </Text>
-        <Icon name="ChevronDown" size={16} color={COLORS.muted} />
+        <Icon name="ChevronDown" size={16} color={COLORS.slate} />
       </Pressable>
 
       <Actionsheet isOpen={isOpen} onClose={() => setIsOpen(false)}>
@@ -100,14 +100,14 @@ const VisibilityToggle = ({
           </ActionsheetDragIndicatorWrapper>
 
           <View className="w-full pb-2 pt-2">
-            <View className="mb-4 rounded-[28px] bg-ui-foreground p-4">
-              <View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-ui-primary">
-                <Icon name="Eye" size={18} color={COLORS.shade} />
+            <View className="mb-4 rounded-[24px] bg-ui-midnight p-4">
+              <View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-ui-champagne">
+                <Icon name="Eye" size={18} color={COLORS.ink} />
               </View>
-              <Text className="text-2xl font-bold leading-7 text-ui-light">
+              <Text className="text-2xl font-bold leading-7 text-ui-paper">
                 Who can see this?
               </Text>
-              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-2 text-sm leading-5 text-ui-paper/70">
                 Choose how visible this detail should be on your dating profile.
               </Text>
             </View>
@@ -118,7 +118,7 @@ const VisibilityToggle = ({
                 visibilityPresentationByValue[option.value] || {
                   label: option.label,
                   description: "Choose who should be able to see this.",
-                  accentClass: "bg-ui-highlight",
+                  accentClass: "bg-ui-forest",
                 };
               return (
                 <ActionsheetItem
@@ -126,8 +126,8 @@ const VisibilityToggle = ({
                   onPress={() => handleSelect(option.value)}
                   className={`mb-3 rounded-[24px] border px-4 py-4 ${
                     isSelected
-                      ? "border-ui-highlight bg-ui-light"
-                      : "border-ui-border bg-ui-light/70"
+                      ? "border-ui-forest bg-ui-paper"
+                      : "border-ui-parchment bg-ui-paper/70"
                   }`}
                   accessibilityLabel={`Set visibility to ${presentation.label}. ${presentation.description}`}
                   accessibilityState={{ selected: isSelected }}
@@ -143,7 +143,7 @@ const VisibilityToggle = ({
                       <Icon
                         name={icon}
                         size={18}
-                        color={isSelected ? COLORS.light : COLORS.highlight}
+                        color={isSelected ? COLORS.paper : COLORS.forest}
                       />
                     </View>
                     <View className="flex-1">
@@ -151,28 +151,28 @@ const VisibilityToggle = ({
                         <Text
                           className={`text-base ${
                             isSelected
-                              ? "font-bold text-ui-highlight"
-                              : "font-semibold text-ui-shade"
+                              ? "font-bold text-ui-forest"
+                              : "font-semibold text-ui-ink"
                           }`}
                         >
                           {presentation.label}
                         </Text>
                         {isSelected ? (
-                          <View className="rounded-full bg-ui-highlight/10 px-2 py-0.5">
-                            <Text className="text-xs font-semibold text-ui-highlight">
+                          <View className="rounded-full bg-ui-forest/10 px-2 py-0.5">
+                            <Text className="text-xs font-semibold text-ui-forest">
                               Selected
                             </Text>
                           </View>
                         ) : null}
                       </View>
-                      <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                      <Text className="mt-1 text-sm leading-5 text-ui-slate">
                         {presentation.description}
                       </Text>
                     </View>
                   </View>
                   {isSelected ? (
-                    <View className="ml-2 h-8 w-8 items-center justify-center rounded-full bg-ui-highlight">
-                      <Icon name="Check" size={16} color={COLORS.light} />
+                    <View className="ml-2 h-8 w-8 items-center justify-center rounded-full bg-ui-forest">
+                      <Icon name="Check" size={16} color={COLORS.paper} />
                     </View>
                   ) : null}
                 </ActionsheetItem>

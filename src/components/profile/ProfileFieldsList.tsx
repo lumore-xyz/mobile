@@ -3,9 +3,10 @@ import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
 import React from "react";
 import { Text, View } from "react-native";
 import ProfileField from "./ProfileField";
+import type { ProfileUser } from "@/src/domain/profile/types";
 
 interface ProfileFieldsListProps {
-  user: any;
+  user?: ProfileUser;
   onEdit: (field: string) => void;
   onVisibilityChange: (field: string, visibility: string) => void;
 }
@@ -13,7 +14,7 @@ interface ProfileFieldsListProps {
 interface SectionField {
   label: string;
   field: string;
-  value?: any;
+  value?: string | number;
   visibility?: string;
   custom?: boolean;
 }
@@ -38,10 +39,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
   onEdit,
   onVisibilityChange,
 }) => {
-  const interests =
-    Array.isArray(user?.interests) && user?.interests?.length
-      ? user.interests.join(", ")
-      : user?.interests;
+  const interests = user?.interests?.join(", ");
   const languages =
     Array.isArray(user?.languages) && user?.languages?.length
       ? languageDisplay(user.languages)?.join(", ")
@@ -169,17 +167,17 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
       {sections.map((section) => (
         <View
           key={section.title}
-          className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4"
+          className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-4"
         >
           <View className="mb-1 flex-row items-start gap-3">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
               <Icon name={section.icon} size={18} />
             </View>
             <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-shade">
+              <Text className="text-xl font-bold text-ui-ink">
                 {section.title}
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 {section.description}
               </Text>
             </View>
@@ -210,7 +208,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
                   {!user?.lifestyle?.drinking &&
                   !user?.lifestyle?.smoking &&
                   !user?.lifestyle?.pets ? (
-                    <Text className="text-base text-ui-muted">Not set yet</Text>
+                    <Text className="text-base text-ui-slate">Not set yet</Text>
                   ) : null}
                 </View>
               </ProfileField>
@@ -233,9 +231,9 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
 };
 
 const LifestyleChip = ({ icon, label }: { icon: string; label: string }) => (
-  <View className="flex-row items-center gap-1.5 rounded-full bg-ui-highlight/10 px-3 py-1.5">
+  <View className="flex-row items-center gap-1.5 rounded-full bg-ui-forest/10 px-3 py-1.5">
     <Icon name={icon} size={14} />
-    <Text className="text-sm font-medium text-ui-shade">{label}</Text>
+    <Text className="text-sm font-medium text-ui-ink">{label}</Text>
   </View>
 );
 

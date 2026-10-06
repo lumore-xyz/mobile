@@ -35,7 +35,7 @@ cssInterop(PrimitiveIcon, {
 });
 
 const inputStyle = tva({
-  base: "flex-row items-center overflow-hidden border border-ui-border bg-white data-[hover=true]:border-ui-highlight/50 data-[focus=true]:border-ui-highlight data-[disabled=true]:opacity-40",
+  base: "flex-row items-center overflow-hidden border border-ui-parchment bg-ui-paper data-[hover=true]:border-ui-forest/50 data-[focus=true]:border-ui-forest data-[disabled=true]:opacity-40",
 
   variants: {
     size: {
@@ -49,19 +49,19 @@ const inputStyle = tva({
 
     variant: {
       underlined:
-        "rounded-none border-b data-[invalid=true]:border-b-2 data-[invalid=true]:border-error-700 data-[invalid=true]:hover:border-error-700 data-[invalid=true]:data-[focus=true]:border-error-700 data-[invalid=true]:data-[focus=true]:hover:border-error-700 data-[invalid=true]:data-[disabled=true]:hover:border-error-700",
+        "rounded-none border-b data-[invalid=true]:border-b-2 data-[invalid=true]:border-ui-danger data-[invalid=true]:hover:border-ui-danger data-[invalid=true]:data-[focus=true]:border-ui-danger data-[invalid=true]:data-[focus=true]:hover:border-ui-danger data-[invalid=true]:data-[disabled=true]:hover:border-ui-danger",
 
       outline:
-        "rounded-[20px] data-[invalid=true]:border-error-700 data-[focus=true]:web:ring-1 data-[focus=true]:web:ring-inset data-[focus=true]:web:ring-ui-highlight",
+        "rounded-2xl data-[invalid=true]:border-ui-danger data-[focus=true]:web:ring-1 data-[focus=true]:web:ring-inset data-[focus=true]:web:ring-ui-forest",
 
       rounded:
-        "rounded-full data-[invalid=true]:border-error-700 data-[focus=true]:web:ring-1 data-[focus=true]:web:ring-inset data-[focus=true]:web:ring-ui-highlight",
+        "rounded-2xl data-[invalid=true]:border-ui-danger data-[focus=true]:web:ring-1 data-[focus=true]:web:ring-inset data-[focus=true]:web:ring-ui-forest",
     },
   },
 });
 
 const inputIconStyle = tva({
-  base: "justify-center items-center text-typography-400 fill-none",
+  base: "justify-center items-center text-ui-slate fill-none",
   parentVariants: {
     size: {
       "2xs": "h-3 w-3",
@@ -79,7 +79,7 @@ const inputSlotStyle = tva({
 });
 
 const inputFieldStyle = tva({
-  base: "flex-1 text-typography-900 py-0 px-3 placeholder:text-typography-500 h-full ios:leading-[0px] web:cursor-text web:data-[disabled=true]:cursor-not-allowed",
+  base: "flex-1 text-ui-ink py-0 px-3 placeholder:text-ui-slate h-full ios:leading-[0px] web:cursor-text web:data-[disabled=true]:cursor-not-allowed",
 
   parentVariants: {
     variant: {

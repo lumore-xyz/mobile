@@ -2,11 +2,14 @@
 
 import { CHAT_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
 import type {
+  ChatRoom,
   ChatReplyPreview,
+  MessageEditedPayload,
   Message,
   MessageDeliveredPayload,
   MessageReactionUpdatedPayload,
   MessageReadPayload,
+  RawChatMessage,
 } from "@/src/domain/chat/types";
 import { fetchRoomChat, fetchRoomData } from "@/src/libs/apis";
 import { useUser } from "@/src/hooks/useUser";
@@ -29,28 +32,29 @@ import { useSocket } from "./SocketContext";
 
 interface ChatContextType {
   roomId: string | null;
-  roomData: any | null;
-  matchedUser: any | null;
+  roomData: ChatRoom | undefined;
+  matchedUser: ReturnType<typeof useUser>["user"];
   messages: Message[];
   setMessages: Dispatch<SetStateAction<Message[]>>;
   cancelChat: () => void;
   lockProfile: (profileId: string) => void;
   unlockProfile: (profileId: string) => void;
   revalidateUser: () => void;
-  error: string | null;
   isLoading: boolean;
   isActive: boolean;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
-const getSenderId = (sender: any): string => {
+type Sender = string | { _id?: string; id?: string } | null | undefined;
+
+const getSenderId = (sender: Sender): string => {
   if (!sender) return "";
   if (typeof sender === "string") return sender;
   return sender._id || sender.id || "";
 };
 
-const mapReplyPreview = (replyTo: any) => {
+const mapReplyPreview = (replyTo: RawChatMessage | null | undefined) => {
   if (!replyTo?._id) return null;
 
   const replyType: "text" | "image" | "audio" = replyTo.messageType || "text";
@@ -70,15 +74,15 @@ const mapReplyPreview = (replyTo: any) => {
     audioUrl: replyTo.audioUrl || null,
     audioDurationMs: Number(replyTo.audioDurationMs || 0) || null,
     audioWaveform: Array.isArray(replyTo.audioWaveform)
-      ? replyTo.audioWaveform
+      ? replyTo.audioWaveform.map(Number).filter(Number.isFinite)
       : null,
-  } as ChatReplyPreview;
+  } satisfies ChatReplyPreview;
 };
 
 const sortByTimestamp = (items: Message[]) =>
   [...items].sort((a, b) => a.timestamp - b.timestamp);
 
-const deriveRoomIsActive = (room: any): boolean => {
+const deriveRoomIsActive = (room: ChatRoom | undefined): boolean => {
   if (!room) return false;
 
   if (typeof room.isActive === "boolean") return room.isActive;
@@ -95,6 +99,15 @@ const deriveRoomIsActive = (room: any): boolean => {
   }
 
   return true;
+};
+
+const toTimestamp = (value?: string | number | null) => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (!value) return null;
+  const numericValue = Number(value);
+  if (Number.isFinite(numericValue)) return numericValue;
+  const parsedValue = Date.parse(value);
+  return Number.isFinite(parsedValue) ? parsedValue : null;
 };
 
 const mergeIncomingMessage = (messages: Message[], incoming: Message) => {
@@ -140,7 +153,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [matchedUserId, setMatchedUserId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [error] = useState<string | null>(null);
   const [isActive, setIsActive] = useState<boolean>(false);
   const router = useRouter();
   const { user } = useUser(userId ?? "");
@@ -184,7 +196,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     setIsActive(false);
   }, [roomId]);
 
-  const mapIncomingMessage = useCallback((rawMessage: any): Message | null => {
+  const mapIncomingMessage = useCallback((rawMessage: RawChatMessage): Message => {
     const messageType: "text" | "image" | "audio" =
       rawMessage?.messageType || "text";
     const text = messageType === "text" ? rawMessage?.message || "" : "";
@@ -206,29 +218,24 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         ? rawMessage.audioWaveform.map(Number).filter(Number.isFinite)
         : null,
       timestamp:
-        rawMessage?.timestamp ||
-        (rawMessage?.createdAt
-          ? new Date(rawMessage.createdAt).getTime()
-          : Date.now()),
+        toTimestamp(rawMessage.timestamp) ??
+        toTimestamp(rawMessage.createdAt) ??
+        Date.now(),
       replyTo: mapReplyPreview(rawMessage?.replyTo),
-      reactions: (rawMessage?.reactions || []).map((reaction: any) => ({
+      reactions: (rawMessage?.reactions || []).map((reaction) => ({
         userId: getSenderId(reaction.userId || reaction.user),
         emoji: reaction.emoji || "\u2764\uFE0F",
       })),
-      editedAt: rawMessage?.editedAt
-        ? new Date(rawMessage.editedAt).getTime()
-        : null,
-      deliveredAt: rawMessage?.deliveredAt
-        ? new Date(rawMessage.deliveredAt).getTime()
-        : null,
-      readAt: rawMessage?.readAt ? new Date(rawMessage.readAt).getTime() : null,
+      editedAt: toTimestamp(rawMessage?.editedAt),
+      deliveredAt: toTimestamp(rawMessage?.deliveredAt),
+      readAt: toTimestamp(rawMessage?.readAt),
       pending: false,
     };
   }, []);
 
   useEffect(() => {
     if (!roomData || !user?._id) return;
-    const other = roomData.participants.find((p: any) => p._id !== user._id);
+    const other = roomData.participants.find((p) => p._id !== user._id);
     const nextIsActive = deriveRoomIsActive(roomData);
     socketDebug("ChatContext", "roomData resolved", {
       roomId,
@@ -252,9 +259,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       });
       try {
         const raw = await fetchRoomChat(roomId);
-        const mapped: Message[] = raw
-          .map((msg: any) => mapIncomingMessage(msg))
-          .filter(Boolean) as Message[];
+        const mapped: Message[] = raw.map(mapIncomingMessage);
 
         setMessages(mapped);
         socketDebug("ChatContext", "loadMessages success", {
@@ -303,7 +308,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       ],
     });
 
-    const onIncomingMessage = (payload: any) => {
+    const onIncomingMessage = (payload: RawChatMessage) => {
       socketDebug("ChatContext", "event incoming message", {
         roomId,
         messageId: payload?._id || null,
@@ -317,7 +322,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       invalidateInboxQueries();
     };
 
-    const onEdited = (payload: any) => {
+    const onEdited = (payload: MessageEditedPayload) => {
       if (!payload?.messageId) return;
       socketDebug("ChatContext", "event message edited", {
         roomId,
@@ -331,9 +336,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
             ? {
                 ...msg,
                 message: nextMessage || msg.message,
-                editedAt: payload.editedAt
-                  ? new Date(payload.editedAt).getTime()
-                  : Date.now(),
+                editedAt: toTimestamp(payload.editedAt) ?? Date.now(),
               }
             : msg,
         ),
@@ -531,7 +534,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       lockProfile,
       unlockProfile,
       revalidateUser,
-      error,
       isLoading,
       isActive,
     }),
@@ -544,7 +546,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       lockProfile,
       unlockProfile,
       revalidateUser,
-      error,
       isLoading,
       isActive,
     ],

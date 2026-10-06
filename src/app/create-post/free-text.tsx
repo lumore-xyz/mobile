@@ -52,38 +52,38 @@ const CreateFreeTextPost = () => {
         contentContainerClassName="pb-10 pt-3"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-5 overflow-hidden rounded-[28px] bg-ui-foreground p-5">
+        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
-              <Text className="text-2xl font-bold text-ui-light">
+              <Text className="text-2xl font-bold text-ui-paper">
                 Say it your way
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
                 Share a thought, quote, story, or small truth that gives your
                 profile more texture.
               </Text>
             </View>
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-primary">
-              <Icon name="PencilLine" size={20} color={COLORS.shade} />
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-champagne">
+              <Icon name="PencilLine" size={20} color={COLORS.ink} />
             </View>
           </View>
         </View>
 
-        <View className="gap-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="gap-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <TextAreaInput
             label="Your words"
             value={text}
             action={setText}
             placeholder="Write your thought, quote, or story here..."
           />
-          <Text className="text-xs text-ui-muted">
+          <Text className="text-xs text-ui-slate">
             {trimmedText.length
               ? `${trimmedText.length} characters`
               : "A few honest lines can be enough."}
           </Text>
 
-          <View className="rounded-[24px] border border-ui-border bg-ui-shade/5 p-4">
-            <Text className="mb-3 text-sm font-bold text-ui-shade">
+          <View className="rounded-[24px] border border-ui-parchment bg-ui-ink/5 p-4">
+            <Text className="mb-3 text-sm font-bold text-ui-ink">
               Visibility
             </Text>
             <VisibilityToggle
@@ -95,7 +95,7 @@ const CreateFreeTextPost = () => {
           </View>
 
           {error ? (
-            <View className="rounded-2xl bg-red-50 px-4 py-3">
+            <View className="rounded-2xl bg-ui-danger/5 px-4 py-3">
               <Text className="text-sm font-medium text-ui-danger">{error}</Text>
             </View>
           ) : null}

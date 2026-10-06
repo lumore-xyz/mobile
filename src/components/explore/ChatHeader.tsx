@@ -10,10 +10,13 @@ import {
   chatFeedbackSchema,
   chatReportSchema,
 } from "@/src/domain/chat/validation";
+import type { ProfileUser } from "@/src/domain/profile/types";
 import { reportChatUser, submitChatFeedback } from "@/src/libs/apis";
 import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
 import { useChat } from "@/src/service/context/ChatContext";
+import { useAd } from "@/src/hooks/useAd";
+import { Image } from "expo-image";
 import { calculateAge } from "@/src/utils";
 import {
   triggerSelectionHaptic,
@@ -22,16 +25,14 @@ import {
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Image,
   Pressable,
   ScrollView,
   Text,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ChatHeaderProps {
-  user: any;
+  user: ProfileUser | undefined;
   onEndChat: () => void;
   currentUserId: string;
 }
@@ -49,12 +50,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     isActive,
     roomData,
   } = useChat();
-  const insets = useSafeAreaInsets();
+  const { showRewarded } = useAd();
   const isRoomMatch = roomData?.source === "location_room";
   const roomMatchTitle =
     roomData?.sourceMetadata?.title ||
     roomData?.locationRoom?.title ||
     "Community";
+  const displayName = user?.isViewerUnlockedByUser
+    ? user.realName || user.nickname || user.username || "Lumore User"
+    : user?.nickname || "Lumore User";
 
   const [isUnlocked, setisUnlocked] = useState(
     user?.isViewerUnlockedUser || false,
@@ -92,10 +96,14 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
     }
   };
 
-  const navigateToProfile = () => {
+  const navigateToProfile = async () => {
     if (!user?._id) return;
     triggerSelectionHaptic();
-    router.push(`/profile/${user._id}`);
+    await showRewarded();
+    router.push({
+      pathname: "/(subpage)/profile/[userId]",
+      params: { userId: user._id },
+    });
   };
 
   const openSheet = () => {
@@ -170,11 +178,11 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
   };
 
   return (
-    <View className="w-full flex-row items-center justify-between border-b border-ui-border bg-ui-light px-2 py-2.5">
+    <View className="w-full flex-row items-center justify-between border-b border-ui-parchment bg-ui-paper px-2 py-2.5">
       <View className="min-w-0 flex-1 flex-row items-center gap-2">
         <Pressable
           onPress={navigateBack}
-          className="h-11 w-11 items-center justify-center rounded-full active:bg-ui-highlight/5"
+          className="h-11 w-11 items-center justify-center rounded-full active:bg-ui-forest/5"
           hitSlop={4}
           accessibilityRole="button"
           accessibilityLabel="Back to inbox"
@@ -186,36 +194,33 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
           />
         </Pressable>
         <View style={{ position: "relative" }}>
-          <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-ui-background">
+          <View className="h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-ui-porcelain">
             {user?.profilePicture ? (
               <Image
                 source={{
                   uri: user?.profilePicture,
                 }}
                 blurRadius={user?.isViewerUnlockedByUser ? 0 : 12}
+                contentFit="cover"
+                transition={150}
                 style={{
-                  resizeMode: "cover",
                   width: "100%",
                   height: "100%",
                   borderRadius: 9999,
                 }}
                 accessible
-                accessibilityLabel={`Profile photo of ${user?.realName || user?.nickname || user?.username}`}
+                accessibilityLabel={`Profile photo of ${displayName}`}
               />
             ) : (
-              <Text className="text-3xl text-ui-shade">
-                {user?.realName
-                  ? user.realName[0]
-                  : user?.nickname
-                    ? user.nickname[0]
-                    : user?.username[0]}
+              <Text className="text-3xl text-ui-ink">
+                {displayName[0]}
               </Text>
             )}
           </View>
 
           <View
             style={{ position: "absolute", bottom: 0, right: 0 }}
-            className="h-4 w-4 items-center justify-center rounded-full bg-ui-light"
+            className="h-4 w-4 items-center justify-center rounded-full bg-ui-paper"
           >
             <Icon
               name={
@@ -223,7 +228,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                   ? "LockOpen"
                   : "Lock"
               }
-              color={COLORS.muted}
+              color={COLORS.slate}
               size={10}
             />
           </View>
@@ -231,19 +236,19 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
         <View className="min-w-0 flex-1">
           <View className="flex-row items-center gap-2">
             <Pressable
-              onPress={navigateToProfile}
+              onPress={() => void navigateToProfile()}
               className="min-w-0 flex-1 justify-center"
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="View profile"
             >
-              <Text className="text-lg font-bold text-ui-shade" numberOfLines={1}>
-                {user?.realName || user?.nickname || user?.username}
+              <Text className="text-lg font-bold text-ui-ink" numberOfLines={1}>
+                {displayName}
               </Text>
             </Pressable>
             {isRoomMatch ? (
-              <View className="self-start rounded-full bg-ui-highlight/10 px-2 py-0.5 mt-0.5">
-                <Text className="text-xs font-semibold text-ui-highlight">
+              <View className="self-start rounded-full bg-ui-forest/10 px-2 py-0.5 mt-0.5">
+                <Text className="text-xs font-semibold text-ui-forest">
                   {roomMatchTitle}
                 </Text>
               </View>
@@ -253,20 +258,20 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
             {user?.dob ? (
               <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
                 <Icon name="CakeSlice" size={12} className="flex-shrink-0" />
-                <Text className="text-xs font-medium text-ui-muted">{calculateAge(user?.dob)}</Text>
+                <Text className="text-xs font-medium text-ui-slate">{calculateAge(user?.dob)}</Text>
               </View>
             ) : null}
 
             {user?.gender ? (
               <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
                 <Icon name="UserRound" size={12} />
-                <Text className="text-xs font-medium capitalize text-ui-muted">{user?.gender}</Text>
+                <Text className="text-xs font-medium capitalize text-ui-slate">{user?.gender}</Text>
               </View>
             ) : null}
 
             <View className="flex flex-row items-center justify-center gap-1 flex-shrink-0">
               <Icon name="Footprints" size={12} className="flex-shrink-0" />
-              <Text className="text-xs font-medium text-ui-muted">{Number(user?.distance || 0).toFixed(1)} km</Text>
+              <Text className="text-xs font-medium text-ui-slate">{Number(user?.distance || 0).toFixed(1)} km</Text>
             </View>
           </View>
         </View>
@@ -274,21 +279,21 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
       <View className="ml-1 flex-row items-center gap-1">
         <Pressable
           onPress={isUnlocked ? handleLockProfile : handleUnlockProfile}
-          className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/5 active:opacity-70"
+          className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest/5 active:opacity-70"
           hitSlop={4}
           accessibilityRole="button"
           accessibilityLabel={isUnlocked ? "Lock profile" : "Unlock profile"}
         >
           {isUnlocked ? (
-            <Icon name="LockOpen" size={20} color={COLORS.highlight} />
+            <Icon name="LockOpen" size={20} color={COLORS.forest} />
           ) : (
-            <Icon name="Lock" size={20} color={COLORS.highlight} />
+            <Icon name="Lock" size={20} color={COLORS.forest} />
           )}
         </Pressable>
         {isActive ? (
           <Pressable
             onPress={openSheet}
-            className="h-11 w-11 items-center justify-center rounded-full active:bg-ui-highlight/5"
+            className="h-11 w-11 items-center justify-center rounded-full active:bg-ui-forest/5"
             hitSlop={4}
             accessibilityRole="button"
             accessibilityLabel="Open chat options"
@@ -309,9 +314,6 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
               className="w-full"
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
-              contentContainerStyle={{
-                paddingBottom: Math.max(insets.bottom, 16),
-              }}
             >
               {sheetMode === "menu" ? (
                 <View className="w-full px-4 pb-4">
@@ -323,13 +325,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                       triggerSelectionHaptic();
                       setSheetMode("feedback");
                     }}
-                    className="mb-2 min-h-12 w-full rounded-md border border-ui-shade/20 bg-ui-light px-4 py-3"
+                    className="mb-2 min-h-12 w-full rounded-md border border-ui-ink/20 bg-ui-paper px-4 py-3"
                     accessibilityRole="button"
                   >
                     <Text className="text-base font-medium">
                       End chat with feedback
                     </Text>
-                    <Text className="text-xs text-ui-shade">
+                    <Text className="text-xs text-ui-ink">
                       Feedback is optional, but helpful
                     </Text>
                   </Pressable>
@@ -338,13 +340,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                       triggerSelectionHaptic();
                       setSheetMode("report");
                     }}
-                    className="min-h-12 w-full rounded-md border border-red-200 bg-red-50 px-4 py-3"
+                    className="min-h-12 w-full rounded-md border border-ui-danger/25 bg-ui-danger/5 px-4 py-3"
                     accessibilityRole="button"
                   >
-                    <Text className="text-base font-medium text-red-600">
+                    <Text className="text-base font-medium text-ui-danger">
                       Report user
                     </Text>
-                    <Text className="text-xs text-red-500">
+                    <Text className="text-xs text-ui-danger">
                       Tell us what happened
                     </Text>
                   </Pressable>
@@ -361,7 +363,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                       hitSlop={8}
                       accessibilityRole="button"
                     >
-                      <Text className="text-ui-shade">Back</Text>
+                      <Text className="text-ui-ink">Back</Text>
                     </Pressable>
                     <Text className="text-lg font-semibold">
                       {sheetMode === "feedback" ? "End chat" : "Report user"}
@@ -382,7 +384,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                     />
                   ) : (
                     <>
-                      <Text className="text-sm font-medium text-ui-shade mb-2">
+                      <Text className="text-sm font-medium text-ui-ink mb-2">
                         Category
                       </Text>
                       <View className="flex-row flex-wrap gap-2 mb-3">
@@ -409,15 +411,15 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                             }}
                             className={` rounded-full border px-3 py-2 ${
                               reportCategory === option.value
-                                ? "bg-ui-highlight border-ui-highlight"
-                                : "bg-white border-ui-shade/20"
+                                ? "bg-ui-forest border-ui-forest"
+                                : "bg-ui-paper border-ui-ink/20"
                             }`}
                           >
                             <Text
                               className={`text-xs ${
                                 reportCategory === option.value
-                                  ? "text-white"
-                                  : "text-ui-shade"
+                                  ? "text-ui-paper"
+                                  : "text-ui-ink"
                               }`}
                             >
                               {option.label}
@@ -439,7 +441,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                   )}
 
                   {errorText ? (
-                    <Text className="text-red-500 text-sm mt-2">
+                    <Text className="text-ui-danger text-sm mt-2">
                       {errorText}
                     </Text>
                   ) : null}
@@ -453,13 +455,13 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
                     }
                     className={`mt-4 min-h-12 w-full rounded-md py-3 ${
                       sheetMode === "feedback"
-                        ? "bg-ui-highlight"
-                        : "bg-red-600"
+                        ? "bg-ui-forest"
+                        : "bg-ui-danger"
                     } ${isSubmitting ? "opacity-70" : ""}`}
                     accessibilityRole="button"
                     accessibilityState={{ disabled: isSubmitting }}
                   >
-                    <Text className="text-center text-white font-semibold">
+                    <Text className="text-center text-ui-paper font-semibold">
                       {sheetMode === "feedback"
                         ? "Submit & End Chat"
                         : "Report"}

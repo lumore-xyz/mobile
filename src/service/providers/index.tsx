@@ -4,7 +4,6 @@ import { StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { ConfettiProvider } from "../context/Confetti";
-import { ExploreChatProvider } from "../context/ExploreChatContext";
 import { SocketProvider } from "../context/SocketContext";
 import { queryClient } from "../query-client";
 import NotificationSyncProvider from "./NotificationSyncProvider";
@@ -12,6 +11,7 @@ import { AdProvider } from "./AdProvider";
 import { LocationProvider } from "./LocationProvider";
 import { OptionsProvider } from "./OptionsProvider";
 import { ReferralAttributionProvider } from "./ReferralAttributionProvider";
+import { RealtimeEventsProvider } from "./RealtimeEventsProvider";
 
 const Provider = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -24,7 +24,9 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
                 <SocketProvider>
                   <NotificationSyncProvider>
                     <ConfettiProvider>
-                      <ExploreChatProvider>{children}</ExploreChatProvider>
+                      <RealtimeEventsProvider>
+                        {children}
+                      </RealtimeEventsProvider>
                     </ConfettiProvider>
                   </NotificationSyncProvider>
                 </SocketProvider>

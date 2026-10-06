@@ -56,16 +56,16 @@ const Tabs = React.memo(function Tabs({
 
   // Default styles
   const defaultContainerClass =
-    "mb-4 flex-row rounded-full border border-ui-border bg-ui-light p-1.5";
+    "mb-4 flex-row rounded-full border border-ui-parchment bg-ui-paper p-1.5";
   const defaultTabClass = "min-h-11 flex-1 justify-center rounded-full px-3 py-2 active:opacity-75";
   const defaultLabelClass = "text-center text-sm font-semibold";
-  const defaultActiveLabelClass = "text-ui-light";
-  const defaultInactiveLabelClass = "text-ui-muted";
+  const defaultActiveLabelClass = "text-ui-paper";
+  const defaultInactiveLabelClass = "text-ui-slate";
   const defaultBadgeClass = "min-w-5 rounded-full px-1.5 py-0.5";
-  const defaultActiveBadgeClass = "bg-ui-primary";
-  const defaultInactiveBadgeClass = "bg-ui-shade/10";
-  const defaultActiveBadgeLabelClass = "text-ui-shade";
-  const defaultInactiveBadgeLabelClass = "text-ui-shade";
+  const defaultActiveBadgeClass = "bg-ui-champagne";
+  const defaultInactiveBadgeClass = "bg-ui-ink/10";
+  const defaultActiveBadgeLabelClass = "text-ui-ink";
+  const defaultInactiveBadgeLabelClass = "text-ui-ink";
 
   return (
     <View className={containerClassName || defaultContainerClass}>
@@ -79,7 +79,7 @@ const Tabs = React.memo(function Tabs({
             className={clsxLib(
               tabClassName || defaultTabClass,
               active
-                ? activeTabClassName || "bg-ui-highlight"
+                ? activeTabClassName || "bg-ui-forest"
                 : inactiveTabClassName || "bg-transparent",
             )}
             accessibilityRole="tab"

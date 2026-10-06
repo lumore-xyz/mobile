@@ -1,14 +1,18 @@
 import { useRouter } from "expo-router";
-import { MotiView } from "moti";
-import React, { useCallback, useEffect } from "react";
-import { Dimensions, Image, Text, View } from "react-native";
+import React, { useCallback, useEffect, useRef } from "react";
+import { Animated, Image, Text, View, useWindowDimensions } from "react-native";
 import { bootstrapAuthSession } from "../service/auth-session";
 import { getIsOnboarded, getUser } from "../service/storage";
-
-const { width } = Dimensions.get("window");
+import LOGO_IMAGE from "@/assets/images/logo.png";
 
 const SplashScreen = () => {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const logoEntrance = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
+  const rotation = useRef(new Animated.Value(0)).current;
+  const titleEntrance = useRef(new Animated.Value(0)).current;
+  const taglineEntrance = useRef(new Animated.Value(0)).current;
 
   const tokenCheck = useCallback(async () => {
     const hasValidSession = await bootstrapAuthSession();
@@ -35,63 +39,151 @@ const SplashScreen = () => {
     return () => cancelAnimationFrame(frameId);
   }, [tokenCheck]);
 
+  useEffect(() => {
+    const entrance = Animated.parallel([
+      Animated.timing(logoEntrance, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.delay(200),
+        Animated.timing(titleEntrance, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.delay(400),
+        Animated.timing(taglineEntrance, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]);
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    const rotationAnimation = Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: 1500,
+        useNativeDriver: true,
+      }),
+    );
+
+    entrance.start();
+    pulseAnimation.start();
+    rotationAnimation.start();
+
+    return () => {
+      entrance.stop();
+      pulseAnimation.stop();
+      rotationAnimation.stop();
+    };
+  }, [logoEntrance, pulse, rotation, taglineEntrance, titleEntrance]);
+
+  const pulseScale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.2],
+  });
+  const pulseOpacity = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.7, 0.2],
+  });
+  const rotationDegrees = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
+
   return (
-    <View className="flex-1 items-center justify-center bg-[#F1E9DA]">
-      {/* Animated Circle Logo */}
-      <MotiView
-        from={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "timing", duration: 500 }}
-        style={{ width: width * 0.3, height: width * 0.3 }}
+    <View className="flex-1 items-center justify-center bg-ui-surface-page px-6">
+      <Animated.View
+        style={{
+          width: width * 0.3,
+          height: width * 0.3,
+          opacity: logoEntrance,
+          transform: [
+            {
+              scale: logoEntrance.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.5, 1],
+              }),
+            },
+          ],
+        }}
         className="mb-8 items-center justify-center"
       >
-        {/* Pulsing Yellow Background */}
-        <MotiView
-          from={{ opacity: 0.7, scale: 1 }}
-          animate={{ opacity: 0.2, scale: 1.2 }}
-          transition={{ loop: true, type: "timing", duration: 1500 }}
-          className="absolute inset-0 rounded-full bg-[#FFD400]"
+        <Animated.View
+          style={{
+            opacity: pulseOpacity,
+            transform: [{ scale: pulseScale }],
+          }}
+          className="absolute inset-0 rounded-full bg-ui-champagne"
         />
 
-        {/* Rotating Border */}
-        <MotiView
-          from={{ rotate: "0deg" }}
-          animate={{ rotate: "360deg" }}
-          transition={{ loop: true, type: "timing", duration: 1500 }}
-          className="absolute inset-2 rounded-xl border-4 border-white"
+        <Animated.View
+          style={{ transform: [{ rotate: rotationDegrees }] }}
+          className="absolute inset-2 rounded-xl border-4 border-ui-paper"
         />
 
-        {/* Centered Logo */}
         <View className="absolute h-[70%] w-[70%] items-center justify-center rounded-full">
           <Image
-            source={require("@/assets/images/logo.png")}
+            source={LOGO_IMAGE}
             className="h-24 w-24 rounded-full"
             resizeMode="contain"
           />
         </View>
-      </MotiView>
+      </Animated.View>
 
-      {/* Title */}
-      <MotiView
-        from={{ translateY: -20, opacity: 0 }}
-        animate={{ translateY: 0, opacity: 1 }}
-        transition={{ delay: 200, type: "timing" }}
+      <Animated.View
+        style={{
+          opacity: titleEntrance,
+          transform: [
+            {
+              translateY: titleEntrance.interpolate({
+                inputRange: [0, 1],
+                outputRange: [-20, 0],
+              }),
+            },
+          ],
+        }}
       >
-        <Text className="mb-2 text-center text-3xl font-bold text-ui-shade">
+        <Text className="mb-2 text-center font-display text-3xl text-ui-ink">
           Lumore
         </Text>
-      </MotiView>
+      </Animated.View>
 
-      {/* Subtitle */}
-      <MotiView
-        from={{ translateY: 20, opacity: 0 }}
-        animate={{ translateY: 0, opacity: 1 }}
-        transition={{ delay: 400, type: "timing" }}
+      <Animated.View
+        style={{
+          opacity: taglineEntrance,
+          transform: [
+            {
+              translateY: taglineEntrance.interpolate({
+                inputRange: [0, 1],
+                outputRange: [20, 0],
+              }),
+            },
+          ],
+        }}
       >
-        <Text className="text-center text-xl text-ui-shade/80">
+        <Text className="text-center text-xl text-ui-ink/80">
           Connecting you with like-minded people.
         </Text>
-      </MotiView>
+      </Animated.View>
     </View>
   );
 };

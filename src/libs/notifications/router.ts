@@ -1,11 +1,11 @@
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 
 import type { NotificationItem } from "./constants";
 
 const safeString = (value: unknown) =>
   value === null || value === undefined ? "" : String(value);
 
-const resolveMatchTarget = (notification: NotificationItem) => {
+const resolveMatchTarget = (notification: NotificationItem): Href | null => {
   const entityId = safeString(notification.entityId);
   const metadataRoomId =
     typeof notification.metadata === "object" && notification.metadata
@@ -13,27 +13,27 @@ const resolveMatchTarget = (notification: NotificationItem) => {
       : "";
   const roomId = entityId || metadataRoomId;
   if (!roomId) return null;
-  return `/chat/${roomId}`;
+  return { pathname: "/chat/[roomId]", params: { roomId } };
 };
 
-const resolveCommunityTarget = (notification: NotificationItem) => {
+const resolveCommunityTarget = (notification: NotificationItem): Href | null => {
   const entityId = safeString(notification.entityId);
   if (!entityId) return null;
-  return `/community/${entityId}`;
+  return { pathname: "/community/[roomId]", params: { roomId: entityId } };
 };
 
-const resolveGameTarget = (notification: NotificationItem) => {
+const resolveGameTarget = (notification: NotificationItem): Href | null => {
   const entityId = safeString(notification.entityId);
   return entityId ? `/games` : null;
 };
 
-const resolveAccountTarget = () => `/(subpage)/settings`;
+const resolveAccountTarget = (): Href => `/(subpage)/settings`;
 
-const resolveFeedbackTarget = () => `/(subpage)/feedback`;
+const resolveFeedbackTarget = (): Href => `/(subpage)/feedback`;
 
 export const resolveNotificationTarget = (
   notification: NotificationItem | null | undefined,
-) => {
+): Href | null => {
   if (!notification) return null;
   const entityType = safeString(notification.entityType);
   switch (entityType) {
@@ -59,7 +59,7 @@ export const navigateToNotification = (
   const target = resolveNotificationTarget(notification);
   if (!target) return false;
   try {
-    router.navigate(target as any);
+    router.navigate(target);
     return true;
   } catch (error) {
     console.warn(

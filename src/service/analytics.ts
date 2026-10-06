@@ -1,8 +1,20 @@
+type AnalyticsWindow = Window & {
+  gtag?: (
+    command: "event",
+    activity: string,
+    parameters: {
+      event_category: string;
+      event_label: string;
+      value: number | string;
+    },
+  ) => void;
+};
+
 interface TrackAnalyticProps {
   activity: string;
   label: string;
   category?: string;
-  value?: any;
+  value?: number | string;
 }
 export const trackAnalytic = ({
   activity,
@@ -10,12 +22,7 @@ export const trackAnalytic = ({
   label,
   value = 1,
 }: TrackAnalyticProps) => {
-  // Track activity in Google Analytics
-  if (typeof window !== "undefined" && (window as any).gtag) {
-    (window as any).gtag("event", activity, {
-      event_category: category,
-      event_label: label,
-      value: value,
-    });
-  }
+  if (typeof window === "undefined") return;
+  const { gtag } = window as AnalyticsWindow;
+  gtag?.("event", activity, { event_category: category, event_label: label, value });
 };

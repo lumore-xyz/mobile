@@ -13,7 +13,7 @@ Credits screen fetches balance and paginated history. Users can claim daily cred
 - Route: `src/app/(subpage)/credits.tsx`
 - Screen: `src/screens/Credits.tsx`
 - APIs: `fetchCreditsBalance`, `fetchCreditsHistory`, `claimDailyCredits`
-- Query key usage in screens and `ExploreChatContext`
+- Query key usage in screens and `RealtimeEventsProvider`
 
 ## Data/API Dependencies
 

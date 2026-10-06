@@ -66,14 +66,15 @@ export const TextInput: React.FC<TextInputProps> = ({
       isRequired={isRequired}
     >
       <FormControlLabel>
-        <FormControlLabelText className="text-base font-bold text-ui-shade">
+        <FormControlLabelText className="text-base font-semibold text-ui-ink">
           {label}
         </FormControlLabelText>
       </FormControlLabel>
-      <Input className="mt-2 bg-ui-surface-page" size="lg">
+      <Input className="mt-2 bg-ui-paper" size="lg">
         <InputField
           type={isPasswordField && showPassword ? "text" : type}
           placeholder={placeholder}
+          className="text-ui-ink placeholder:text-ui-slate"
           nativeID={label}
           value={value}
           onChangeText={(text) => action(text)}
@@ -98,7 +99,7 @@ export const TextInput: React.FC<TextInputProps> = ({
           >
             <InputIcon
               as={showPassword ? EyeOffIcon : EyeIcon}
-              className="text-typography-500"
+              className="text-ui-slate"
             />
           </InputSlot>
         ) : null}
@@ -106,7 +107,7 @@ export const TextInput: React.FC<TextInputProps> = ({
 
       {helperText ? (
         <FormControlHelper>
-          <FormControlHelperText className="text-sm leading-5 text-ui-muted">
+          <FormControlHelperText className="text-sm leading-5 text-ui-slate">
             {helperText}
           </FormControlHelperText>
         </FormControlHelper>
@@ -114,8 +115,8 @@ export const TextInput: React.FC<TextInputProps> = ({
 
       {errorText ? (
         <FormControlError>
-          <FormControlErrorIcon as={AlertCircleIcon} className="text-red-500" />
-          <FormControlErrorText className="text-red-500">
+          <FormControlErrorIcon as={AlertCircleIcon} className="text-ui-danger" />
+          <FormControlErrorText className="text-ui-danger">
             {errorText}
           </FormControlErrorText>
         </FormControlError>
@@ -144,13 +145,14 @@ export const TextAreaInput: React.FC<TextInputProps> = ({
       isRequired={isRequired}
     >
       <FormControlLabel>
-        <FormControlLabelText className="text-base font-bold text-ui-shade">
+        <FormControlLabelText className="text-base font-semibold text-ui-ink">
           {label}
         </FormControlLabelText>
       </FormControlLabel>
-      <Textarea size="md" className="mt-2 h-40 w-full bg-ui-surface-page">
+      <Textarea size="md" className="mt-2 h-40 w-full bg-ui-paper">
         <TextareaInput
           nativeID={label}
+          className="text-ui-ink placeholder:text-ui-slate"
           onChangeText={(text) => action(text)}
           value={value}
           placeholder={placeholder}
@@ -159,7 +161,7 @@ export const TextAreaInput: React.FC<TextInputProps> = ({
 
       {helperText ? (
         <FormControlHelper>
-          <FormControlHelperText className="text-sm leading-5 text-ui-muted">
+          <FormControlHelperText className="text-sm leading-5 text-ui-slate">
             {helperText}
           </FormControlHelperText>
         </FormControlHelper>
@@ -167,8 +169,8 @@ export const TextAreaInput: React.FC<TextInputProps> = ({
 
       {errorText ? (
         <FormControlError>
-          <FormControlErrorIcon as={AlertCircleIcon} className="text-red-500" />
-          <FormControlErrorText className="text-red-500">
+          <FormControlErrorIcon as={AlertCircleIcon} className="text-ui-danger" />
+          <FormControlErrorText className="text-ui-danger">
             {errorText}
           </FormControlErrorText>
         </FormControlError>

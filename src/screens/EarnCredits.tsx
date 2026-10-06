@@ -184,45 +184,45 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor={COLORS.highlight}
-              colors={[COLORS.highlight]}
+              tintColor={COLORS.forest}
+              colors={[COLORS.forest]}
             />
           ) : undefined
         }
       >
-        <View className="overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+        <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
-              <Text className="text-sm font-semibold text-ui-light/60">
+              <Text className="text-sm font-semibold text-ui-paper/60">
                 Rewards
               </Text>
               <Text
-                className="mt-1 text-[32px] font-black leading-9 text-ui-light"
+                className="mt-1 font-display text-[32px] leading-9 text-ui-paper"
                 accessibilityRole="header"
               >
                 Earn credits for showing up
               </Text>
-              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-2 text-sm leading-5 text-ui-paper/70">
                 Credits power premium moments on Lumore. Earn them through
                 activity, referrals, approved contributions, and rewarded ads.
               </Text>
             </View>
-            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-primary">
-              <Icon name="Sparkles" size={24} color={COLORS.shade} />
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-champagne">
+              <Icon name="Sparkles" size={24} color={COLORS.ink} />
             </View>
           </View>
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <View className="flex-row items-start gap-3">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/10">
-              <Icon name="Video" size={19} color={COLORS.highlight} />
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest/10">
+              <Icon name="Video" size={19} color={COLORS.forest} />
             </View>
             <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-shade">
+              <Text className="text-xl font-bold text-ui-ink">
                 Watch ad for credits
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 Earn +1 credit per successful rewarded ad completion.
               </Text>
             </View>
@@ -260,21 +260,21 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
               void handleWatchRewardedAd();
             }}
             disabled={isWatchDisabled}
-            className={`mt-4 min-h-12 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-4 ${
+            className={`mt-4 min-h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-ui-forest px-4 ${
               isWatchDisabled ? "opacity-60" : "active:opacity-80"
             }`}
             accessibilityRole="button"
             accessibilityLabel={watchButtonText}
             accessibilityState={{ disabled: isWatchDisabled }}
           >
-            <Icon name="PlayCircle" size={18} color={COLORS.light} />
-            <Text className="font-semibold text-ui-light">
+            <Icon name="PlayCircle" size={18} color={COLORS.paper} />
+            <Text className="font-semibold text-ui-paper">
               {watchButtonText}
             </Text>
           </Pressable>
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-4">
           <SectionHeader
             icon="BadgePlus"
             title="Ways to earn on Lumore"
@@ -284,24 +284,24 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
             {earnWays.map((item) => (
               <View
                 key={item.title}
-                className="rounded-[22px] bg-ui-light p-4"
+                className="rounded-[22px] bg-ui-paper p-4"
               >
                 <View className="flex-row items-start justify-between gap-3">
                   <View className="flex-1 flex-row items-start gap-3">
-                    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
-                      <Icon name={item.icon} size={18} color={COLORS.highlight} />
+                    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
+                      <Icon name={item.icon} size={18} color={COLORS.forest} />
                     </View>
                     <View className="flex-1">
-                      <Text className="font-bold text-ui-shade">
+                      <Text className="font-bold text-ui-ink">
                         {item.title}
                       </Text>
-                      <Text className="mt-1 text-sm leading-5 text-ui-muted">
+                      <Text className="mt-1 text-sm leading-5 text-ui-slate">
                         {item.description}
                       </Text>
                     </View>
                   </View>
-                  <View className="rounded-full bg-ui-primary px-3 py-1">
-                    <Text className="text-sm font-bold text-ui-shade">
+                  <View className="rounded-full bg-ui-champagne px-3 py-1">
+                    <Text className="text-sm font-bold text-ui-ink">
                       {item.amount}
                     </Text>
                   </View>
@@ -311,13 +311,13 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
           </View>
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <SectionHeader
             icon="ShieldCheck"
             title="How credits are distributed"
             description="Rewards are checked before credits are granted."
           />
-          <Text className="mt-3 text-sm leading-5 text-ui-muted">
+          <Text className="mt-3 text-sm leading-5 text-ui-slate">
             Credit distribution is based on completed actions and approved
             contributions. Rewards are awarded only when each condition is fully
             satisfied and are protected against duplicate payouts where
@@ -336,7 +336,7 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
           </View>
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-4">
           <SectionHeader
             icon="WalletCards"
             title="What credits are used for"
@@ -350,19 +350,19 @@ const EarnCreditsScreen: React.FC<EarnCreditsScreenProps> = ({
           </View>
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-primary/30 bg-ui-primary/20 p-5">
-          <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-ui-light">
-            <Icon name="Coins" size={20} color={COLORS.highlight} />
+        <View className="mt-5 rounded-[24px] border border-ui-champagne/30 bg-ui-champagne/20 p-5">
+          <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-ui-paper">
+            <Icon name="Coins" size={20} color={COLORS.forest} />
           </View>
-          <Text className="text-xl font-bold text-ui-shade">
+          <Text className="text-xl font-bold text-ui-ink">
             Future plan: Lumore Token
           </Text>
-          <Text className="mt-2 text-sm leading-5 text-ui-shade/80">
+          <Text className="mt-2 text-sm leading-5 text-ui-ink/80">
             We plan to launch a Lumore token in the future. The target model is
             1 credit = 1 Lumore token, designed to be tradable on the open
             market after launch.
           </Text>
-          <Text className="mt-3 text-xs leading-4 text-ui-muted">
+          <Text className="mt-3 text-xs leading-4 text-ui-slate">
             Note: Token launch, conversion, and market availability are future
             plans and are not live yet.
           </Text>
@@ -382,12 +382,12 @@ const SectionHeader = ({
   description: string;
 }) => (
   <View className="flex-row items-start gap-3">
-    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
-      <Icon name={icon} size={18} color={COLORS.highlight} />
+    <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
+      <Icon name={icon} size={18} color={COLORS.forest} />
     </View>
     <View className="flex-1">
-      <Text className="text-xl font-bold text-ui-shade">{title}</Text>
-      <Text className="mt-1 text-sm leading-5 text-ui-muted">
+      <Text className="text-xl font-bold text-ui-ink">{title}</Text>
+      <Text className="mt-1 text-sm leading-5 text-ui-slate">
         {description}
       </Text>
     </View>
@@ -404,18 +404,18 @@ const QuotaPill = ({
   value: string;
 }) => (
   <View className="flex-1 rounded-[22px] bg-ui-surface-page p-3">
-    <View className="mb-2 h-9 w-9 items-center justify-center rounded-full bg-ui-highlight/10">
-      <Icon name={icon} size={16} color={COLORS.highlight} />
+    <View className="mb-2 h-9 w-9 items-center justify-center rounded-full bg-ui-forest/10">
+      <Icon name={icon} size={16} color={COLORS.forest} />
     </View>
-    <Text className="text-xs font-semibold text-ui-muted">{label}</Text>
-    <Text className="mt-1 text-sm font-bold text-ui-shade">{value}</Text>
+    <Text className="text-xs font-semibold text-ui-slate">{label}</Text>
+    <Text className="mt-1 text-sm font-bold text-ui-ink">{value}</Text>
   </View>
 );
 
 const RuleRow = ({ text }: { text: string }) => (
-  <View className="flex-row items-start gap-2 rounded-2xl bg-ui-light p-3">
-    <View className="mt-1 h-2 w-2 rounded-full bg-ui-highlight" />
-    <Text className="flex-1 text-sm leading-5 text-ui-shade">{text}</Text>
+  <View className="flex-row items-start gap-2 rounded-2xl bg-ui-paper p-3">
+    <View className="mt-1 h-2 w-2 rounded-full bg-ui-forest" />
+    <Text className="flex-1 text-sm leading-5 text-ui-ink">{text}</Text>
   </View>
 );
 
@@ -428,14 +428,14 @@ const InfoPanel = ({
 }) => {
   const toneClass =
     tone === "warning"
-      ? "bg-ui-primary/20"
+      ? "bg-ui-champagne/20"
       : tone === "highlight"
-        ? "bg-ui-highlight/10"
+        ? "bg-ui-forest/10"
         : "bg-ui-surface-page";
 
   return (
     <View className={`mt-3 rounded-2xl p-3 ${toneClass}`}>
-      <Text className="text-sm font-medium leading-5 text-ui-shade">
+      <Text className="text-sm font-medium leading-5 text-ui-ink">
         {text}
       </Text>
     </View>

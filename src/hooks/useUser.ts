@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef } from "react";
 import apiClient from "../service/api-client";
 import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "../service/query-keys";
 import { clearSession, getUser } from "../service/storage";
+import { getHttpErrorStatus } from "../utils/userFacingError";
+import type { ProfileUser } from "../domain/profile/types";
 
 const fetchUser = async (userId: string) => {
-  const { data } = await apiClient.get(`/profile/${userId}`);
+  const { data } = await apiClient.get<ProfileUser>(`/profile/${userId}`);
 
   return data;
 };
@@ -18,7 +20,7 @@ const updateUserField = async ({
 }: {
   userId: string;
   field: string;
-  value: any;
+  value: unknown;
 }) => {
   const response = await apiClient.patch(`/profile/${userId}`, {
     [field]: value,
@@ -68,7 +70,7 @@ export const useUser = (userId: string) => {
     if (!error) return;
     if (!userId || !currentUserId || userId !== currentUserId) return;
 
-    const status = (error as any)?.response?.status;
+    const status = getHttpErrorStatus(error);
     const shouldForceLogout =
       status === 401 || status === 403 || status === 404;
     if (!shouldForceLogout) return;
@@ -79,7 +81,7 @@ export const useUser = (userId: string) => {
   }, [currentUserId, error, router, userId]);
 
   const updateFieldMutation = useMutation({
-    mutationFn: ({ field, value }: { field: string; value: any }) =>
+    mutationFn: ({ field, value }: { field: string; value: unknown }) =>
       updateUserField({ userId, field, value }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", userId] });

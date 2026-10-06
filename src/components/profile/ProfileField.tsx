@@ -1,6 +1,7 @@
 import VisibilityToggle from "@/src/components/VisibilityToggle";
 import Icon from "@/src/libs/Icon";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
+import { COLORS } from "@/src/libs/constants/theme";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 
@@ -27,9 +28,9 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
     if (children) return children;
     if (React.isValidElement(value)) return value;
     if (value === undefined || value === null || value === "") {
-      return <Text className="text-base text-ui-muted">Not set yet</Text>;
+      return <Text className="text-base text-ui-slate">Not set yet</Text>;
     }
-    return <Text className="text-base leading-6 text-ui-shade">{String(value)}</Text>;
+    return <Text className="text-base leading-6 text-ui-ink">{String(value)}</Text>;
   };
 
   return (
@@ -38,14 +39,14 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
         triggerSelectionHaptic();
         onEdit(field);
       }}
-      className="mt-3 min-h-14 rounded-[22px] bg-ui-light p-4 active:opacity-80"
-      android_ripple={{ color: "rgba(84,19,136,0.06)", borderless: false }}
+      className="mt-3 min-h-14 rounded-[22px] bg-ui-paper p-4 active:opacity-80"
+      android_ripple={{ color: `${COLORS.forest}10`, borderless: false }}
       accessibilityRole="button"
       accessibilityLabel={`Edit ${label}`}
     >
       <View className="flex-row items-center justify-between gap-3">
         <View className="flex-1 pr-1">
-          <Text className="text-sm font-semibold text-ui-muted">{label}</Text>
+          <Text className="text-sm font-semibold text-ui-slate">{label}</Text>
           {renderValue()}
         </View>
         <View className="flex-row items-center gap-2">

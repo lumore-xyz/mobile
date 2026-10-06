@@ -5,7 +5,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import { useUser } from "../hooks/useUser";
-import { startDiditVerification } from "../libs/apis";
+import { startHaloKycVerification } from "../libs/apis";
 import { COLORS } from "../libs/constants/theme";
 import Icon from "../libs/Icon";
 import { getUser } from "../service/storage";
@@ -27,7 +27,7 @@ const SettingsScreen = () => {
     triggerSelectionHaptic();
     try {
       setIsStartingVerification(true);
-      const response = await startDiditVerification();
+      const response = await startHaloKycVerification();
       if (response?.verificationUrl) {
         await WebBrowser.openBrowserAsync(response.verificationUrl);
         return;
@@ -43,22 +43,22 @@ const SettingsScreen = () => {
     <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Settings" fallbackHref="/profile" />
       <ScrollView className="px-4" contentContainerClassName="pb-10 pt-4">
-        <View className="mb-5 overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text
-                className="text-[28px] font-bold leading-8 text-ui-light"
+                className="text-[28px] font-bold leading-8 text-ui-paper"
                 accessibilityRole="header"
               >
                 Your Lumore space
               </Text>
-              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-2 text-sm leading-5 text-ui-paper/70">
                 Manage your profile, preferences, rewards, and trust signals in
                 one calm place.
               </Text>
             </View>
-            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-primary">
-              <Icon name="Settings" size={20} color={COLORS.shade} />
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-ui-champagne">
+              <Icon name="Settings" size={20} color={COLORS.ink} />
             </View>
           </View>
         </View>
@@ -133,28 +133,28 @@ const SettingsScreen = () => {
           />
         </SettingsSection>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-5">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
           <View className="flex-row items-start gap-3">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/10">
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest/10">
               <Icon
                 name={isVerified ? "BadgeCheck" : "BadgeAlert"}
                 size={19}
-                color={COLORS.highlight}
+                color={COLORS.forest}
               />
             </View>
             <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-shade">
+              <Text className="text-xl font-bold text-ui-ink">
                 Verification
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 Verified profiles build trust and unlock referral rewards.
               </Text>
             </View>
           </View>
           {isVerified ? (
-            <View className="mt-4 flex-row items-center gap-3 rounded-[22px] border border-ui-highlight/20 bg-ui-highlight/10 p-4">
-              <Icon name="BadgeCheck" size={18} color={COLORS.highlight} />
-              <Text className="font-semibold text-ui-highlight">
+            <View className="mt-4 flex-row items-center gap-3 rounded-[22px] border border-ui-forest/20 bg-ui-forest/10 p-4">
+              <Icon name="BadgeCheck" size={18} color={COLORS.forest} />
+              <Text className="font-semibold text-ui-forest">
                 Verified
               </Text>
             </View>
@@ -194,24 +194,24 @@ const SettingsItem = ({
       triggerSelectionHaptic();
       onPress();
     }}
-    className="mt-3 min-h-16 flex-row items-center justify-between gap-3 rounded-[22px] bg-ui-light p-4 active:opacity-80"
-    android_ripple={{ color: "rgba(84,19,136,0.06)", borderless: false }}
+    className="mt-3 min-h-16 flex-row items-center justify-between gap-3 rounded-[22px] bg-ui-paper p-4 active:opacity-80"
+    android_ripple={{ color: `${COLORS.forest}10`, borderless: false }}
     accessibilityRole="button"
     accessibilityLabel={`Open ${label}`}
   >
     <View className="flex-1 flex-row items-center gap-3">
-      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
-        <Icon name={icon} size={18} color={COLORS.highlight} />
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
+        <Icon name={icon} size={18} color={COLORS.forest} />
       </View>
       <View className="flex-1">
-        <Text className="text-base font-semibold text-ui-shade">{label}</Text>
-        <Text className="mt-0.5 text-sm leading-5 text-ui-muted">
+        <Text className="text-base font-semibold text-ui-ink">{label}</Text>
+        <Text className="mt-0.5 text-sm leading-5 text-ui-slate">
           {description}
         </Text>
       </View>
     </View>
     <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-surface-page">
-      <Icon name="ChevronRight" size={17} color={COLORS.muted} />
+      <Icon name="ChevronRight" size={17} color={COLORS.slate} />
     </View>
   </Pressable>
 );
@@ -227,14 +227,14 @@ const SettingsSection = ({
   icon: string;
   children: React.ReactNode;
 }) => (
-  <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-surface-page p-4">
+  <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-4">
     <View className="mb-1 flex-row items-start gap-3">
-      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-highlight/10">
-        <Icon name={icon} size={18} color={COLORS.highlight} />
+      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
+        <Icon name={icon} size={18} color={COLORS.forest} />
       </View>
       <View className="flex-1">
-        <Text className="text-xl font-bold text-ui-shade">{title}</Text>
-        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+        <Text className="text-xl font-bold text-ui-ink">{title}</Text>
+        <Text className="mt-1 text-sm leading-5 text-ui-slate">
           {description}
         </Text>
       </View>

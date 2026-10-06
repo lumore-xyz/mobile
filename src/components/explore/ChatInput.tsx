@@ -1,7 +1,7 @@
 import React from "react";
+import { Image } from "expo-image";
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   Text,
   TextInput,
@@ -13,6 +13,7 @@ import {
 } from "@/src/utils/haptics";
 import Icon from "@/src/libs/Icon";
 import { COLORS } from "@/src/libs/constants/theme";
+import type { ChatRoom } from "@/src/domain/chat/types";
 import { AudioWaveform } from "./AudioWaveform";
 
 interface ReplyingToPreview {
@@ -40,7 +41,7 @@ interface ChatInputProps {
   canShareImages: boolean;
   isConnected: boolean;
   isActive: boolean;
-  roomData: any;
+  roomData: ChatRoom | undefined;
   userId: string;
   isUploadingImage: boolean;
   isUploadingVoice: boolean;
@@ -135,10 +136,10 @@ const ChatInput = React.memo(function ChatInput({
 
   if (!isActive) {
     return (
-      <View className="border-t border-ui-border bg-ui-light px-4 py-4">
-        <View className="flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight/5 px-4 py-3">
-          <Icon name="MessageCircleOff" size={18} color={COLORS.muted} />
-          <Text className="flex-1 text-center text-sm leading-5 text-ui-muted">
+      <View className="border-t border-ui-parchment bg-ui-paper px-4 py-4">
+        <View className="flex-row items-center justify-center gap-2 rounded-full bg-ui-forest/5 px-4 py-3">
+          <Icon name="MessageCircleOff" size={18} color={COLORS.slate} />
+          <Text className="flex-1 text-center text-sm leading-5 text-ui-slate">
             {roomData?.endedBy === userId
               ? "You ended this chat. Your conversation is still available to read."
               : "This chat has ended. Your conversation is still available to read."}
@@ -149,10 +150,10 @@ const ChatInput = React.memo(function ChatInput({
   }
 
   return (
-    <View className="w-full border-t border-ui-border bg-ui-light px-3 pb-3 pt-2">
+    <View className="w-full border-t border-ui-parchment bg-ui-paper px-3 pb-3 pt-2">
       {replyingTo ? (
-        <View className="mb-2 flex-row items-center justify-between rounded-2xl bg-ui-highlight/5 px-3 py-2">
-          <Text className="flex-1 text-xs leading-4 text-ui-shade" numberOfLines={2}>
+        <View className="mb-2 flex-row items-center justify-between rounded-2xl bg-ui-forest/5 px-3 py-2">
+          <Text className="flex-1 text-xs leading-4 text-ui-ink" numberOfLines={2}>
             Replying:{" "}
             {replyingTo.messageType === "image"
               ? "Photo"
@@ -170,14 +171,14 @@ const ChatInput = React.memo(function ChatInput({
             accessibilityRole="button"
             accessibilityLabel="Cancel reply"
           >
-            <Text className="text-xs font-medium text-ui-muted">Cancel</Text>
+            <Text className="text-xs font-medium text-ui-slate">Cancel</Text>
           </Pressable>
         </View>
       ) : null}
 
       {isEditing ? (
-        <View className="mb-2 flex-row items-center justify-between rounded-2xl bg-ui-highlight/5 px-3 py-2">
-          <Text className="text-xs text-ui-shade">Editing message</Text>
+        <View className="mb-2 flex-row items-center justify-between rounded-2xl bg-ui-forest/5 px-3 py-2">
+          <Text className="text-xs text-ui-ink">Editing message</Text>
           <Pressable
             onPress={() => {
               triggerSelectionHaptic();
@@ -188,13 +189,13 @@ const ChatInput = React.memo(function ChatInput({
             accessibilityRole="button"
             accessibilityLabel="Cancel message editing"
           >
-            <Text className="text-xs font-medium text-ui-muted">Cancel</Text>
+            <Text className="text-xs font-medium text-ui-slate">Cancel</Text>
           </Pressable>
         </View>
       ) : null}
 
       {isRecordingVoice ? (
-        <View className="mb-2 flex-row items-center gap-3 rounded-full bg-ui-highlight px-3 py-2">
+        <View className="mb-2 flex-row items-center gap-3 rounded-2xl bg-ui-forest px-3 py-2">
           <Pressable
             onPress={() => {
               triggerSelectionHaptic();
@@ -205,8 +206,8 @@ const ChatInput = React.memo(function ChatInput({
             accessibilityRole="button"
             accessibilityLabel="Cancel voice recording"
           >
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-light">
-              <Icon name="Trash" size={20} color={COLORS.highlight} />
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-paper">
+              <Icon name="Trash" size={20} color={COLORS.forest} />
             </View>
           </Pressable>
           <View className="flex-1">
@@ -217,28 +218,28 @@ const ChatInput = React.memo(function ChatInput({
               height={38}
               barWidth={3}
               gap={4}
-              activeColor={COLORS.light}
-              inactiveColor="rgba(255,255,255,0.9)"
+              activeColor={COLORS.paper}
+              inactiveColor={`${COLORS.paper}E6`}
             />
           </View>
-          <Text className="w-12 text-right text-base text-white">
+          <Text className="w-12 text-right text-base text-ui-paper">
             {formatVoiceDuration(recordingDurationMs)}
           </Text>
         </View>
       ) : null}
 
       {isUploadingVoice ? (
-        <View className="mb-2 flex-row items-center gap-2 rounded-xl bg-ui-highlight/5 px-3 py-2">
-          <ActivityIndicator size="small" color={COLORS.highlight} />
-          <Text className="text-xs text-ui-shade">
+        <View className="mb-2 flex-row items-center gap-2 rounded-xl bg-ui-forest/5 px-3 py-2">
+          <ActivityIndicator size="small" color={COLORS.forest} />
+          <Text className="text-xs text-ui-ink">
             Uploading voice note...
           </Text>
         </View>
       ) : null}
 
-      <View className="w-full flex-row items-center gap-2 rounded-[28px] border border-ui-border bg-ui-surface-page px-2 py-1.5">
+      <View className="w-full flex-row items-center gap-2 rounded-[24px] border border-ui-parchment bg-ui-surface-page px-2 py-1.5">
         <Pressable
-          className={`h-11 w-11 items-center justify-center rounded-full active:bg-ui-highlight/10 ${
+          className={`h-11 w-11 items-center justify-center rounded-full active:bg-ui-forest/10 ${
             canShareImages ? "" : "opacity-50"
           }`}
           onPress={handleImageSelect}
@@ -258,11 +259,11 @@ const ChatInput = React.memo(function ChatInput({
               : "Images are available after your match unlocks you"
           }
         >
-          <Icon name="ImagePlus" size={20} color={COLORS.muted} />
+          <Icon name="ImagePlus" size={20} color={COLORS.slate} />
         </Pressable>
 
         <TextInput
-          className="min-h-11 flex-1 py-2 text-base leading-5 text-ui-shade"
+          className="min-h-11 flex-1 py-2 text-base leading-5 text-ui-ink"
           placeholder={
             isRecordingVoice
               ? "Recording voice note..."
@@ -297,13 +298,13 @@ const ChatInput = React.memo(function ChatInput({
           >
             <View
               className={`h-11 w-11 rounded-full items-center justify-center ${
-                isRecordingVoice ? "bg-ui-danger" : "bg-ui-highlight/10"
+                isRecordingVoice ? "bg-ui-danger" : "bg-ui-forest/10"
               }`}
             >
               <Icon
                 name={isRecordingVoice ? "Square" : "Mic"}
                 size={18}
-                color={isRecordingVoice ? COLORS.light : COLORS.highlight}
+                color={isRecordingVoice ? COLORS.paper : COLORS.forest}
               />
             </View>
           </Pressable>
@@ -320,16 +321,16 @@ const ChatInput = React.memo(function ChatInput({
           }
           accessibilityState={{ disabled: !canSend }}
         >
-          <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight">
-            <Icon name="Send" size={16} color={COLORS.light} />
+          <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest">
+            <Icon name="Send" size={16} color={COLORS.paper} />
           </View>
         </Pressable>
       </View>
 
       {pendingImage ? (
-        <View className="mt-2 rounded-[24px] border border-ui-border bg-ui-surface-page p-3">
+        <View className="mt-2 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-3">
           <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-xs text-ui-shade">
+            <Text className="text-xs text-ui-ink">
               {pendingImage.uploading ? "Uploading..." : ""}
             </Text>
             <Pressable
@@ -342,7 +343,7 @@ const ChatInput = React.memo(function ChatInput({
               accessibilityRole="button"
               accessibilityLabel="Remove selected image"
             >
-              <Text className="text-xs font-medium text-ui-muted">Remove</Text>
+              <Text className="text-xs font-medium text-ui-slate">Remove</Text>
             </Pressable>
           </View>
 
@@ -350,11 +351,11 @@ const ChatInput = React.memo(function ChatInput({
             <Image
               source={{ uri: pendingImage.previewUrl }}
               className="h-36 w-36 rounded-2xl"
-              resizeMode="cover"
+              contentFit="cover"
             />
             {pendingImage.uploading ? (
-              <View className="absolute inset-0 items-center justify-center rounded-2xl bg-black/40">
-                <ActivityIndicator size="small" color={COLORS.light} />
+              <View className="absolute inset-0 items-center justify-center rounded-2xl bg-ui-ink/40">
+                <ActivityIndicator size="small" color={COLORS.paper} />
               </View>
             ) : null}
           </View>
@@ -362,9 +363,9 @@ const ChatInput = React.memo(function ChatInput({
       ) : null}
 
       {uploadError ? (
-        <View className="mt-2 flex-row items-center gap-3 rounded-2xl bg-red-50 px-3 py-2" accessibilityLiveRegion="assertive">
+        <View className="mt-2 flex-row items-center gap-3 rounded-2xl bg-ui-danger/5 px-3 py-2" accessibilityLiveRegion="assertive">
           <Icon name="CircleAlert" size={18} color={COLORS.danger} />
-          <Text className="flex-1 text-xs leading-4 text-red-600">
+          <Text className="flex-1 text-xs leading-4 text-ui-danger">
             {uploadError}
           </Text>
           <Pressable
@@ -375,7 +376,7 @@ const ChatInput = React.memo(function ChatInput({
             className="min-h-11 justify-center rounded-full px-2 active:opacity-70"
             hitSlop={8}
           >
-            <Text className="text-xs font-medium text-ui-shade/70">
+            <Text className="text-xs font-medium text-ui-ink/70">
               Dismiss
             </Text>
           </Pressable>

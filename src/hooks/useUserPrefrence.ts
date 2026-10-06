@@ -25,8 +25,10 @@ export interface UserPreferences {
 }
 
 const fetchUserPrefrence = async (userId: string) => {
-  const { data } = await apiClient.get(`/profile/${userId}/preferences`);
-  return data as any;
+  const { data } = await apiClient.get<UserPreferences>(
+    `/profile/${userId}/preferences`,
+  );
+  return data;
 };
 
 export const useUserPrefrence = (userId: string) => {

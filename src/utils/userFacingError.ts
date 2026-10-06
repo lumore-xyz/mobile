@@ -1,3 +1,5 @@
+import { isAxiosError } from "axios";
+
 const TECHNICAL_MESSAGE_PATTERNS = [
   /\bconfiguration\b/i,
   /\bconfig\b/i,
@@ -27,8 +29,19 @@ const TECHNICAL_MESSAGE_PATTERNS = [
 const hasTechnicalLanguage = (message: string) =>
   TECHNICAL_MESSAGE_PATTERNS.some((pattern) => pattern.test(message));
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+export const getHttpErrorStatus = (error: unknown): number | null =>
+  isAxiosError(error) ? error.response?.status ?? null : null;
+
 const getRawErrorMessage = (error: unknown) => {
-  const responseMessage = (error as any)?.response?.data?.message;
+  const responseData = isAxiosError<unknown>(error)
+    ? error.response?.data
+    : null;
+  const responseMessage = isRecord(responseData)
+    ? responseData.message
+    : null;
   if (typeof responseMessage === "string") return responseMessage;
   if (error instanceof Error) return error.message;
   return "";

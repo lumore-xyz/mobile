@@ -1,6 +1,15 @@
 import axios from "axios";
 import apiClient from "../service/api-client";
 import { getUser } from "../service/storage";
+import type { FeedbackItem } from "../utils/types";
+import type { ChatRoom, RawChatMessage } from "../domain/chat/types";
+import type {
+  CreatePromptPostPayload,
+  CreatedPost,
+  Prompt,
+  PromptCategory,
+} from "../domain/posts/types";
+import type { ProfilePostContent } from "../domain/profile/types";
 
 /* -------------------------------------------------------------------------- */
 /*                              External API Call                             */
@@ -67,6 +76,11 @@ export interface MatchRoomParticipantSummary {
 export interface MatchRoomSummary {
   _id: string;
   participants?: MatchRoomParticipantSummary[];
+  lastMessage?: {
+    message?: string;
+    messageType?: "text" | "image" | "audio";
+    previewType?: "text" | "image" | "audio";
+  } | null;
   source?: "explore" | "location_room";
   locationRoom?:
     | string
@@ -100,11 +114,11 @@ const appendRoomCoverImage = (formData: FormData, imageUri?: string | null) => {
   if (!normalizedImageUri) return;
 
   const metadata = getImageUploadMetadata(normalizedImageUri);
-  formData.append("image", {
+  appendNativeFile(formData, "image", {
     uri: normalizedImageUri,
     name: metadata.name,
     type: metadata.type,
-  } as any);
+  });
 };
 
 export interface StartLocationRoomMatchResult {
@@ -151,9 +165,9 @@ export const checkUsernameAvailability = async (username: string) => {
   return Boolean(response.data.isUnique);
 };
 
-export const updateUserData = async (data: any) => {
+export const updateUserData = async (data: object): Promise<unknown> => {
   const { _id: userId } = getUser();
-  const response = await apiClient.patch(`/profile/${userId}`, data);
+  const response = await apiClient.patch<unknown>(`/profile/${userId}`, data);
   return response.data;
 };
 export const updateUserLocation = async (data: LocationWritePayload) => {
@@ -165,51 +179,13 @@ export const updateUserLocation = async (data: LocationWritePayload) => {
   });
   return response.data;
 };
-export const findNearbyUsers = async () => {
+export const updateUserPreferences = async (data: object): Promise<unknown> => {
   const { _id: userId } = getUser();
-  const response = await apiClient.get(`/profile/${userId}/nearby`);
-  return response.data;
-};
-
-export const updateFieldVisibility = async (
-  userId: string,
-  field: string,
-  visibility: string,
-) => {
-  const response = await apiClient.patch(`/profile/${userId}/visibility`, {
-    fields: { [field]: visibility },
-  });
-  return response.data;
-};
-
-export const updateUserPreferences = async (data: any) => {
-  const { _id: userId } = getUser();
-  const response = await apiClient.patch(
+  const response = await apiClient.patch<unknown>(
     `/profile/${userId}/preferences`,
     data,
   );
   return response.data;
-};
-
-/* -------------------------------------------------------------------------- */
-/*                                   Slots                                    */
-/* -------------------------------------------------------------------------- */
-export const fetchUserSlots = async () => {
-  const response = await apiClient.get("/slots");
-  return response.data.data.slots;
-};
-
-export const createSlot = async () => {
-  const response = await apiClient.post("/slots", {});
-  return response.data.data.slot;
-};
-
-export const updateSlot = async (
-  slotId: string,
-  data: { profile?: string; roomId?: string },
-) => {
-  const response = await apiClient.patch(`/slots/${slotId}`, data);
-  return response.data.data.slot;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -336,6 +312,19 @@ export interface InboxFilters {
   status?: string;
   source?: string;
   locationRoom?: string;
+  search?: string;
+  unreadOnly?: boolean;
+  sort?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    hasMore: boolean;
+  };
 }
 
 export const fetchIbox = async (filters: InboxFilters | string = {}) => {
@@ -353,8 +342,48 @@ export const fetchIbox = async (filters: InboxFilters | string = {}) => {
   );
   return response.data;
 };
+
+export interface RNFilePayload {
+  uri: string;
+  name: string;
+  type: string;
+}
+
+type ReactNativeFormData = Omit<FormData, "append"> & {
+  append(name: string, value: string | Blob | RNFilePayload): void;
+};
+
+const appendNativeFile = (
+  formData: FormData,
+  fieldName: string,
+  file: RNFilePayload,
+) => {
+  // React Native accepts URI file objects; the DOM FormData type does not.
+  (formData as ReactNativeFormData).append(fieldName, file);
+};
+
+export const fetchIboxPage = async (
+  filters: InboxFilters | string = {},
+  page = 1,
+  limit = 20,
+): Promise<PaginatedResponse<MatchRoomSummary>> => {
+  const params: InboxFilters =
+    typeof filters === "string" ? { status: filters } : filters;
+  const response = await apiClient.get<PaginatedResponse<MatchRoomSummary>>(
+    "/inbox",
+    {
+      params: {
+        ...params,
+        unreadOnly: params.unreadOnly ? "true" : undefined,
+        page,
+        limit,
+      },
+    },
+  );
+  return response.data;
+};
 export const fetchRoomData = async (roomId: string) => {
-  const response = await apiClient.get(`/inbox/${roomId}`);
+  const response = await apiClient.get<ChatRoom>(`/inbox/${roomId}`);
   return response.data;
 };
 
@@ -375,17 +404,15 @@ export interface UploadResponse {
   profilePicture: string;
 }
 
-export interface RNFilePayload {
-  uri: string;
-  name: string;
-  type: string;
-}
-
 export const uploadProfilePicture = async (
   file: File | RNFilePayload,
 ): Promise<UploadResponse> => {
   const formData = new FormData();
-  formData.append("profilePic", file as any);
+  if ("uri" in file) {
+    appendNativeFile(formData, "profilePic", file);
+  } else {
+    formData.append("profilePic", file);
+  }
 
   const { _id: userId } = getUser();
 
@@ -402,7 +429,7 @@ export const uploadProfilePicture = async (
 /*                                  Messages                                  */
 /* -------------------------------------------------------------------------- */
 export const fetchRoomChat = async (roomId: string) => {
-  const response = await apiClient.get(`/messages/${roomId}`);
+  const response = await apiClient.get<RawChatMessage[]>(`/messages/${roomId}`);
   return response.data;
 };
 
@@ -435,31 +462,8 @@ export const reportChatUser = async (
   return response.data;
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                  App Status                                */
-/* -------------------------------------------------------------------------- */
-export const fetchAppStatus = async () => {
-  const response = await apiClient.get(`/status/app-status`);
-  return response.data;
-};
 export const fetchPublicOptions = async () => {
   const response = await apiClient.get(`/status/options`);
-  return response.data;
-};
-
-/* -------------------------------------------------------------------------- */
-/*                           Push Notification                                */
-/* -------------------------------------------------------------------------- */
-export const subscribePushService = async (subscription: PushSubscription) => {
-  const response = await apiClient.post(`/push/subscribe`, {
-    subscription: JSON.parse(JSON.stringify(subscription)),
-  });
-  return response.data;
-};
-export const unsubscribePushService = async (endpoint: string) => {
-  const response = await apiClient.post(`/push/unsubscribe`, {
-    endpoint,
-  });
   return response.data;
 };
 
@@ -467,11 +471,11 @@ export const unsubscribePushService = async (endpoint: string) => {
 /*                                Prompt                                      */
 /* -------------------------------------------------------------------------- */
 export const fetchPromptCategories = async () => {
-  const response = await apiClient.get(`/prompt/categories`);
+  const response = await apiClient.get<PromptCategory[]>(`/prompt/categories`);
   return response.data;
 };
 export const fetchPromptsByCategories = async (category: string[]) => {
-  const response = await apiClient.get(
+  const response = await apiClient.get<Prompt[]>(
     `/prompt/?category=${category.join(",")}`,
   );
   return response.data;
@@ -479,8 +483,8 @@ export const fetchPromptsByCategories = async (category: string[]) => {
 /* -------------------------------------------------------------------------- */
 /*                                Posts                                       */
 /* -------------------------------------------------------------------------- */
-export const createPromptPost = async (post: any) => {
-  const response = await apiClient.post(`/post`, post);
+export const createPromptPost = async (post: CreatePromptPostPayload) => {
+  const response = await apiClient.post<CreatedPost>(`/post`, post);
   return response.data;
 };
 
@@ -495,11 +499,11 @@ export const createImagePost = async (params: {
   formData.append("type", "IMAGE");
   formData.append("visibility", visibility);
   formData.append("content", JSON.stringify({ caption }));
-  formData.append("image", {
+  appendNativeFile(formData, "image", {
     uri: imageUri,
     name: "post-image.jpg",
     type: "image/jpeg",
-  } as any);
+  });
 
   const response = await apiClient.post(`/post`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -522,7 +526,7 @@ export const createTextPost = async (post: {
 
 export const updatePost = async (
   postId: string,
-  payload: { content?: any; visibility?: string },
+  payload: { content?: ProfilePostContent; visibility?: string },
 ) => {
   const response = await apiClient.put(`/post/${postId}`, payload);
   return response.data;
@@ -535,15 +539,8 @@ export const deletePost = async (postId: string) => {
 /* -------------------------------------------------------------------------- */
 /*                               Verification                                 */
 /* -------------------------------------------------------------------------- */
-export const startDiditVerification = async () => {
-  const response = await apiClient.post("/didit/create-verification", {});
-  return response.data;
-};
-/* -------------------------------------------------------------------------- */
-/*                                  App Status                                */
-/* -------------------------------------------------------------------------- */
-export const fetchPreferenceMatchCount = async () => {
-  const response = await apiClient.get(`/status/match-available-count`);
+export const startHaloKycVerification = async () => {
+  const response = await apiClient.post("/halokyc/create-verification", {});
   return response.data;
 };
 /* -------------------------------------------------------------------------- */
@@ -630,16 +627,16 @@ export const submitThisOrThatQuestion = async (payload: {
   if (payload.category) {
     formData.append("category", payload.category);
   }
-  formData.append("leftImage", {
+  appendNativeFile(formData, "leftImage", {
     uri: payload.leftImageUri,
     name: "left-image.jpg",
     type: "image/jpeg",
-  } as any);
-  formData.append("rightImage", {
+  });
+  appendNativeFile(formData, "rightImage", {
     uri: payload.rightImageUri,
     name: "right-image.jpg",
     type: "image/jpeg",
-  } as any);
+  });
   const response = await apiClient.post(
     `/games/this-or-that/questions`,
     formData,
@@ -647,11 +644,14 @@ export const submitThisOrThatQuestion = async (payload: {
   );
   return response.data;
 };
-/* -------------------------------------------------------------------------- */
-/*                                 Moderation                                 */
-/* -------------------------------------------------------------------------- */
-export const fetchReceivedFeedbacks = async () => {
-  const response = await apiClient.get(`/inbox/feedback/received`);
+export const fetchReceivedFeedbacksPage = async (
+  page = 1,
+  limit = 20,
+): Promise<PaginatedResponse<FeedbackItem>> => {
+  const response = await apiClient.get<PaginatedResponse<FeedbackItem>>(
+    "/inbox/feedback/received",
+    { params: { page, limit } },
+  );
   return response.data;
 };
 /* -------------------------------------------------------------------------- */
@@ -659,11 +659,11 @@ export const fetchReceivedFeedbacks = async () => {
 /* -------------------------------------------------------------------------- */
 export const uploadChatImage = async (roomId: string, imageUri: string) => {
   const formData = new FormData();
-  formData.append("image", {
+  appendNativeFile(formData, "image", {
     uri: imageUri,
     name: "chat-image.jpg",
     type: "image/jpeg",
-  } as any);
+  });
   const response = await apiClient.post(`/messages/${roomId}/image`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
@@ -702,11 +702,11 @@ export const uploadChatAudio = async (
 ) => {
   const metadata = getAudioUploadMetadata(audioUri);
   const formData = new FormData();
-  formData.append("audio", {
+  appendNativeFile(formData, "audio", {
     uri: audioUri,
     name: metadata.name,
     type: metadata.type,
-  } as any);
+  });
   formData.append("durationMs", String(Math.max(0, Math.round(durationMs))));
 
   const response = await apiClient.post(`/messages/${roomId}/audio`, formData, {
@@ -720,17 +720,6 @@ export const uploadChatAudio = async (
   };
 };
 
-export const deleteTempChatAudio = async (publicId: string) => {
-  const response = await apiClient.delete(`/messages/audio-temp`, {
-    data: { publicId },
-  });
-  return response.data as { message: string };
-};
-
 /* -------------------------------------------------------------------------- */
 /*                                  Posts                                     */
 /* -------------------------------------------------------------------------- */
-export const getPostById = async (postId: string) => {
-  const response = await apiClient.get(`/post/${postId}`);
-  return response.data;
-};

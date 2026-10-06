@@ -13,7 +13,7 @@ Chat rooms join/leave sockets, fetch message history, send text, upload/send ima
 - Route: `src/app/chat/[roomId].tsx`
 - Components: `src/components/explore/ChatScreen.tsx`, `ChatHeader.tsx`, `ChatInput.tsx`, `ChatMessages.tsx`, `ChatMessage.tsx`, `AudioWaveform.tsx`, `MatchNoteBanner.tsx`
 - Context: `src/service/context/ChatContext.tsx`, `src/service/context/SocketContext.tsx`
-- Domain: `src/domain/chat`
+- Domain and payload contracts: `src/domain/chat/types.ts`, `src/domain/chat/socketEvents.ts`
 - APIs: `fetchRoomData`, `fetchRoomChat`, `uploadChatImage`, `uploadChatAudio`, temp-delete helpers
 
 ## Data/API Dependencies
@@ -37,6 +37,5 @@ Message bubbles should be soft and readable. Media must reserve stable dimension
 
 ## Future Work
 
-- Document message payload shapes.
 - Add tests for chat validation schemas.
 - Add visual regression coverage for bubble/media/reply/edit, locked, disconnected, recording, uploading, and ended-chat states.

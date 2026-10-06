@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, DimensionValue, StyleProp, ViewStyle } from "react-native";
+import { COLORS } from "@/src/libs/constants/theme";
 
 type SkeletonProps = {
   width?: DimensionValue;
@@ -8,7 +9,7 @@ type SkeletonProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-const BASE_COLOR = "rgba(71, 85, 105, 0.14)";
+const BASE_COLOR = `${COLORS.slate}24`;
 
 const Skeleton: React.FC<SkeletonProps> = ({
   width = "100%",

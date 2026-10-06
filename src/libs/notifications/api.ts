@@ -1,6 +1,7 @@
 import apiClient from "../../service/api-client";
 import {
   NOTIFICATION_PAGINATION,
+  type NotificationItem,
   type NotificationListResponse,
 } from "./constants";
 
@@ -37,7 +38,7 @@ export const fetchUnreadNotificationCount = async () => {
 };
 
 export const markNotificationAsRead = async (notificationId: string) => {
-  const response = await apiClient.patch<{ success: boolean; data: any }>(
+  const response = await apiClient.patch<{ success: boolean; data: NotificationItem }>(
     `/notifications/${notificationId}/read`,
   );
   return response.data;
@@ -56,17 +57,4 @@ export const deleteNotification = async (notificationId: string) => {
     `/notifications/${notificationId}`,
   );
   return response.data;
-};
-
-export const ADMIN_ENDPOINTS = {
-  SYSTEM_NOTIFICATION: "/admin/notifications/system",
-  SYSTEM_NOTIFICATION_BULK: "/admin/notifications/system/bulk",
-};
-
-export default {
-  fetchNotifications,
-  fetchUnreadNotificationCount,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-  deleteNotification,
 };

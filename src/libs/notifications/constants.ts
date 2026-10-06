@@ -1,43 +1,13 @@
-export const NOTIFICATION_TYPES = Object.freeze([
-  "MATCH_CREATED",
-  "MATCH_CREATED_FROM_COMMUNITY",
-  "FEEDBACK_RECEIVED",
-  "ACCOUNT_VERIFICATION_APPROVED",
-  "ACCOUNT_VERIFICATION_COMPLETED",
-  "ACCOUNT_VERIFICATION_REVOKED",
-  "ACCOUNT_VERIFICATION_REJECTED",
-  "GAME_SUBMISSION_APPROVED",
-  "GAME_SUBMISSION_REJECTED",
-  "COMMUNITY_JOINED",
-  "COMMUNITY_INVITE_RECEIVED",
-  "COMMUNITY_ROLE_UPDATED",
-  "SYSTEM_MESSAGE",
-]);
-
-export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
-
-export const NOTIFICATION_ENTITY_TYPES = Object.freeze([
-  "match",
-  "community",
-  "feedback",
-  "game",
-  "account",
-  "system",
-]);
-
-export type NotificationEntityType =
-  (typeof NOTIFICATION_ENTITY_TYPES)[number];
-
 export interface NotificationItem {
   id: string;
   userId: string;
   actorId: string | null;
-  type: NotificationType | string;
+  type: string;
   title: string;
   message: string;
-  entityType: NotificationEntityType | string | null;
+  entityType: string | null;
   entityId: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   isRead: boolean;
   readAt: string | null;
   createdAt: string | null;

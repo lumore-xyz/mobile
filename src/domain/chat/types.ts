@@ -1,6 +1,61 @@
-export interface ChatReaction {
+interface ChatReaction {
   userId: string;
   emoji: string;
+}
+
+interface ChatParticipant {
+  _id: string;
+}
+
+export interface ChatRoom {
+  _id: string;
+  participants: ChatParticipant[];
+  isActive?: boolean;
+  endedAt?: string | null;
+  endedBy?: string | null;
+  status?: string;
+  source?: string;
+  sourceMetadata?: { title?: string };
+  locationRoom?: { title?: string };
+  matchingNote?:
+    | string
+    | { notesByUser?: Record<string, string>; oneSentenceNote?: string }
+    | null;
+  createdAt?: string | null;
+}
+
+interface RawChatReaction {
+  userId?: string | { _id?: string };
+  user?: string | { _id?: string };
+  emoji?: string;
+}
+
+export interface RawChatMessage {
+  _id?: string;
+  clientMessageId?: string;
+  sender?: string | { _id?: string; id?: string };
+  senderId?: string;
+  messageType?: "text" | "image" | "audio";
+  message?: string;
+  imageUrl?: string | null;
+  imagePublicId?: string | null;
+  audioUrl?: string | null;
+  audioPublicId?: string | null;
+  audioDurationMs?: number | string | null;
+  audioWaveform?: unknown[] | null;
+  timestamp?: number | string;
+  createdAt?: string;
+  replyTo?: RawChatMessage | null;
+  reactions?: RawChatReaction[];
+  editedAt?: string | null;
+  deliveredAt?: string | null;
+  readAt?: string | null;
+}
+
+export interface MessageEditedPayload {
+  messageId?: string;
+  message?: string;
+  editedAt?: string;
 }
 
 export interface ChatReplyPreview {
@@ -35,24 +90,6 @@ export interface Message {
   pending?: boolean;
 }
 
-export interface KeyExchangeRequest {
-  fromUserId: string;
-  sessionKey: string;
-  timestamp: number;
-}
-
-export interface KeyExchangeResponse {
-  fromUserId: string;
-  sessionKey: string;
-  timestamp: number;
-}
-
-export interface TypingPayload {
-  roomId?: string;
-  userId?: string;
-  isTyping?: boolean;
-}
-
 export interface MatchFoundPayload {
   roomId: string;
   matchedUser: unknown;
@@ -70,24 +107,9 @@ export interface RoomMatchFoundPayload {
   matchingNote?: unknown;
 }
 
-export interface MatchmakingErrorPayload {
-  message?: string;
-}
-
-export interface CreditsEventPayload {
-  message?: string;
-}
-
 export interface ProfileLockPayload {
   lockedBy?: string;
   unlockedBy?: string;
-}
-
-export interface MessageEditedPayload {
-  messageId?: string;
-  encryptedData?: string | { data?: number[] };
-  iv?: string | { data?: number[] };
-  editedAt?: string;
 }
 
 export interface MessageReactionUpdatedPayload {

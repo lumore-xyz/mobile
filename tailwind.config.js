@@ -20,27 +20,28 @@ module.exports = {
     extend: {
       colors: {
         ui: {
-          light: "#FAFAFA",
-          shade: "#0A0A09",
-          background: "#F1E9DA", // Light Beige
-          foreground: "#2E294E", // Dark Indigo
-          primary: "#FFD400", // Bright Yellow
-          accent: "#D90368", // Vivid Pink
-          highlight: "#541388", // Deep Purple
-          muted: "#6F697B",
-          border: "#DED5C7",
+          paper: "#FFFEFB",
+          ink: "#242624",
+          porcelain: "#F7F4EE",
+          midnight: "#17252B",
+          champagne: "#C7A66A",
+          aubergine: "#563B49",
+          forest: "#30463E",
+          slate: "#6D716D",
+          parchment: "#EAE3D7",
           danger: "#B4233D",
           surface: {
-            page: "#F1E9DA",
-            raised: "#FAFAFA",
-            dark: "#2E294E",
+            page: "#F7F4EE",
+            raised: "#FFFEFB",
+            inset: "#EAE3D7",
+            dark: "#17252B",
           },
           dark: {
-            background: "#1A1A2E", // Deep Navy
-            foreground: "#EAEAEA", // Light Grey
-            primary: "#FFDD33", // Muted Yellow
-            accent: "#FF4F7B", // Bright Pink
-            highlight: "#6A28A5", // Soft Purple
+            background: "#17252B",
+            foreground: "#FFFEFB",
+            primary: "#C7A66A",
+            accent: "#563B49",
+            highlight: "#30463E",
           },
         },
         primary: {
@@ -199,6 +200,7 @@ module.exports = {
         },
       },
       fontFamily: {
+        display: ["serif"],
         heading: undefined,
         body: undefined,
         mono: undefined,

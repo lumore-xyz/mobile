@@ -5,13 +5,7 @@ import { refreshAccessToken } from "../auth-session";
 import apiClient from "../api-client";
 import { signOutFromGoogle } from "../google-signin";
 import { clearSession, setSession } from "../storage";
-
-type User = {
-  id?: string;
-  _id?: string;
-  name?: string;
-  email?: string;
-};
+import type { StoredUser } from "../storage";
 
 type CredentialLoginPayload = {
   identifier: string;
@@ -25,7 +19,7 @@ type CredentialSignupPayload = {
 
 const ONESIGNAL_EMAIL_ALIAS_LABEL = "custom_alias_label";
 
-const syncOneSignalUser = (user: User) => {
+const syncOneSignalUser = (user: StoredUser) => {
   const externalId = user?._id || user?.id;
   if (!externalId) return;
 
@@ -42,7 +36,7 @@ const syncOneSignalUser = (user: User) => {
 
 export default function useAuth() {
   const loginWithGoogle = useCallback(
-    async (idToken: string): Promise<User> => {
+    async (idToken: string): Promise<StoredUser> => {
       const { data } = await apiClient.post("/auth/google-signin", {
         id_token: idToken,
       });
@@ -64,7 +58,7 @@ export default function useAuth() {
   );
 
   const loginWithCredentials = useCallback(
-    async ({ identifier, password }: CredentialLoginPayload): Promise<User> => {
+    async ({ identifier, password }: CredentialLoginPayload): Promise<StoredUser> => {
       const payload = {
         identifier: String(identifier || "").trim(),
         password,
@@ -93,7 +87,7 @@ export default function useAuth() {
   );
 
   const signupWithCredentials = useCallback(
-    async ({ email, password }: CredentialSignupPayload): Promise<User> => {
+    async ({ email, password }: CredentialSignupPayload): Promise<StoredUser> => {
       const payload = {
         email: String(email || "")
           .trim()

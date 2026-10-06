@@ -1,5 +1,6 @@
 import React from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { Pressable, Text, View } from "react-native";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import Icon from "@/src/libs/Icon";
 import { COLORS } from "@/src/libs/constants/theme";
@@ -23,21 +24,21 @@ const ProfileImagePicker = React.memo(function ProfileImagePicker({
     "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
   return (
-    <View className="overflow-hidden rounded-[32px] border border-ui-border bg-ui-light">
+    <View className="overflow-hidden rounded-[24px] border border-ui-parchment bg-ui-paper">
       <View className="p-4">
-        <Text className="text-xl font-bold text-ui-shade">Profile photo</Text>
-        <Text className="mt-1 text-sm leading-5 text-ui-muted">
+        <Text className="text-xl font-bold text-ui-ink">Profile photo</Text>
+        <Text className="mt-1 text-sm leading-5 text-ui-slate">
           Choose a clear, warm photo — this is the first hello.
         </Text>
       </View>
 
       <View className="px-4">
-        <View className="overflow-hidden rounded-[28px] bg-ui-surface-page">
+        <View className="overflow-hidden rounded-[24px] bg-ui-surface-page">
           <Image
             source={{ uri: imageUri }}
+            contentFit="cover"
             accessibilityLabel="Current profile photo"
             style={{
-              resizeMode: "cover",
               width: "100%",
               aspectRatio: 0.92,
             }}
@@ -51,10 +52,10 @@ const ProfileImagePicker = React.memo(function ProfileImagePicker({
           onPickImage();
         }}
         disabled={isUploading}
-        className={`m-4 min-h-12 flex-row items-center justify-center gap-2 rounded-full bg-ui-highlight px-4 ${
+        className={`m-4 min-h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-ui-forest px-4 ${
           isUploading ? "opacity-60" : "active:opacity-80"
         }`}
-        android_ripple={{ color: "rgba(250,250,250,0.14)", borderless: false }}
+        android_ripple={{ color: `${COLORS.paper}24`, borderless: false }}
         accessibilityRole="button"
         accessibilityLabel={
           isUploading ? "Uploading profile photo" : "Change profile photo"
@@ -64,9 +65,9 @@ const ProfileImagePicker = React.memo(function ProfileImagePicker({
         <Icon
           name={isUploading ? "LoaderCircle" : "Camera"}
           size={18}
-          color={COLORS.light}
+          color={COLORS.paper}
         />
-        <Text className="font-semibold text-ui-light">
+        <Text className="font-semibold text-ui-paper">
           {isUploading ? "Uploading..." : "Change photo"}
         </Text>
       </Pressable>

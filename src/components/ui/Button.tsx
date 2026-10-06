@@ -30,17 +30,17 @@ const sizeTextStyles = {
 };
 
 const variantStyles = {
-  primary: "bg-ui-highlight",
+  primary: "bg-ui-forest",
   danger: "bg-ui-danger",
-  secondary: "bg-ui-light border border-ui-border",
-  outline: "bg-transparent border border-ui-highlight/40",
+  secondary: "bg-ui-paper border border-ui-parchment",
+  outline: "bg-transparent border border-ui-forest/40",
 };
 
 const variantTextStyles = {
-  primary: "text-ui-light",
-  danger: "text-ui-light",
-  secondary: "text-ui-dark",
-  outline: "text-ui-dark",
+  primary: "text-ui-paper",
+  danger: "text-ui-paper",
+  secondary: "text-ui-ink",
+  outline: "text-ui-forest",
 };
 
 const Button: React.FC<ButtonProps> = ({
@@ -64,7 +64,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <Pressable
       className={clsxLib(
-        "flex items-center justify-center rounded-full active:opacity-85",
+        "flex items-center justify-center rounded-2xl active:opacity-80",
         sizeStyles[size],
         variantStyles[variant],
         disabled && "opacity-60",

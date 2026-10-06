@@ -1,6 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import SubPageBack from '../components/headers/SubPageBack';
 import Button from '../components/ui/Button';
 import { TextInput } from '../components/ui/TextInput';
@@ -86,7 +87,7 @@ const ThisOrThatSubmitScreen = () => {
       setRightImageUri(null);
       triggerSuccessHaptic();
       setStatusMessage('Submitted! Your question is pending review.');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStatusMessage(
         toUserFacingError(
           err,
@@ -102,41 +103,41 @@ const ThisOrThatSubmitScreen = () => {
     <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Submit Question" />
       <ScrollView className="px-4" contentContainerClassName="pb-10 pt-4">
-        <View className="overflow-hidden rounded-[32px] bg-ui-foreground p-5">
+        <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
-              <View className="mb-3 self-start rounded-full bg-ui-primary px-3 py-1">
-                <Text className="text-xs font-bold text-ui-shade">
+              <View className="mb-3 self-start rounded-full bg-ui-champagne px-3 py-1">
+                <Text className="text-xs font-bold text-ui-ink">
                   Create a prompt
                 </Text>
               </View>
               <Text
-                className="text-[32px] font-black leading-9 text-ui-light"
+                className="font-display text-[32px] leading-9 text-ui-paper"
                 accessibilityRole="header"
               >
                 Make a choice people want to explain
               </Text>
-              <Text className="mt-2 text-sm leading-5 text-ui-light/70">
+              <Text className="mt-2 text-sm leading-5 text-ui-paper/70">
                 The best This-or-That prompts are simple, visual, and a little
                 revealing. Give both sides a clear vibe.
               </Text>
             </View>
-            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-accent">
-              <Icon name="GitCompareArrows" size={23} color={COLORS.light} />
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-aubergine">
+              <Icon name="GitCompareArrows" size={23} color={COLORS.paper} />
             </View>
           </View>
         </View>
 
-        <View className="mt-5 rounded-[28px] border border-ui-border bg-ui-light p-4">
+        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-4">
           <View className="flex-row items-start gap-3">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-highlight/10">
-              <Icon name="Lightbulb" size={18} color={COLORS.highlight} />
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest/10">
+              <Icon name="Lightbulb" size={18} color={COLORS.forest} />
             </View>
             <View className="flex-1">
-              <Text className="text-lg font-black text-ui-shade">
+              <Text className="text-lg font-semibold text-ui-ink">
                 Prompt recipe
               </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-muted">
+              <Text className="mt-1 text-sm leading-5 text-ui-slate">
                 Use two distinct options, add images that make the choice
                 instantly understandable, and keep the category short.
               </Text>
@@ -144,15 +145,15 @@ const ThisOrThatSubmitScreen = () => {
           </View>
         </View>
 
-        <View className="mt-5 overflow-hidden rounded-[32px] bg-ui-light">
-          <View className="bg-ui-highlight/10 p-5">
-            <Text className="text-sm font-semibold text-ui-muted">
+        <View className="mt-5 overflow-hidden rounded-[24px] bg-ui-paper">
+          <View className="bg-ui-forest/10 p-5">
+            <Text className="text-sm font-semibold text-ui-slate">
               Step 1
             </Text>
-            <Text className="mt-1 text-2xl font-black text-ui-shade">
+            <Text className="mt-1 text-2xl font-semibold text-ui-ink">
               Write the two sides
             </Text>
-            <Text className="mt-1 text-sm leading-5 text-ui-muted">
+            <Text className="mt-1 text-sm leading-5 text-ui-slate">
               Make them specific enough to feel personal, but short enough to
               scan quickly.
             </Text>
@@ -183,15 +184,15 @@ const ThisOrThatSubmitScreen = () => {
           </View>
         </View>
 
-        <View className="mt-5 overflow-hidden rounded-[32px] bg-ui-light">
-          <View className="bg-ui-accent/10 p-5">
-            <Text className="text-sm font-semibold text-ui-muted">
+        <View className="mt-5 overflow-hidden rounded-[24px] bg-ui-paper">
+          <View className="bg-ui-aubergine/10 p-5">
+            <Text className="text-sm font-semibold text-ui-slate">
               Step 2
             </Text>
-            <Text className="mt-1 text-2xl font-black text-ui-shade">
+            <Text className="mt-1 text-2xl font-semibold text-ui-ink">
               Add both images
             </Text>
-            <Text className="mt-1 text-sm leading-5 text-ui-muted">
+            <Text className="mt-1 text-sm leading-5 text-ui-slate">
               Images make the choice feel instant. Use clear, tasteful visuals
               that match each option.
             </Text>
@@ -217,24 +218,24 @@ const ThisOrThatSubmitScreen = () => {
           <View
             className={`mt-5 flex-row items-start gap-3 rounded-[24px] border p-4 ${
               isSuccess
-                ? 'border-ui-highlight/20 bg-ui-highlight/10'
-                : 'border-ui-danger/20 bg-ui-light'
+                ? 'border-ui-forest/20 bg-ui-forest/10'
+                : 'border-ui-danger/20 bg-ui-paper'
             }`}
           >
             <View
               className={`h-10 w-10 items-center justify-center rounded-full ${
-                isSuccess ? 'bg-ui-highlight/10' : 'bg-ui-danger/10'
+                isSuccess ? 'bg-ui-forest/10' : 'bg-ui-danger/10'
               }`}
             >
               <Icon
                 name={isSuccess ? 'BadgeCheck' : 'CircleAlert'}
                 size={18}
-                color={isSuccess ? COLORS.highlight : COLORS.danger}
+                color={isSuccess ? COLORS.forest : COLORS.danger}
               />
             </View>
             <Text
               className={`flex-1 text-sm font-semibold leading-5 ${
-                isSuccess ? 'text-ui-highlight' : 'text-ui-danger'
+                isSuccess ? 'text-ui-forest' : 'text-ui-danger'
               }`}
             >
               {statusMessage}
@@ -250,7 +251,7 @@ const ThisOrThatSubmitScreen = () => {
             accessibilityLabel="Submit This or That question for review"
           />
           {!canSubmit && !isSubmitting ? (
-            <Text className="mt-2 text-center text-xs leading-4 text-ui-muted">
+            <Text className="mt-2 text-center text-xs leading-4 text-ui-slate">
               Add both options and both images to submit.
             </Text>
           ) : null}
@@ -274,29 +275,29 @@ const ImagePickerCard = ({
   onPick,
 }: ImagePickerCardProps) => {
   const isRose = tone === 'accent';
-  const toneColor = isRose ? COLORS.accent : COLORS.highlight;
+  const toneColor = isRose ? COLORS.aubergine : COLORS.forest;
 
   return (
-    <View className="overflow-hidden rounded-[26px] border border-ui-border bg-ui-surface-page">
+    <View className="overflow-hidden rounded-[26px] border border-ui-parchment bg-ui-surface-page">
       <View className="flex-row items-center justify-between gap-3 p-4">
         <View className="flex-row items-center gap-3">
           <View
             className={`h-10 w-10 items-center justify-center rounded-full ${
-              isRose ? 'bg-ui-accent/10' : 'bg-ui-highlight/10'
+              isRose ? 'bg-ui-aubergine/10' : 'bg-ui-forest/10'
             }`}
           >
             <Icon name="ImagePlus" size={17} color={toneColor} />
           </View>
           <View>
-            <Text className="text-base font-black text-ui-shade">{label}</Text>
-            <Text className="mt-0.5 text-xs text-ui-muted">
+            <Text className="text-base font-semibold text-ui-ink">{label}</Text>
+            <Text className="mt-0.5 text-xs text-ui-slate">
               {imageUri ? 'Tap to replace image' : 'Required image'}
             </Text>
           </View>
         </View>
         {imageUri ? (
-          <View className="rounded-full bg-ui-primary px-3 py-1">
-            <Text className="text-xs font-bold text-ui-shade">Added</Text>
+          <View className="rounded-full bg-ui-champagne px-3 py-1">
+            <Text className="text-xs font-bold text-ui-ink">Added</Text>
           </View>
         ) : null}
       </View>
@@ -311,21 +312,21 @@ const ImagePickerCard = ({
           <Image
             source={{ uri: imageUri }}
             className="h-48 w-full"
-            style={{ resizeMode: 'cover' }}
+            contentFit="cover"
           />
         ) : (
-          <View className="h-44 items-center justify-center rounded-[22px] border border-dashed border-ui-muted/40 bg-ui-light">
+          <View className="h-44 items-center justify-center rounded-[22px] border border-dashed border-ui-slate/40 bg-ui-paper">
             <View
               className={`h-12 w-12 items-center justify-center rounded-full ${
-                isRose ? 'bg-ui-accent/10' : 'bg-ui-highlight/10'
+                isRose ? 'bg-ui-aubergine/10' : 'bg-ui-forest/10'
               }`}
             >
               <Icon name="Upload" size={20} color={toneColor} />
             </View>
-            <Text className="mt-3 text-sm font-bold text-ui-shade">
+            <Text className="mt-3 text-sm font-bold text-ui-ink">
               Tap to choose image
             </Text>
-            <Text className="mt-1 text-center text-xs leading-4 text-ui-muted">
+            <Text className="mt-1 text-center text-xs leading-4 text-ui-slate">
               Square or portrait photos work best.
             </Text>
           </View>

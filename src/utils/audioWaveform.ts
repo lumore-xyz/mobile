@@ -14,7 +14,7 @@ const hashString = (value: string) => {
   return hash || 1;
 };
 
-export const createFallbackWaveform = (
+const createFallbackWaveform = (
   seed: string,
   count = DEFAULT_WAVEFORM_BAR_COUNT,
 ) => {

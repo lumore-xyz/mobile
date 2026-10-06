@@ -15,8 +15,8 @@ export const DateHeader: React.FC<DateHeaderProps> = ({ timestamp }) => {
 
   return (
     <View className="items-center py-1">
-      <View className="rounded-full bg-ui-foreground px-3 py-1.5">
-        <Text className="text-xs font-medium text-ui-light">{date}</Text>
+      <View className="rounded-full bg-ui-midnight px-3 py-1.5">
+        <Text className="text-xs font-medium text-ui-paper">{date}</Text>
       </View>
     </View>
   );

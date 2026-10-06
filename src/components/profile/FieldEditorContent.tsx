@@ -29,8 +29,8 @@ import SingleSlider from "../ui/SliderInput";
 
 interface FieldEditorContentProps {
   fieldType: string;
-  value: any;
-  setValue: (value: any) => void;
+  value: unknown;
+  setValue: (value: unknown) => void;
   usernameAvailability?: {
     status: UsernameAvailabilityStatus;
     message: string;
@@ -45,16 +45,42 @@ const usernameStatusStyles: Record<
     icon?: string;
   }
 > = {
-  idle: { color: COLORS.muted, icon: "Info" },
+  idle: { color: COLORS.slate, icon: "Info" },
   invalid: { color: COLORS.danger, icon: "CircleAlert" },
-  current: { color: COLORS.muted, icon: "CircleUserRound" },
-  checking: { color: COLORS.highlight },
-  available: { color: COLORS.highlight, icon: "CircleCheck" },
+  current: { color: COLORS.slate, icon: "CircleUserRound" },
+  checking: { color: COLORS.forest },
+  available: { color: COLORS.forest, icon: "CircleCheck" },
   taken: { color: COLORS.danger, icon: "CircleX" },
-  error: { color: COLORS.accent, icon: "TriangleAlert" },
+  error: { color: COLORS.aubergine, icon: "TriangleAlert" },
 };
 
 type HeightUnit = "cm" | "ft";
+
+const getStringValue = (value: unknown) =>
+  typeof value === "string" ? value : "";
+
+const getStringList = (value: unknown) =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+
+const getNumberValue = (value: unknown, fallback: number) =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
+
+const getNumberList = (value: unknown, fallback: number[]) =>
+  Array.isArray(value) &&
+  value.every((item): item is number => typeof item === "number")
+    ? value
+    : fallback;
+
+const getStringRecord = (value: unknown): Record<string, string> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? Object.fromEntries(
+        Object.entries(value).filter(
+          (entry): entry is [string, string] => typeof entry[1] === "string",
+        ),
+      )
+    : {};
 
 const CM_PER_INCH = 2.54;
 const INCHES_PER_FOOT = 12;
@@ -175,21 +201,21 @@ const HeightInput = ({
 
   return (
     <View>
-      <Text className="mb-2 text-base font-bold text-ui-shade">
+      <Text className="mb-2 text-base font-bold text-ui-ink">
         Choose height unit
       </Text>
       <View className="mb-4 flex-row rounded-full bg-ui-surface-page p-1">
         <Pressable
           onPress={() => selectUnit("cm")}
           className={`min-h-11 flex-1 justify-center rounded-full py-2 ${
-            unit === "cm" ? "bg-ui-light" : ""
+            unit === "cm" ? "bg-ui-paper" : ""
           }`}
           accessibilityRole="button"
           accessibilityState={{ selected: unit === "cm" }}
         >
           <Text
             className={`text-center text-sm font-medium ${
-              unit === "cm" ? "text-ui-highlight" : "text-ui-shade"
+              unit === "cm" ? "text-ui-forest" : "text-ui-ink"
             }`}
           >
             Centimeters
@@ -198,14 +224,14 @@ const HeightInput = ({
         <Pressable
           onPress={() => selectUnit("ft")}
           className={`min-h-11 flex-1 justify-center rounded-full py-2 ${
-            unit === "ft" ? "bg-ui-light" : ""
+            unit === "ft" ? "bg-ui-paper" : ""
           }`}
           accessibilityRole="button"
           accessibilityState={{ selected: unit === "ft" }}
         >
           <Text
             className={`text-center text-sm font-medium ${
-              unit === "ft" ? "text-ui-highlight" : "text-ui-shade"
+              unit === "ft" ? "text-ui-forest" : "text-ui-ink"
             }`}
           >
             Feet
@@ -251,7 +277,7 @@ const HeightInput = ({
               />
             </View>
           </View>
-          <Text className="mt-2 text-sm leading-5 text-ui-muted">
+          <Text className="mt-2 text-sm leading-5 text-ui-slate">
             {cmValue
               ? `Saved as ${cmValue} cm. Inches should be 0-11.`
               : "Enter feet and inches; we'll save it in centimeters."}
@@ -268,12 +294,16 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
   setValue,
   usernameAvailability,
 }) => {
+  const stringValue = getStringValue(value);
+  const stringList = getStringList(value);
+  const stringRecord = getStringRecord(value);
+
   switch (fieldType) {
     case "username":
       return (
         <View>
           <TextInput
-            value={value || ""}
+            value={stringValue}
             action={(text: string) => setValue(text)}
             label="Username"
             type="text"
@@ -300,7 +330,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
     case "nickname":
       return (
         <TextInput
-          value={value || ""}
+          value={stringValue}
           action={(text: string) => setValue(text)}
           label="Nickname"
           type="text"
@@ -312,7 +342,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       return (
         <TextInput
           label="Real Name"
-          value={value || ""}
+          value={stringValue}
           type="text"
           action={(text: string) => setValue(text)}
           placeholder="Enter your real name"
@@ -323,7 +353,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       return (
         <TextInput
           label="Phone Number"
-          value={value || ""}
+          value={stringValue}
           type="text"
           action={(text: string) => {
             const formattedValue = text.replace(/\s+/g, "");
@@ -336,7 +366,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       return (
         <TextInput
           label="Email"
-          value={value || ""}
+          value={stringValue}
           type="text"
           action={(text: string) => setValue(text)}
           placeholder="Enter your email"
@@ -346,7 +376,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       return (
         <TextInput
           label="Wallet Address"
-          value={value || ""}
+          value={stringValue}
           type="text"
           action={(text: string) => setValue(text)}
           placeholder="Enter your wallet address"
@@ -359,7 +389,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Blood Group"
           options={bloodTypeOptions}
           placeholder="Select your blood group"
-          value={value as string}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -370,7 +400,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
         <MultiSelectChipInput
           label="Interests"
           options={interestOptions}
-          value={value || []}
+          value={stringList}
           max={5}
           onChange={(options) => setValue(options)}
           multiple
@@ -383,7 +413,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       return (
         <TextAreaInput
           label="Bio"
-          value={value || ""}
+          value={stringValue}
           type="text"
           action={(text: string) => setValue(text)}
           placeholder="A short line that sounds like you."
@@ -397,7 +427,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Gender"
           options={genderOptions}
           placeholder="Select your gender"
-          value={value as string}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -407,7 +437,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       return (
         <DateInput
           label="Date of Birth"
-          date={value ? new Date(value as string) : undefined}
+          date={stringValue ? new Date(stringValue) : undefined}
           onChange={(date) =>
             setValue(date ? new Date(date).toISOString().split("T")[0] : "")
           }
@@ -415,7 +445,12 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       );
 
     case "height":
-      return <HeightInput value={value} setValue={setValue} />;
+      return (
+        <HeightInput
+          value={typeof value === "string" || typeof value === "number" ? value : undefined}
+          setValue={setValue}
+        />
+      );
 
     case "diet":
       return (
@@ -423,7 +458,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Diet"
           options={dietOptions}
           placeholder="Select your diet"
-          value={value as string}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -435,7 +470,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Zodiac Sign"
           options={zodiacOptions}
           placeholder="Select your zodiac sign"
-          value={value as string}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -448,24 +483,24 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
             label="Drinking Habit"
             options={drinkingOptions}
             placeholder="How often do you drink?"
-            value={value?.drinking}
-            onChange={(option) => setValue({ ...value, drinking: option })}
+            value={stringRecord.drinking || ""}
+            onChange={(option) => setValue({ ...stringRecord, drinking: option })}
             multiple={false}
           />
           <MultiSelectChipInput
             label="Smoking Habit"
             options={smokingOptions}
             placeholder="How often do you smoke?"
-            value={value?.smoking}
-            onChange={(option) => setValue({ ...value, smoking: option })}
+            value={stringRecord.smoking || ""}
+            onChange={(option) => setValue({ ...stringRecord, smoking: option })}
             multiple={false}
           />
           <MultiSelectChipInput
             label="Pets"
             options={petOptions}
             placeholder="Do you have a pet?"
-            value={value?.pets}
-            onChange={(option) => setValue({ ...value, pets: option })}
+            value={stringRecord.pets || ""}
+            onChange={(option) => setValue({ ...stringRecord, pets: option })}
             multiple={false}
           />
         </View>
@@ -474,7 +509,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
     case "work":
       return (
         <TextInput
-          value={value || ""}
+          value={stringValue}
           action={(text: string) => setValue(text)}
           label="Work"
           type="text"
@@ -485,7 +520,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
     case "institution":
       return (
         <TextInput
-          value={value || ""}
+          value={stringValue}
           action={(text: string) => setValue(text)}
           label="Institution"
           type="text"
@@ -499,7 +534,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Marital Status"
           options={maritalStatusOptions}
           placeholder="What is your marital status?"
-          value={value}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -512,7 +547,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           options={languageOptions}
           max={5}
           maxHeight={500}
-          value={value || []}
+          value={stringList}
           onChange={(selectedValues) => setValue(selectedValues)}
           multiple
           placeholder="What languages do you speak?"
@@ -525,7 +560,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Personality Type"
           options={personalityTypeOptions}
           placeholder="What is your personality type?"
-          value={value}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -537,7 +572,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Religion"
           options={religionOptions}
           placeholder="What is your religion?"
-          value={value}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -548,7 +583,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Interested In"
           options={interestedInOptions}
           placeholder="Select gender preferences"
-          value={value}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -557,7 +592,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       return (
         <RangeInput
           label="Age Range"
-          value={value || [18, 99]}
+          value={getNumberList(value, [18, 99])}
           onChange={(range) => setValue(range)}
           min={18}
           max={100}
@@ -573,7 +608,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           min={1}
           max={100}
           step={1}
-          value={value || 10}
+          value={getNumberValue(value, 10)}
           unit="km"
           onChange={(val) => setValue(val)}
           helperText={"How far are you willing to go?"}
@@ -586,7 +621,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Relationship Type"
           options={relationshipTypeOptions}
           placeholder="Select relationship type"
-          value={value}
+          value={stringValue}
           onChange={(option) => setValue(option)}
           multiple={false}
         />
@@ -597,7 +632,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Zodiac Preferences"
           options={zodiacOptions}
           max={5}
-          value={value || []}
+          value={stringList}
           onChange={(selectedValues) => setValue(selectedValues)}
           multiple
           placeholder="Select zodiac preferences"
@@ -609,7 +644,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Personality Type Preferences"
           options={personalityTypeOptions}
           max={5}
-          value={value || []}
+          value={stringList}
           onChange={(selectedValues) => setValue(selectedValues)}
           multiple
           placeholder="Select personality type preferences"
@@ -621,7 +656,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Diet Preferences"
           options={dietOptions}
           max={5}
-          value={value || []}
+          value={stringList}
           onChange={(selectedValues) => setValue(selectedValues)}
           multiple
           placeholder="Select diet preferences"
@@ -631,7 +666,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
       return (
         <RangeInput
           label="Height Range (cm)"
-          value={value || [150, 200]}
+          value={getNumberList(value, [150, 200])}
           onChange={(range) => setValue(range)}
           min={140}
           max={220}
@@ -646,7 +681,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Religion Preferences"
           options={religionOptions}
           max={5}
-          value={value || []}
+          value={stringList}
           onChange={(selectedValues) => setValue(selectedValues)}
           multiple
           placeholder="Select religion preferences"
@@ -658,7 +693,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Drinking Preferences"
           options={drinkingOptions}
           max={5}
-          value={value || []}
+          value={stringList}
           onChange={(selectedValues) => setValue(selectedValues)}
           multiple
           placeholder="Select drinking preferences"
@@ -670,7 +705,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Smoking Preferences"
           options={smokingOptions}
           max={5}
-          value={value || []}
+          value={stringList}
           onChange={(selectedValues) => setValue(selectedValues)}
           multiple
           placeholder="Select smoking preferences"
@@ -682,7 +717,7 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           label="Pet Preferences"
           options={petOptions}
           max={5}
-          value={value || []}
+          value={stringList}
           onChange={(selectedValues) => setValue(selectedValues)}
           multiple
           placeholder="Select pet preferences"
@@ -695,8 +730,8 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
             label="What's Your Primary Goal?"
             options={goalOptions}
             placeholder="My goal is..."
-            value={value?.primary}
-            onChange={(option) => setValue({ ...value, primary: option })}
+            value={stringRecord.primary || ""}
+            onChange={(option) => setValue({ ...stringRecord, primary: option })}
             multiple={false}
             helperText="This helps us match you with like-minded people. (And won't be shown on your profile)"
           />
@@ -704,8 +739,8 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
             label="What's your next priority?"
             options={goalOptions}
             placeholder="My backup is..."
-            value={value?.secondary}
-            onChange={(option) => setValue({ ...value, secondary: option })}
+            value={stringRecord.secondary || ""}
+            onChange={(option) => setValue({ ...stringRecord, secondary: option })}
             multiple={false}
             helperText="If not your primary goal, what else matters to you? (Also won't be shown on your profile)"
           />
@@ -713,8 +748,8 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
             label="Any other goals or intentions?"
             options={goalOptions}
             placeholder="My backup of backup is..."
-            value={value?.tertiary}
-            onChange={(option) => setValue({ ...value, tertiary: option })}
+            value={stringRecord.tertiary || ""}
+            onChange={(option) => setValue({ ...stringRecord, tertiary: option })}
             multiple={false}
             helperText="What's another reason you're here? (Also won't be shown on your profile)"
           />

@@ -135,6 +135,4 @@ export const createProfileSchema = (currentUsername?: string) =>
     religion: optionValueSchema(religionOptions, "Please select a valid religion."),
   });
 
-export const profileSchema = createProfileSchema();
-
-export type ProfileFormValues = z.infer<typeof profileSchema>;
+export type ProfileFormValues = z.infer<ReturnType<typeof createProfileSchema>>;
