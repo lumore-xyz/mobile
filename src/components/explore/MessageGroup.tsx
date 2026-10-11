@@ -5,7 +5,7 @@ import { DateHeader } from "./DateHeader";
 import type { Message } from "@/src/domain/chat/types";
 
 interface MessageGroupProps {
-  date: string;
+  timestamp: number;
   messages: Message[];
   currentUserId: string;
   onReply: (message: Message) => void;
@@ -14,6 +14,7 @@ interface MessageGroupProps {
 }
 
 export const MessageGroup = React.memo(function MessageGroup({
+  timestamp,
   messages,
   currentUserId,
   onReply,
@@ -22,7 +23,7 @@ export const MessageGroup = React.memo(function MessageGroup({
 }: MessageGroupProps) {
   return (
     <View className="space-y-4">
-      <DateHeader timestamp={messages[0]?.timestamp} />
+      <DateHeader timestamp={timestamp} />
       {messages.map((message, index) => (
         <ChatMessage
           key={message._id || message.clientMessageId || index}

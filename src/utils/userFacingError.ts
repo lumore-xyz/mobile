@@ -32,9 +32,6 @@ const hasTechnicalLanguage = (message: string) =>
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-export const getHttpErrorStatus = (error: unknown): number | null =>
-  isAxiosError(error) ? error.response?.status ?? null : null;
-
 const getRawErrorMessage = (error: unknown) => {
   const responseData = isAxiosError<unknown>(error)
     ? error.response?.data

@@ -2,6 +2,563 @@
 
 Record every meaningful repository change here after it is made. Keep entries newest first.
 
+## 2026-10-11: Consolidate panel surface primitives
+
+- Replaced separate paper and midnight wrapper components with one `SurfacePanel` using explicit `paper` and `midnight` variants, and removed both redundant wrapper files.
+
+## 2026-10-11: Reuse raised paper panel surface
+
+- Added a shared paper-panel primitive and applied it to repeated profile, settings, referral, credit, community, skeleton, and post-creation cards while preserving local spacing and layout classes.
+
+## 2026-10-11: Extend midnight panel reuse
+
+- Replaced 18 more duplicated midnight panel shells across post creation, settings, chat, games, community, notifications, and profile with the shared surface component.
+
+## 2026-10-11: Reuse midnight panel surface
+
+- Added a shared midnight panel primitive and reused it for credits, referral, feedback, and community hero surfaces while preserving caller-specific spacing and clipping.
+
+## 2026-10-11: Share branded refresh control
+
+- Added one reusable native refresh control for the app's shared spinner colors and applied it across community, chat, profile, discovery, credits, notifications, feedback, and referral surfaces.
+
+## 2026-10-11: Share current-user post invalidation
+
+- Reused one posts-feature helper after image, free-text, and prompt post creation, including the shared current-user lookup and profile post query key.
+
+## 2026-10-11: Reuse profile post invalidation callback
+
+- Reused one profile-post cache invalidator for both post edits and deletes in the profile action hook.
+
+## 2026-10-11: Share profile update invalidation
+
+- Reused one profile-feature helper for user profile and preference-match-count invalidation after profile field, visibility, and photo updates.
+
+## 2026-10-11: Reuse profile refresh query scope
+
+- Centralized the four queries invalidated by owner and public profile pull-to-refresh in one profile-screen helper.
+
+## 2026-10-11: Centralize credit query invalidation
+
+- Reused one credits feature helper to invalidate balance and history after claims, refreshes, and realtime credit updates.
+
+## 2026-10-11: Stabilize profile post separators
+
+- Reused a memoized separator component callback for the profile feed so `FlatList` does not receive a new separator function on every screen render.
+
+## 2026-10-11: Share authentication completion flow
+
+- Extracted Google sign-in into `useGoogleAuth` and reused `useCompleteAuthentication` for notification permission and onboarding routing across Google and credential sign-in/sign-up paths.
+
+## 2026-10-11: Reuse profile refresh control
+
+- Built the profile screen's refresh control once and passed it to either the loading skeleton or post list, removing duplicate setup while preserving refresh behavior.
+
+## 2026-10-11: Reuse notification refresh invalidation
+
+- Routed pull-to-refresh through the same notification cache invalidator used by read/delete mutations and removed the now-unneeded query-key re-export from the hook barrel.
+
+## 2026-10-11: Losslessly recompress native PNG assets
+
+- Recompressed the Expo app icon and notification logos without changing decoded pixels, reducing their combined source size by 12,324 bytes.
+- Android export passed; its packaged files decreased by 2,627 bytes (the native app icon PNGs are compiled separately from the JS export).
+
+## 2026-10-10: Stabilize Explore mutation callbacks
+
+- Memoized credit cache invalidation and destructured the refresh pending flag so the refresh callback depends only on stable mutation methods and state.
+
+## 2026-10-10: Stabilize community mutation callbacks
+
+- Destructured stable mutation methods and pending states, avoiding whole-mutation dependencies and inline follow/rejoin handlers in the room action hook.
+
+## 2026-10-10: Reuse community room edit reset
+
+- Reused one callback to initialize title, description, tags, and cover-image draft state when editing starts or is canceled.
+
+## 2026-10-10: Centralize community query invalidation
+
+- Reused one community-feature helper for the shared root-query invalidation in room list, room detail, and realtime events; inbox refresh scopes remain separate.
+
+## 2026-10-10: Remove unused community action input
+
+- Removed the unused `isFollowed` parameter from `useCommunityRoomActions` and its call site; the room screen still uses that state for membership UI.
+
+## 2026-10-10: Separate community match copy formatting
+
+- Moved match-result message construction into its own typed utility and reused the existing `StartLocationRoomMatchResult` contract instead of repeating its shape inline in the room action hook.
+
+## 2026-10-10: Remove duplicate notification actions
+
+- Kept delete haptics in the notification card only and passed the guarded pagination callback directly from its hook to the list.
+
+## 2026-10-10: Replace unused bundled PNGs with lossless WebP assets
+
+- Converted seven app-imported illustrations and wordmarks to pixel-identical WebP, updated their imports and profile trait keys, then removed the now-unreferenced PNG originals. This saves 31,427 source-asset bytes; app icon and native configuration PNGs remain unchanged.
+- Android export passed and reduced packaged files by 31,444 bytes; the Hermes bundle changed by -24 bytes.
+
+## 2026-10-10: Share safe mutation error alerts
+
+- Added one user-safe alert helper and reused it for the repeated default error flow in Explore and community actions.
+- Android export passed; helper reuse reduced duplicate code with a 176-byte Hermes bundle increase (4,528,080 to 4,528,256 bytes).
+- The full non-source-map export remains 64,954 bytes (1.306%) smaller than the pre-image-optimization audit snapshot.
+
+## 2026-10-10: Separate Explore data and action hooks
+
+- Moved focus/app-state-aware query loading and reset timing into `useDailyExploreQuery`; moved unlock, refresh, conversation, and rejection workflows into `useDailyExploreActions`. The public `useDailyExplore` result remains the screen-facing composition layer.
+- Lint and typecheck passed. Same-configuration Android export increased the Hermes bundle by 1,392 bytes (4,526,688 to 4,528,080 bytes).
+
+## 2026-10-10: Reduce bundled WebP image sizes
+
+- Re-encoded the login photo, community cover, and update artwork, saving 66,518 bytes combined (about 20%) while retaining SSIM scores of 0.9826, 0.9852, and 0.9910 respectively.
+- Android export verification reduced the packaged files (excluding source maps) from 4,973,882 to 4,907,360 bytes; the Hermes JS bundle stayed effectively unchanged.
+
+## 2026-10-10: Remove the Explore match-note separator
+
+- Explicitly remove border styling from the match-note container and text column so no vertical hairline appears between the sparkle icon and rationale.
+
+## 2026-10-10: Split notification hooks by responsibility
+
+- Separated notification list loading, unread-count loading, and read/delete mutations into focused hook modules; shared notification-query invalidation across the mutations.
+
+## 2026-10-10: Keep Explore utility functions focused
+
+- Split retry-delay parsing, expiry checks, and error-action selection into separate named utilities within the Explore feature.
+- Same-configuration Android export completed at 4,526,692 bytes across 2,721 modules (1,796 bytes above the earlier audit snapshot); source-map inspection shows app-authored modules remain under 11.1 KB each.
+
+## 2026-10-10: Keep profile queries separate from API transport
+
+- Moved post and preference fetch requests into the profile API module, leaving their hooks responsible for React Query state and cache keys.
+
+## 2026-10-10: Reuse inbox list invalidation
+
+- Added one chat-feature helper to refresh active and archived inbox lists together and reused it across socket, message, and chat-ending flows.
+
+## 2026-10-10: Centralize community query keys
+
+- Reused one community query-key factory for the directory filters, room detail, and realtime invalidation paths.
+
+## 2026-10-10: Keep chat composer above the keyboard
+
+- Replaced the custom global keyboard offset measurement with React Native `KeyboardAvoidingView`, using platform-appropriate padding/height behavior so chat input stays visible while typing.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+## 2026-10-10: Separate location context, hook, and provider
+
+- Moved the context and `useLocation` consumer out of the tracking provider so each module owns one location concern.
+
+## 2026-10-10: Narrow location sync effect dependencies
+
+- Destructured the stable location mutation callback so the sync effect no longer depends on the full mutation result object.
+
+## 2026-10-10: Stabilize global provider context values
+
+- Memoized location and confetti context values so provider-local updates do not notify consumers when exposed values are unchanged.
+
+## 2026-10-10: Separate address parsing from the location provider
+
+- Moved the pure formatted-address parser into the location feature and updated profile trait building to import it directly, keeping profile domain code independent of provider and native location modules.
+
+## 2026-10-10: Centralize referral and feedback query keys
+
+- Reused feature-owned keys in referral and feedback queries and their pull-to-refresh handlers.
+
+## 2026-10-10: Centralize This-or-That query keys
+
+- Reused feature query keys for question loading and user answer refreshes across the game and profile screens.
+
+## 2026-10-10: Share profile field row rendering
+
+- Unified the standard and custom lifestyle rows through one `ProfileField` call, keeping only the lifestyle content conditional.
+
+## 2026-10-10: Centralize profile posts and preferences query keys
+
+- Reused profile key factories across profile loading, edits, post creation, and refresh flows; skipped preference requests when no user ID is available.
+
+## 2026-10-10: Reuse accessible single-choice chips
+
+- Extracted the shared selectable chip UI and reused it for chat reporting and Explore feedback, preserving each sheet's compact or comfortable sizing and selection behavior.
+
+## 2026-10-10: Keep profile API calls out of the user query hook
+
+- Moved profile fetch, field update, and visibility update requests into the profile API module; shared the post-update cache invalidation across both mutations.
+
+## 2026-10-10: Centralize profile user query keys
+
+- Added a shared profile query-key factory and reused it for profile fetching, mutations, refresh flows, onboarding updates, Explore credit refreshes, and realtime profile-lock events.
+
+## 2026-10-10: Centralize daily Explore query keys
+
+- Added one feature query-key factory and reused its memoized key for daily Explore reads, refresh invalidation, unlock results, and forced-refresh results.
+
+## 2026-10-10: Remove match-note divider from Explore cards
+
+- Explicitly reset the match-note container border so the decorative star sits beside the copy without a vertical separator.
+
+## 2026-10-10: Narrow community detail list items by shape
+
+- Used the presence of `participants` to distinguish chat rows from member rows, removing two type casts and keeping the row renderer independent of the active tab.
+
+## 2026-10-10: Extract community detail helpers
+
+- Moved room coordinate validation and normalized entity ID comparison out of the community detail route into focused utilities.
+
+## 2026-10-10: Reuse profile field rows for preferences
+
+- Added a compact list variant to the shared editable `ProfileField` row and reused it in preference sections, removing the duplicated pressable/value/chevron layout while preserving profile and preference row styles and empty-state labels.
+
+## 2026-10-10: Reuse profile section metadata across renders
+
+- Memoized profile and preference section models against their source user/preferences data, avoiding rebuilding field arrays and formatted values on unrelated rerenders.
+
+## 2026-10-10: Separate chat message lifecycle
+
+- Moved message history loading, message state, and socket-listener wiring into `useChatMessages`; `ChatContext` retains room identity, lifecycle, and chat actions.
+- Reused the shared inbox query keys when refreshing active and archived conversations.
+
+## 2026-10-10: Centralize inbox query keys
+
+- Added one chat feature query-key registry for inbox prefixes, filtered active/archive lists, and community-room chat.
+- Reused it across inbox routes, chat context, community routes, and realtime invalidation to prevent cache keys from drifting.
+
+## 2026-10-10: Reuse chat timestamp formatter
+
+- Reused one module-level `Intl.DateTimeFormat` for message timestamps rather than constructing the locale/options formatting path for every rendered message.
+
+## 2026-10-10: Derive notification list state in one pass
+
+- Consolidated unread detection, unread count, and unread-only list selection into one memoized pass over loaded notifications.
+- The all-notifications list reuses the original array; the unread view allocates only its filtered rows.
+- Stabilized `loadMore` against the pagination fields it uses instead of the whole changing React Query result object.
+
+## 2026-10-10: Remove unresolved icon aliases
+
+- Removed eight arrow aliases whose target keys are absent from the local Lucide registry; they could never render an icon.
+- Verified no app call sites reference the removed aliases. The registry continues to use its supported icon set for local and server-provided option icons.
+
+## 2026-10-10: Bound rendering for large multi-select option lists
+
+- Added search-first rendering for option lists over 30 entries, keeping selected choices visible and limiting matching chip rows to 40.
+- Updated onboarding and profile editing feature docs to describe the shared picker behavior.
+- Targeted ESLint for `MultiSelectChipInput.tsx` and `ProfileCard.tsx`, plus `npm run typecheck`, passed. `npm run lint` is blocked by Windows `EPERM` while handling Expo's ESLint cache; running ESLint across the repo without cache reaches three existing `__dirname` `no-undef` errors in test files.
+
+## 2026-10-10: Virtualize prompt browsing
+
+- Replaced eager prompt rendering in a `ScrollView` with a tuned `FlatList`, since the category endpoint returns all active prompts.
+- Extracted the prompt row and answer sheet; the list component now owns fetching, selection, and submission coordination.
+- Preserved loading, retry, empty states, editor defaults, visibility choice, and post submission flow.
+- `npm run lint` and `npm run typecheck` pass. Android export succeeds with a 7,238,958-byte Hermes bundle, 3,433 bytes above the prior export across this and the intervening chat helper change; the difference is recorded without attributing it to either change.
+
+## 2026-10-10: Extract chat date grouping
+
+- Moved pure message-by-day grouping from `ChatMessages` into `groupMessagesByDate` and removed the unused date-string prop from `MessageGroup`.
+- Preserved local-day grouping, chronological group order, and message order within each group.
+- `npm run lint` and `npm run typecheck` pass.
+
+## 2026-10-10: Virtualize community detail rows
+
+- Replaced the room detail page's nested, non-scrolling `FlatList`s inside a `ScrollView` with one virtualized list that switches between members and chats.
+- Moved the community overview and section tabs into the list header, and kept the creator sheet mounted alongside the list.
+- `npm run lint` and `npm run typecheck` pass. Android export succeeds at 7,235,525 bytes, 88 bytes below the prior export; this refactor is primarily a list-rendering performance improvement.
+
+## 2026-10-10: Separate community creator modes
+
+- Split the creator sheet's edit form and creator action menu into focused components; the sheet now owns only the sheet shell, header, and mode selection.
+- Preserved the existing field validation, cover selection, save/cancel actions, and start-match behavior.
+- `npm run lint` and `npm run typecheck` pass. Android export succeeds with a 7,235,613-byte Hermes bundle. This is 6,643 bytes above the earlier 7,228,970-byte export across multiple intervening edits, so the difference is not attributed to this component split.
+
+## 2026-10-10: Move shared filter chip to UI components
+
+- Moved the filter chip out of the community feature folder and into shared UI so both community discovery and chat inbox can use it without cross-feature imports.
+- The component's rendering and styles are unchanged. `npm run lint` and `npm run typecheck` pass.
+
+## 2026-10-10: Isolate inbox search toolbar
+
+- Moved conversation search draft/debounce and active-filter chips into `InboxSearchToolbar`, leaving inbox loading, list rendering, and filtering sheet orchestration in `InboxList`.
+- Search placeholder, 350 ms debounce, clear action, filter button, and active-filter labels are preserved.
+- `npm run lint` and `npm run typecheck` pass.
+
+## 2026-10-10: Remove match-note separator
+
+- Set the Explore match-note panel's left border width to zero to remove the unwanted vertical separator while preserving the sparkle icon and copy layout.
+- `npm run lint` and `npm run typecheck` pass.
+
+## 2026-10-10: Separate onboarding flow from screen UI
+
+- Moved onboarding state, field validation, referral persistence, API submission, and completion navigation into `useOnboardingFlow`; the screen now composes the step UI and binds flow outputs.
+- Existing step order, validation behavior, API calls, and copy are preserved. Validation results will be added after checks.
+
+## 2026-10-10: Remove redundant age wrapper
+
+- Reused `getAgeFromDate` at all five display call sites and deleted `calculateAge`, which only added an optional-value fallback none of its callers used.
+- Typecheck and lint pass. Android export succeeds with a 7,228,970-byte Hermes bundle, down 402 bytes from the previous export.
+
+## 2026-10-10: Virtualize profile posts
+
+- Replaced the profile's eager post mapping inside a `ScrollView` with a virtualized `FlatList`, preserving profile sections as its header and retaining pull-to-refresh and post action sheets.
+- Memoized post cards with a stable action callback and isolated the post header and empty/loading state.
+- Android export succeeds with a 7,229,372-byte Hermes bundle. Typecheck and lint pass; the endpoint still returns the full post array.
+
+## 2026-10-10: Reuse authentication notices and method divider
+
+- Extracted the identical accessible API error notice into `InlineErrorNotice` across five authentication screens.
+- Extracted the repeated alternative sign-in divider into `AuthMethodDivider` for login and signup.
+- Typecheck and lint pass for the changed files. Android Expo export succeeds; Hermes bundle is 7,228,134 bytes.
+
+## 2026-10-10: Synchronize mobile dependency lockfile
+
+- Removed stale lock entries for Moti, Framer Motion, and Expo System UI, which are absent from the current manifest and unused by mobile source; added the missing lock entries for declared `react-native-maps`.
+- Kept `@expo/html-elements` because the Actionsheet uses its `H4` component. `npm ls`, TypeScript, direct ESLint source scan, and Android export pass. Expo’s lint wrapper could not update its cache file due to `EPERM`; the Hermes bundle is 7,479,821 bytes.
+
+## 2026-10-10: Share chat profile-lock flow
+
+- Consolidated lock/unlock validation, debug logging, analytics, and socket emission into one callback while retaining both public actions and exact event/activity values.
+- Lint, typecheck, and Android export pass; Hermes bundle is 7,479,819 bytes, down 309 bytes from the previous export.
+
+## 2026-10-10: Extract profile lifestyle chip
+
+- Moved the drinking, smoking, and pet value chip out of `ProfileFieldsList` into `LifestyleChip.tsx` so the list composes a dedicated presentation component.
+- Lint, typecheck, and Android export pass; Hermes bundle is 7,480,128 bytes, up 461 bytes from the previous export.
+
+## 2026-10-10: Isolate mobile navigation tab item
+
+- Moved the inline tab renderer into `MobileNavItem.tsx`; `MobileNav.tsx` now owns route selection and navigation while the item owns its visual and accessibility state.
+- Lint, typecheck, and Android export pass; Hermes bundle is 7,479,667 bytes, down 228 bytes from the previous export.
+
+## 2026-10-10: Remove redundant option-array copies
+
+- Made default option arrays the exported mutable arrays directly, removing a second set of default bindings and the startup cloning pass. Dynamic option updates still mutate the same exported references in place.
+- Lint, typecheck, and Android export pass; Hermes bundle is 7,479,895 bytes, down 286 bytes from the previous export.
+
+## 2026-10-10: Remove the shared legacy API module
+
+- Moved public options, HaloKYC verification, and received-feedback requests into their owning feature API modules, then deleted `src/libs/apis.ts` after checking all callers.
+- Removed an empty stale import left in onboarding and refreshed feature/API documentation. Lint, typecheck, and Android export pass; the current Hermes bundle is 7,479,765 bytes.
+
+## 2026-10-10: Isolate profile and preference loading states
+
+- Moved the inline edit-profile and edit-preference skeletons into their own components, keeping the screens focused on editing behavior and composition.
+- Lint, typecheck, and Android export pass; Hermes bundle is 7,480,181 bytes, 251 bytes above the prior export.
+
+## 2026-10-10: Move account recovery APIs into authentication feature
+
+- Moved password set/reset/email and username availability requests to `src/features/authentication/api.ts`; updated screens, onboarding, profile validation, and the username hook.
+- Reduced `src/libs/apis.ts` from 129 to 100 lines and updated authentication references. Lint, typecheck, and Android export pass; Hermes bundle is 4,666,608 bytes, 176 bytes above the prior export.
+
+## 2026-10-10: Move credits and referral APIs into feature modules
+
+- Moved credit balance/history/claim requests and referral summary/apply requests into their respective feature API modules; updated Explore, credit, referral, and onboarding callers.
+- Reduced `src/libs/apis.ts` from 166 to 129 lines and updated feature references. Lint, typecheck, and Android export pass; Hermes bundle is 4,666,432 bytes, 348 bytes above the prior export.
+
+## 2026-10-10: Move This-or-That requests into its feature
+
+- Moved question fetch/submit and answer APIs into `src/features/this-or-that/api.ts`, and updated both game screens and the profile answer section to use it.
+- Reduced `src/libs/apis.ts` from 223 to 166 lines. Lint, typecheck, and Android export pass; Hermes bundle is 4,666,084 bytes, 196 bytes above the prior export.
+
+## 2026-10-10: Move post APIs into the posts feature
+
+- Moved prompt fetch/create, image/text creation, and post update/delete requests from the general API module into `src/features/posts/api.ts`; updated all callers to use the feature API.
+- Reduced `src/libs/apis.ts` from 293 to 223 lines and updated feature/architecture references. Lint, typecheck, and Android export pass; Hermes bundle is 4,665,888 bytes, 180 bytes above the prior export.
+
+## 2026-10-10: Extract community detail hero
+
+- Moved the cover image, title/description, local tags, room stats, countdown, and header controls into `CommunityDetailHero`; callbacks keep navigation and mutations owned by the route.
+- Reduced `src/app/community/[roomId].tsx` from 372 to 288 lines and removed its unused icon/style imports. Lint and typecheck pass; Android export succeeds. Hermes bundle is 4,665,708 bytes, up 716 bytes from the previous export due to the component boundary (rounds to 4.67 MB).
+
+## 2026-10-10: Move chat message mapping into domain utilities
+
+- Extracted raw message/reply normalization and chat room active-state rules from `ChatContext` into focused pure domain utilities.
+- Reduced `ChatContext.tsx` from 326 to 252 lines and removed an unnecessary mapping callback. Lint, typecheck, and Android Expo export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Extract community membership panel
+
+- Moved membership/pool status copy and join, rejoin, and exit-pool controls into `CommunityMembershipPanel`; route-level action state and mutations stay in the detail route/hook.
+- Reduced `src/app/community/[roomId].tsx` from 426 to 372 lines. Lint, typecheck, and Android Expo export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Extract profile completion and compatibility cards
+
+- Moved owner completion progress and public-profile compatibility presentation into focused components; the screen retains profile data, navigation, and verification behavior.
+- Reduced `src/screens/Profile.tsx` from 308 to 238 lines and documented the extracted cards. Lint, typecheck, and Android Expo export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Extract profile completion calculation
+
+- Moved profile and preference completion percentages into a focused domain utility and moved `UserPreferences` to the profile domain types, removing hook-layer type dependencies from screens/components.
+- Reduced `src/screens/Profile.tsx` from 371 to 308 lines. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Separate prompt browsing from prompt post creation
+
+- Moved prompt fetching, loading/error/empty states, answer editing, and submission into `PromptPostList`; the route now handles category selection and page composition.
+- Reduced `src/app/create-post/prompts.tsx` from 303 to 97 lines and documented the extracted component. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Extract community location picker
+
+- Moved local address search results and Android map pin selection into `CommunityLocationPicker`; the creation route keeps search, selection, and creation state.
+- Reduced `src/app/community/create.tsx` from 373 to 332 lines. Lint, typecheck, and Android Expo export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Separate feedback screen data from presentation
+
+- Replaced the screen's inline feedback cards and list states with focused card, skeleton, and list-header components; the screen now owns pagination, refresh, and rating aggregation.
+- Added the presentation components to the feedback feature's key-file documentation. Lint, typecheck, and Android Expo export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Resize small raster icons for their rendered sizes
+
+- Reduced the bouquet, Google mark, graduation, mask, and relationship PNGs to 192 px, 64 px, and 128 px targets matching their UI sizes. Packaged assets dropped from 97,611 to 32,625 bytes (about 65 KB saved) with PNG transparency preserved. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Reduce shared auth background payload
+
+- Resized the shared background from 1024 × 1536 px to 768 × 1152 px and recompressed WebP at quality 80. The image is used beneath dark overlays in auth and discovery screens; packaged size dropped from 278,390 to 146,232 bytes (about 132 KB saved). Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Reduce community cover fallback payload
+
+- Resized the fallback cover from 1280 × 853 px to 1080 × 720 px and recompressed WebP for its card and detail-screen display sizes. Packaged asset size dropped from 187,852 to 125,524 bytes (about 62 KB saved). Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Remove unused Expo System UI dependency
+
+- Removed `expo-system-ui` from `package.json` and the lockfile after confirming there are no source or config references and it is not needed by another installed package. `npm ls --depth=0`, lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Reduce app update artwork payload
+
+- Resized the transparent update hero to 768 × 914 px for its 250 dp display and recompressed WebP at quality 90. The packaged asset dropped from 507,208 to 55,790 bytes (about 451 KB saved) with transparency and aspect ratio preserved. Lint, typecheck, and Android export pass; Hermes JavaScript bundle remains 4.66 MB.
+
+## 2026-10-10: Extract the Games hub benefit row
+
+- Moved the repeated benefit presentation into `src/components/games/GameBenefitRow.tsx`, leaving `Games.tsx` responsible for the hub and navigation. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Reuse shared Settings sections and navigation rows
+
+- Extracted the Settings hub’s section and navigation row into single-component files and reused one `SettingsSection` in both Settings screens with card/plain variants. Removed the duplicate panel markup and trivial `useMemo`; lint, typecheck, and Android export pass (4.66 MB Hermes bundle).
+
+## 2026-10-10: Extract and cover onboarding API field errors
+
+- Moved duplicate-field and referral-error mapping into a focused onboarding utility, reducing `Onboarding.tsx` from 357 to 284 lines. Added four Node tests for duplicate email/phone, referral, and unmatched errors. Tests, lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Extract account settings presentation components
+
+- Moved account section panels and editable rows into individual components under `src/components/settings`; reduced `EditUserSettings.tsx` from 303 to 227 lines. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Separate Credits history presentation
+
+- Moved the credit summary tile, ledger row, and ledger skeleton into focused one-component files under `src/components/credits`; reduced `Credits.tsx` from 315 to 232 lines. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Split app update prompt presentation
+
+- Extracted version details, release notes, and actions into one-component files; `AppUpdatePrompt.tsx` now handles visibility, update state, and modal layout (420 to 213 lines). Removed memoization from its simple visibility boolean. Lint, typecheck, and Android export pass; Hermes bundle is 4.66 MB.
+
+## 2026-10-10: Prune unused icons from the runtime registry
+
+- Removed 19 unreferenced icon modules, added nine missing icon modules, and reused existing icons for nine compatible aliases. The registry now has 117 static icon imports instead of 127; lint, typecheck, and Android export pass. Hermes bundle: 4,656,604 bytes (4.66 MB), same rounded size as the prior recorded build.
+
+## 2026-10-10: Remove match-note divider from Explore cards
+
+- Made the match-note panel explicitly borderless so no divider appears between the sparkle icon and its text. Lint and typecheck pass.
+
+## 2026-10-10: Split This-or-That answer components
+
+- Moved the option choice card and loading skeleton into dedicated component files, reducing `ThisOrThat.tsx` from 330 to 229 lines.
+- Switched choice photos to `expo-image` and replaced memoized progress with direct calculation. Lint, typecheck, and Android export pass (4.67 MB Hermes bundle).
+
+## 2026-10-10: Extract This-or-That image picker card
+
+- Moved the two-option image selector into `ThisOrThatImagePickerCard.tsx`; `ThisOrThatSubmit.tsx` now focuses on form state, image selection, and submission (319 to 244 lines).
+- Replaced a memoized boolean readiness check with direct derivation. Lint, typecheck, and Android export pass (4.67 MB Hermes bundle).
+
+## 2026-10-10: Share form field helper and error feedback
+
+- Split `TextAreaInput` from `TextInput` into its own component file and extracted the duplicated helper/error rendering into `FormFieldFeedback`, reused by both inputs.
+- Updated every multiline-input import. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Reuse Explore profile completion card
+
+- Consolidated the profile-completion prompt used in both Explore's locked state and profile list footer into `ExploreProfileCompletionCard`; copy, accessibility labels, and surface styling remain configurable per state.
+- Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Separate Explore discovery states from profile list
+
+- Reduced `Explore.tsx` from 384 to 220 lines by moving sign-in, loading, locked, empty, and error presentations into `ExploreDiscoveryState`; the shared error notice now has one component used by both Explore layouts.
+- The screen retains daily Explore data, refresh actions, profile rendering, and navigation callbacks. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Remove unreferenced image assets
+
+- Removed the unreferenced SVG wordmarks and `favicon.png` (about 66 KB total); verified no source/config references and the resolved Expo config has no web target.
+- Android export still resolves the same 37 packaged assets and completes with a 4.66 MB Hermes bundle. Lint and typecheck pass.
+
+## 2026-10-10: Separate Referral screen presentation pieces
+
+- Reduced `Referral.tsx` from 388 to 271 lines by moving copy actions, section headings, status panels, and stat cards into one-component files under `src/components/referral`.
+- Consolidated code/link clipboard handling into one handler. Lint, typecheck, and Android export pass; Hermes bundle remains 4.66 MB.
+
+## 2026-10-10: Split Earn Credits presentation from claim flow
+
+- Reduced `EarnCredits.tsx` from 445 to 220 lines by moving static credit information to `EarnCreditInformation` and placing its repeated rows, headers, quota pills, and status panels in focused components under `src/components/credits`.
+- Rewarded-ad claim state and balance fetching remain in the screen. Android export completes at 4.66 MB; no measurable JS bundle reduction from this structural refactor.
+- Verification: `npm run lint`, `npm run typecheck`, and Android Expo export with source maps.
+
+## 2026-10-10: Split chat composer presentation components
+
+- Reduced `ChatInput.tsx` from 383 to 262 lines by extracting the shared reply/edit notice, voice recording controls, pending image preview, and upload error notice into focused components.
+- Reused one composer notice for both reply and edit states and replaced the duplicate reply-preview interface with `ChatReplyPreview`.
+- Verification: `npm run lint`, `npm run typecheck`, and Android Expo export with source maps passed (4.66 MB Hermes bundle).
+
+## 2026-10-10: Remove Explore match-note divider
+
+- Explicitly clear the match-note container's left border width and color so no vertical rule appears between the sparkle icon and introduction copy.
+- Verification: `npx eslint src --no-cache` and `npm run typecheck` passed. `npm run lint` remains blocked by `EPERM` writing Expo's ESLint cache under `.expo/cache/eslint`.
+
+## 2026-10-10: Separate chat safety actions from header
+
+- Moved feedback/report actionsheet state, validation, API calls, and form UI into `ChatSafetySheet.tsx`.
+- Reduced `ChatHeader.tsx` from 460 to 196 lines; the header now owns participant identity/navigation and profile lock controls.
+- Verification: `npm run lint`, `npm run typecheck`, and Android Expo export with source maps passed (4.66 MB Hermes bundle).
+
+## 2026-10-10: Separate chat composition workflows
+
+- Reduced `ChatScreen.tsx` from 539 to 223 lines by extracting draft persistence, text/image sending, voice-message sending, client message IDs, and reply-preview mapping into focused hooks and utilities.
+- Centralized the image-unlock message in chat feature constants so image upload and message sending share one source.
+- Verification: `npm run lint`, `npm run typecheck`, and Android Expo export with source maps passed (4.65 MB Hermes bundle).
+
+## 2026-10-10: Trim unused theme data and optimize bundled artwork
+
+- Reduced the Gluestack provider palette config to the two indicator tokens actually used by UI styles, while retaining light and dark values.
+- Replaced the single-use 833 KB transparent PNG update illustration and 346 KB community fallback JPEG with visually checked WebP assets at 507 KB and 188 KB; removed both unused originals, saving 484 KB across the two assets.
+- Android bundle is 4.65 MB after the cleanup; the provider config trim saved a further 5.7 KB.
+- Verification: Android Expo export with source maps, `npx eslint src --no-cache`, and `npm run typecheck` passed.
+
+## 2026-10-10: Remove unused Tailwind palette safelist
+
+- Removed the legacy safelist that generated thousands of default palette classes not referenced by app source; the configured `ui-*` theme and source-scanned classes remain.
+- Reduced the Android Hermes bundle from 6.9 MB to 4.66 MB (about 2.24 MB / 32%) and the generated NativeWind Android registry from 1.67 MB to 31.7 KB.
+- Verification: Android Expo export completed with source maps, `npx eslint src --no-cache`, and `npm run typecheck` passed.
+
+## 2026-10-10: Remove Explore match note divider
+
+- Explicitly remove any border from the compatibility note container so no vertical rule appears between the sparkle icon and the match copy.
+
+## 2026-10-10: Type community cover image picker callback
+
+- Annotated the selected image callback with Expo ImagePickerAsset to resolve implicit-any TypeScript diagnostics.
+- Verification: uncached ESLint and `npm run typecheck` passed. `npm run lint` could not write its existing cache under `.expo/cache/eslint` due to a Windows `EPERM` error.
+
+## 2026-10-10: Search and Select Local Community Locations
+
+- Replaced implicit current-device location in Local community creation with Google Places address search and explicit result selection.
+- Added authenticated backend endpoints for Places autocomplete, selected-place coordinates, and reverse geocoding; the Google key stays in backend environment configuration.
+- Added Android map pin selection, wired to `GOOGLE_MAPS_ANDROID_KEY` at native build time. The map remains hidden until that app-restricted key is configured; search selection works independently.
+- Added the SDK 54-compatible `react-native-maps` dependency.
+- Verification: pending lint, typecheck, backend syntax, and Expo config checks.
+
+## 2026-10-10: Add Local and Topic Communities
+
+- Added a Local/Topic selector to community creation. Topic communities can be created without device location; Local remains the default and requires location.
+- Added the community type to backend persistence and API responses, and included Topic communities in discovery even without a location point.
+- Community cards and detail pages identify the type and omit location actions when a Topic community has no location.
+- Matching eligibility is unchanged; location search/pin selection and interest-based ranking remain follow-up work.
+- Verification: mobile `npm run lint` and `npm run typecheck` passed; backend `node --check` passed for changed JavaScript files.
+
+## 2026-10-10: Resume Pending HaloKYC Verification
+
+- Pending verification can be reopened from Profile or Settings; the backend reuses the saved HaloKYC session while it remains in `pending_upload`.
+- Map HaloKYC `awaiting_credits`, `processing`, and `manual_review` to Lumore `processing`; the mobile actions show a waiting state and disable retries while processing.
+- Verification: `npm run lint` and `npm run typecheck` passed; backend `node --check` passed.
+
 ## 2026-10-04: Create Lumore Play Store screenshot set
 
 - Added eight 9:16 promotional screenshots using supplied app captures, Lumore colors, and concise feature headlines, plus an overview sheet and regeneration script.
@@ -11,7 +568,7 @@ Record every meaningful repository change here after it is made. Keep entries ne
 ## 2026-10-04: Replace deprecated Expo Image resize mode
 
 - Set the profile photo's crop mode with Expo Image's `contentFit` prop instead of a deprecated `resizeMode` style.
-- Verification: `npm run lint` and `npm run typecheck`.
+- Verification: `npm run lint` and `npm run typecheck` passed.
 
 ## 2026-10-04: Respect profile unlocks in chat names
 
@@ -500,3 +1057,412 @@ Use this structure:
 - Added/updated/removed Z.
 - Verification: `npm run lint`, `npm run typecheck`, or reason not run.
 ```
+# 2026-10-10: Diagnose community location search failures
+
+- Preserve Google's safe status and HTTP code internally for community location errors, log them without request URLs or API keys, and show actionable setup guidance in the create-community form.
+- Verification: `npm run lint`, `npm run typecheck`, and backend syntax checks.
+# 2026-10-10: Reduce community location autocomplete requests
+
+- Increased the location search debounce from 350 ms to 650 ms to wait longer for users to finish typing before requesting suggestions.
+- Verification: `npm run lint` and `npm run typecheck`.
+# 2026-10-10: Refine community creation copy and flow
+
+- Clarified the Local and Topic choices, rewrote helper text around the member's intent, removed the duplicate location status from the hero, and moved location selection directly under community type.
+- Removed the duplicate empty-cover Upload action and its unnecessary name progress bar.
+- Verification: `npm run lint` and `npm run typecheck`.
+# 2026-10-10: Tighten community location field spacing
+
+- Removed the extra margins between the location search label and input, and changed the label to a readable light color on the dark panel. Other text fields keep their current spacing.
+- Verification: `npm run lint` and `npm run typecheck`.
+# 2026-10-10: Add community tags
+
+- Added suggested Local/Topic tags and custom tags (up to five per community), with backend validation, persistence, and an index for future tag discovery.
+- Creators can edit tags; community cards and detail pages display them. Existing communities default to no tags.
+- Preference-based ranking and tag search remain follow-up work; matching eligibility is unchanged.
+- Verification: mobile lint/typecheck and backend syntax checks.
+# 2026-10-10: Add paginated community discovery
+
+- Replaced the fixed nearby-only room list with server-paginated browsing of public Local and Topic communities, loading more as the user scrolls.
+- Added combined search across community names, descriptions, and tags; Local/Topic/Nearby filters; and matching-pool high/low, newest, and nearest sorts. Default sort is the largest matching pool.
+- Location is optional for global browsing and only needed for Nearby/Nearest. Nearby uses a 25 km radius.
+- Verification: mobile lint/typecheck and backend syntax checks.
+
+# 2026-10-10: Reuse auth inline error notice
+
+- Extracted the identical accessible API error UI into `InlineErrorNotice` and reused it across login, signup, and password recovery screens.
+
+# 2026-10-10: Remove Explore match-note divider
+
+- Flattened the compatibility note's icon/text row and cleared the text edge border so no vertical line appears before the introduction copy.
+- Verification: changed-file lint and `npm run typecheck`; full lint is blocked by existing `__dirname` errors in two test scripts and a generated Expo warning.
+
+# 2026-10-10: Extract profile This or That section
+
+- Moved the profile's This or That card into a focused component; its answer loading, empty state, carousel, and owner-only action remain unchanged.
+- Reused Expo Image for answer photos and kept navigation and haptics owned by the profile screen.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export.
+
+# 2026-10-10: Extract profile posts section
+
+- Moved the profile posts heading, create action, loading state, post list, and empty state into a focused component; edit/delete flow remains owned by the profile screen.
+- Verification: source-wide ESLint and `npm run typecheck`; full-repository lint reports existing `__dirname` errors in test scripts and a generated Expo warning.
+
+# 2026-10-10: Extract profile summary card
+
+- Moved profile identity, facts, bio, interests, and owner edit actions into a single presentation component. Navigation and haptics remain in the profile screen.
+- Removed the screen's image and interest-rendering imports that were only needed by the extracted card.
+- Verification: source-wide ESLint and `npm run typecheck`.
+
+# 2026-10-10: Extract chat image upload flow
+
+- Moved image picking, uploads, stale-request handling, discard behavior, and temporary-image cleanup into `useChatImageUpload`.
+- Added the shared `PendingChatImage` type for the chat composer and upload hook; `ChatScreen` continues to own message sending and voice notes.
+- Verification: source-wide ESLint and `npm run typecheck`.
+
+# 2026-10-10: Remove unused Moti dependency
+
+- Removed the unused direct `moti` dependency and its 13 otherwise-unneeded packages from the install graph.
+- Android export succeeds; the JavaScript bundle remains 11.9 MB because Moti was never imported into the app bundle.
+- Verification: Android Expo export, source-wide ESLint, and `npm run typecheck`.
+
+# 2026-10-10: Extract chat voice recording lifecycle
+
+- Moved audio recorder setup, microphone permissions, waveform sampling, validation, and recorder cleanup into `useVoiceRecorder`.
+- Kept composer eligibility, voice upload, socket delivery, optimistic message creation, and analytics in `ChatScreen`.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export.
+
+# 2026-10-10: Extract chat socket and typing lifecycles
+
+- Moved room join/leave and connection listeners into `useChatRoomConnection`; moved partner and local typing events and timeout cleanup into `useChatTyping`.
+- `ChatScreen` now composes these hooks and the focused image and voice hooks, down from 667 to 539 lines.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export.
+
+# 2026-10-10: Extract profile quick actions
+
+- Moved profile shortcut navigation and verification action presentation into `ProfileQuickActions`; verification API and haptic side effects remain in the screen.
+- Verification: source-wide ESLint and `npm run typecheck`.
+
+# 2026-10-10: Extract profile essentials and type its traits
+
+- Moved the essentials card into `ProfileEssentialsSection` and created a typed trait builder for horizontal and vertical profile details.
+- Removed the screen's loosely typed nullable trait arrays and non-null assertions.
+- Verification: source-wide ESLint and `npm run typecheck`.
+
+# 2026-10-10: Extract profile post action sheets
+
+- Moved profile post action and edit sheet presentation into `ProfilePostActionSheets`; post mutations and confirmations remain in the screen.
+- Centralized type-specific edit copy in `getProfilePostEditCopy` and removed repeated copy construction from the sheet props.
+- Verification: source-wide ESLint and `npm run typecheck`.
+
+# 2026-10-10: Move profile post workflow into a hook
+
+- Moved post action/edit state, text/visibility setup, update/delete requests, confirmations, query invalidation, and haptic feedback into `useProfilePostActions`.
+- `Profile.tsx` now coordinates the profile sections and verification flow without owning post mutations.
+- Verification: source-wide ESLint and `npm run typecheck`.
+# 2026-10-10: Remove match-note divider from Explore cards
+
+- Removed the unintended left-border utility beside the match-note text so the copy sits cleanly beside the sparkle icon.
+- Verification: source-wide ESLint and `npm run typecheck`.
+# 2026-10-10: Separate chat socket handling from provider
+
+- Moved chat realtime listeners into `useChatSocketListeners` and centralized sender ID, timestamp parsing, and incoming-message merge helpers in focused chat domain utilities.
+- `ChatContext` is now 326 lines (previously 513); socket listener cleanup is explicit per event, including `chatEnded`.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export.
+# 2026-10-10: Isolate community API and types
+
+- Moved room discovery, creation, membership, and location search requests into `src/features/community/api.ts`; community response types now live in the feature types file.
+- Extracted React Native URI-file handling into `appendNativeFile` and updated community call sites to import the focused feature module.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export (11.9 MB bundle; unchanged).
+
+# 2026-10-10: Remove Explore match-note divider
+
+- Explicitly removed left and other borders from the compatibility note container and copy column so no vertical separator appears between the sparkle icon and the introduction text.
+- Updated the legacy API module to import `LocationWritePayload` from its new location feature module after typecheck exposed a stale import in the existing refactor.
+- Verification: lint passed; typecheck rerun pending.
+
+# 2026-10-10: Consolidate profile option fields
+
+- Moved repeated single and multi-select profile field configurations into `ProfileOptionField`; retained custom text, range, lifestyle, and goal controls in the main editor.
+- Reduced `FieldEditorContent.tsx` from 511 to 288 lines while preserving its existing field types and option values.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export (11.9 MB bundle; unchanged).
+
+# 2026-10-10: Extract community detail actions
+
+- Moved join/leave/rejoin, creator editing, cover-image picking, and start-match mutations with their confirmations into `useCommunityRoomActions`.
+- Reduced the community detail route from 650 to 495 lines while leaving data loading, location actions, and page composition in the screen.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export.
+
+# 2026-10-10: Extract community context card and tag formatting
+
+- Moved topic-interest and local-location presentation into `CommunityContextCard`; the detail route now composes this section.
+- Centralized community tag capitalization in `formatCommunityTag` and reused it in the picker, directory card, and detail screen.
+- Reduced the community detail route from 495 to 428 lines.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export (11.9 MB bundle; unchanged).
+
+# 2026-10-10: Isolate chat and inbox API
+
+- Moved inbox pagination, room data, messages, uploads, and chat moderation requests into `src/features/chat/api.ts` with their summary types in the chat domain.
+- Moved the generic paginated response type to its own domain utility and reduced `src/libs/apis.ts` from 469 to 293 lines.
+- Verification: source-wide ESLint, `npm run typecheck`, and Android Expo export (11.9 MB bundle; unchanged).
+
+# 2026-10-10: Isolate community location selection lifecycle
+
+- Moved Places search debounce, session token, map region, place selection, reverse geocoding, and request-race handling from the community creation route into `useCommunityLocationSelection`.
+- Preserved the one-second search debounce and prevent stale search/detail/geocode responses from overriding newer input or map selections.
+- Verification: source-wide ESLint and `npm run typecheck` passed at the time of extraction; the later Expo lint wrapper hit `EPERM` writing its cache under `.expo/cache/eslint`.
+
+# 2026-10-10: Separate option catalog from dynamic option persistence
+
+- Moved the static profile and preference option data and its shared types into `src/libs/optionsCatalog.ts`.
+- Kept `src/libs/options.ts` as the compatibility entry point and the focused dynamic-option validation, cache, and update utility.
+- Verification: `npm run typecheck` and direct ESLint on both option modules passed.
+
+# 2026-10-10: Isolate referral screen workflow
+
+- Moved referral summary fetching, pending-code hydration, copy feedback, validation, submission, and persistence into `src/features/referrals/useReferral.ts`.
+- Kept `Referral.tsx` focused on screen composition and added cleanup for the copied-state timer when the screen unmounts.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+# 2026-10-10: Avoid duplicate onboarding query refreshes
+
+- Replaced paired invalidation and refetch calls for the user and profile query keys with one awaited invalidation per key using `refetchType: "all"`.
+- This keeps cached data stale when a refetch fails while avoiding cancel-and-repeat fetches on onboarding completion.
+- Verification: `npm run typecheck` and direct ESLint on `src/screens/Onboarding.tsx` passed. `npm run lint` hit `EPERM` writing Expo's ESLint cache under `.expo/cache/eslint`.
+
+# 2026-10-10: Share credit query ownership and refresh behavior
+
+- Added a shared per-user credit-balance query so Explore, Credits, and Earn Credits reuse the same cached balance instead of making parallel queries under different keys.
+- Centralized credit query keys and the duplicated pull-to-refresh lifecycle for the Credits and Earn Credits routes.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+# 2026-10-10: Use explicit Zod namespace exports in mobile schemas
+
+- Replaced namespace imports with the package's named `z` export across the seven mobile schema/validation modules.
+- The like-for-like Android Hermes export decreased from 7,491,800 to 7,489,789 bytes (2,011 bytes); full locale modules remain in Metro's graph, so no larger locale-removal saving is claimed.
+- Verification: `npm run typecheck`, direct ESLint on all seven changed files, and Android Expo export passed. `npm run lint` hit `EPERM` writing Expo's ESLint cache under `.expo/cache/eslint`.
+
+# 2026-10-10: Remove stray divider beside Explore match note
+
+- Removed the nested copy wrapper from the Explore profile card match note and placed its text directly in the icon row, eliminating the unwanted vertical rule while retaining the same spacing and wrapping behavior.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+# 2026-10-10: Remove unused profile form dependencies
+
+- Removed the unused React Hook Form and Zod resolver state from Edit Profile; the editor now reads current values from the profile query with the same date and height formatting.
+- Made profile field and visibility updates await their mutations and query invalidations, so the editor closes after the refreshed profile is available.
+- Removed unused direct dependencies `react-hook-form`, `@hookform/resolvers`, `moti`, and `expo-system-ui` after confirming there are no source or app-config references. The Android Hermes bundle measured 7,289,114 bytes, down 200,675 bytes from the prior 7,489,789-byte export.
+- Verification: `npm run lint`, `npm run typecheck`, and Android Expo export passed. `npx expo install --check` could not complete because the environment could not reach the Expo registry.
+
+# 2026-10-10: Keep static option consumers out of persistence module
+
+- Redirected static option and type imports to `optionsCatalog.ts`; `options.ts` now remains an entry point for backend option caching and normalization, used directly by `OptionsProvider`.
+- The Android Hermes export remained effectively unchanged (7,289,114 to 7,289,112 bytes), so this change is recorded as a dependency-boundary cleanup rather than a bundle-size win.
+- Verification: `npm run lint`, `npm run typecheck`, and Android Expo export passed.
+
+# 2026-10-10: Share profile completion counting
+
+- Centralized profile and preference completion percentages and remaining-field counts in the profile domain helper; Edit Profile and Edit Preference now use the same field definitions and completeness rules as Profile.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+# 2026-10-10: Consolidate shared form field composition
+
+- Replaced the unused, general-purpose Gluestack FormControl wrapper set and its separate feedback component with one focused `FormField` used by text and multiline inputs. The field keeps the existing Gluestack state/accessibility context and shared label/helper/error presentation.
+- Removed the 431-line wrapper module and redundant `FormFieldFeedback` component. Android Hermes output decreased by 13,051 bytes (7,289,112 to 7,276,061 bytes).
+- Verification: `npm run lint`, `npm run typecheck`, and Android Expo export passed.
+
+# 2026-10-10: Reuse profile section heading in field lists
+
+- Extended the existing `SectionHeading` with an optional icon treatment and reused it across profile and preference detail sections, removing duplicated icon/title/description markup.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+# 2026-10-10: Split textarea root and input components
+
+- Moved the textarea root and input wrappers into separate component files, with their shared Gluestack context and style variants in dedicated modules and a small barrel export.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+# 2026-10-10: Split input primitive wrappers
+
+- Moved the input root, field, icon, and slot wrappers into single-component files. Their shared Gluestack setup and style variants remain in dedicated context and style modules; existing imports continue through the barrel.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+# 2026-10-10: Remove unused HTML heading package from mobile bundle
+
+- Replaced the actionsheet's non-exposed `H4` slot with a small native text component that retains the header accessibility role, then removed the otherwise-unused `@expo/html-elements` dependency.
+- Updated the architecture summary to describe the current form stack without the removed React Hook Form dependency.
+- Android Hermes output is 7,261,882 bytes, 14,179 bytes below the previous measurement; this reflects the cumulative component and dependency changes since that measurement.
+- Verification: `npm run lint`, `npm run typecheck`, and Android Expo export passed.
+
+# 2026-10-10: Remove the Explore match-note divider styling
+
+- Removed redundant zero-width border overrides and the border utility from the match note container, leaving the star icon and explanation as an unseparated row.
+- Verification: uncached ESLint and `npm run typecheck` passed; the Expo lint wrapper hit a Windows `EPERM` error writing its cache at that time.
+
+# 2026-10-10: Split actionsheet wrappers into focused modules
+
+- Separated each public actionsheet wrapper into its own component file, while keeping Gluestack composition and NativeWind interop in shared context and keeping variants in a shared style module.
+- Preserved existing exports and wrapper props so current sheets continue using the same API.
+- Verification: uncached ESLint and `npm run typecheck` passed. `npm run lint` could not write its existing cache under `.expo/cache/eslint` due to a Windows `EPERM` error.
+
+# 2026-10-10: Consolidate repeated profile text-field rendering
+
+- Replaced seven nearly identical text-input branches in the profile field editor with a shared label and placeholder config and one render path. Username validation remains specialized, and phone numbers still have whitespace removed.
+- Verification: uncached ESLint on the changed file and `npm run typecheck` passed. The Expo lint wrapper remains unable to write its cache under `.expo/cache/eslint` due to Windows `EPERM`.
+
+# 2026-10-10: Remove one-use field conversion helpers
+
+- Removed four conversion helpers that were only called inside `FieldEditorContent`; the simple checks now sit at their use sites, avoiding extra utility indirection and keeping the editor module focused on its own behavior.
+- Verification: `npm run lint` and `npm run typecheck` passed.
+
+# 2026-10-10: Split password visibility icons and remove unused alert icon
+
+- Moved the password visibility SVG icons into one-component files and retained their existing named barrel imports.
+- Removed `AlertCircleIcon`, which had no references anywhere in app source.
+- Verification: uncached ESLint on `src/components/ui/icon` and `npm run typecheck` passed. Expo lint hit a Windows `EPERM` error while writing its cache under `.expo/cache/eslint`.
+
+# 2026-10-10: Separate post creation option and root layout components
+
+- Moved the post format option into a dedicated component and mapped the three formats from data, keeping the current routes and appearance.
+- Moved safe-area and provider content out of the Expo root layout so each file defines one React component; provider nesting and screen options are unchanged.
+- Verification: uncached ESLint on changed files and `npm run typecheck` passed. Expo lint hit a Windows `EPERM` error writing its cache under `.expo/cache/eslint`.
+
+# 2026-10-10: Separate room countdown formatting
+
+- Moved the pure countdown string formatter into its own community feature utility; the reusable countdown component now handles only time state and display.
+- Preserved existing seconds and minutes formatting.
+- Verification: uncached ESLint on the changed files and `npm run typecheck` passed. Expo lint hit the Windows `EPERM` cache-write error.
+
+# 2026-10-10: Split date input parsing and age helpers
+
+- Moved typed date parsing, date-from-age calculation, and age-range validation out of the DateInput component into focused one-function utilities.
+- Kept input formats, default dates, and age bounds unchanged.
+- Verification: uncached ESLint on the changed files and `npm run typecheck` passed. Expo lint hit the Windows `EPERM` cache-write error.
+
+# 2026-10-10: Separate notification relative-time formatting
+
+- Moved relative-time label formatting into a single-function utility so `NotificationCard` only handles notification display and interaction.
+- Kept the existing invalid-date handling and just-now/minute/hour/day thresholds.
+- Verification: uncached ESLint on the changed files and `npm run typecheck` passed. Expo lint hit the Windows `EPERM` cache-write error.
+
+# 2026-10-10: Reuse the parsed date in the shared formatter
+
+- Updated `formatDate` to construct one `Date` instance and read its day, month, and year from that value instead of constructing three equivalent instances.
+- Preserved the existing `DD/MM/YYYY` output.
+- Verification: uncached ESLint on `formatDate.ts` and `npm run typecheck` passed. Expo lint hit the Windows `EPERM` cache-write error.
+
+# 2026-10-10: Remove divider from Explore match note
+
+- Explicitly disable the left border on the match-note container so no separator appears between its sparkles icon and note text.
+
+# 2026-10-10: Reuse shared inbox time formatting
+
+- Reused `formatTime` for today's inbox timestamps and added an optional locale argument so the inbox keeps its existing `en-US` output.
+
+# 2026-10-10: Reuse voice duration formatting
+
+- Reused the shared audio-duration formatter in recording controls, removing a second copy of the minutes-and-seconds calculation.
+
+# 2026-10-10: Reuse chat message time formatting
+
+- Routed message timestamps through `formatTime` with their existing `en-US`, 12-hour format options.
+- Extended the shared formatter to accept optional `Intl.DateTimeFormatOptions`; callers that omit them keep the same display.
+- Hoisted the default time options object so repeated message formatting reuses it.
+
+# 2026-10-10: Share short month-and-day formatting
+
+- Added one small date-label formatter used by inbox timestamps and match-note date chips, removing duplicated locale options and invalid-date handling.
+- Preserved the inbox's today-as-time behavior and the match-note fallback label.
+- Verification: uncached ESLint on the changed files and `npm run typecheck` passed. Expo lint hit the Windows `EPERM` cache-write error.
+
+# 2026-10-10: Reuse clsx in the authentication layout
+
+- Replaced the one-use `joinClassNames` helper with the already-installed `clsx` utility used by other app components.
+- Verification: uncached ESLint on `AuthScreenLayout.tsx` and `npm run typecheck` passed. Expo lint hit the Windows `EPERM` cache-write error.
+
+# 2026-10-10: Remove unused profile icon image assets
+
+- Removed the unused cake and distance image imports and lookup entries from `Icon`, plus their unreferenced assets (1,702 source bytes total). Profile traits use Lucide icons for those fields.
+- Verification: uncached ESLint on `src/libs/Icon.tsx` and `npm run typecheck` passed. Expo lint hit the Windows `EPERM` cache-write error.
+
+# 2026-10-10: Record Android export size after cleanup
+
+- Android Hermes export measured 7,266,615 bytes. It is 4,733 bytes larger than the earlier 7,261,882-byte export; that earlier build predates several later structural changes, so the difference is cumulative and is not attributed to any one edit.
+- The removal of 1,702 bytes of source image assets is separate from the Hermes JavaScript bundle measurement.
+
+# 2026-10-10: Remove the utility barrel
+
+- Switched the remaining utility barrel consumers to direct imports of the single-purpose helper files, then removed the unused `src/utils/index.ts` re-export module.
+- This makes utility dependencies explicit and avoids routing consumers through an aggregate entry point; it is a maintainability change, with no bundle-size claim.
+
+# 2026-10-10: Separate HTTP status extraction
+
+- Moved `getHttpErrorStatus` into its own utility module, leaving `userFacingError.ts` focused on user-safe message formatting.
+- Updated the four status-helper consumers to use the dedicated import. Runtime behavior is unchanged.
+- Removed the redundant `isVersionLessThan` wrapper and used the existing comparator at its two call sites.
+- Extracted the repeated Explore refresh-time display into `formatTime`, preserving the existing locale and hour/minute options.
+- Split onboarding initial-value construction, validation, and payload mapping into separate utilities; shared their small record guard and goal-field map.
+
+# 2026-10-10: Recheck Android Hermes bundle size
+
+- A fresh Android export measured 7,267,625 bytes for the Hermes bundle, 1,010 bytes above the earlier 7,266,615-byte measurement. The exports include multiple intervening source changes, so this difference is not attributed to any single cleanup.
+- No bundle-size reduction is claimed from the utility/component organization work; the export confirms those changes are effectively neutral at this measurement scale.
+- Reduced the language fallback dataset from full `{ code, name, nativeName }` objects to compact `[code, name]` tuples because only code and display name are consumed. Source data fell from 14,218 to 6,477 bytes; Android Hermes export size fell by 4,063 bytes (7,267,625 to 7,263,562) across otherwise unchanged source.
+- Centralized option membership and capped option-array schema construction so profile and preference validation share the same checks and preserve their existing field-specific messages.
+
+# 2026-10-10: Use Zod mini for app validation
+
+- Migrated every app schema import to `zod/mini` checks and pipelines, and updated field editing to traverse mini object schemas.
+- Android Hermes export measured 7,231,011 bytes, 32,551 bytes below the prior 7,263,562-byte export. The intervening option-schema deduplication is also in that interval, so the difference is recorded for the combined changes rather than attributed to Zod alone.
+- `npm run lint` and `npm run typecheck` passed.
+- Reused a shared date-to-age utility in onboarding and profile validation, removing two duplicate age calculations while keeping validation checks and messages unchanged.
+
+# 2026-10-10: Separate dynamic option response parsing
+
+- Moved options payload and version extraction into a focused parser so `OptionsProvider` handles fetching, cache updates, and provider state only.
+- Preserved the supported response envelopes and array filtering.
+
+# 2026-10-10: Remove Explore match-note divider
+
+- Removed the obsolete left-border override from the match-note layout so the sparkle and explanation render without a separator.
+
+# 2026-10-10: Remove unused option catalog re-exports
+
+- Removed static catalog re-exports from the dynamic options module; app consumers already import the catalog directly from `optionsCatalog`.
+
+# 2026-10-10: Simplify supported option icon validation
+
+- Replaced a one-entry library allowlist and wrapper predicate with a direct Lucide check, preserving the same remote-option validation behavior.
+
+# 2026-10-10: Derive dynamic option keys from registry
+
+- Derived `DynamicOptionKey` from the option registry instead of maintaining a second manual list, preventing payload types and supported catalogs from drifting apart.
+
+# 2026-10-10: Share plain-object validation
+
+- Moved the onboarding plain-object guard into `src/utils/isRecord.ts` and reused it in stored-user parsing, dynamic-options response parsing, remote option validation, and profile field editing.
+- Kept the Axios user-facing error check separate because it intentionally accepts arrays as objects.
+
+# 2026-10-10: Share chat audio metadata normalization
+
+- Reused one chat-domain helper for audio duration and waveform normalization in full-message and reply-preview mapping.
+- Preserved the existing numeric conversion, finite-waveform filtering, and null fallbacks.
+
+# 2026-10-10: Centralize chat sender fallback resolution
+
+- Extended `getChatSenderId` to accept the raw `senderId` fallback and reused it in message, reply-preview, and socket-log mapping.
+- Existing reaction sender resolution still calls the helper without a fallback.
+
+# 2026-10-10: Reuse profile editor single-select groups
+
+- Added a config-driven single-select field group used by lifestyle and goal editing, removing six repeated field layouts while preserving per-field options and copy.
+- Hoisted the static field metadata so it is not rebuilt on each field value render.
+
+# 2026-10-10: Centralize chat attachment labels
+
+- Reused one message-type label helper for image and audio previews across reply mapping, reply UI, and inbox preview decoding.
+- Kept the inbox precedence rule that image wins when either preview or message type is image.
+
+# 2026-10-10: Reuse profile interest chips
+
+- Extracted the shared interest lookup, icon, label, and chip rendering for profile summary and Explore cards, retaining their two existing visual variants.
+
+

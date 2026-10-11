@@ -13,8 +13,12 @@ Chat rooms join/leave sockets, fetch message history, send text, upload/send ima
 - Route: `src/app/chat/[roomId].tsx`
 - Components: `src/components/explore/ChatScreen.tsx`, `ChatHeader.tsx`, `ChatInput.tsx`, `ChatMessages.tsx`, `ChatMessage.tsx`, `AudioWaveform.tsx`, `MatchNoteBanner.tsx`
 - Context: `src/service/context/ChatContext.tsx`, `src/service/context/SocketContext.tsx`
-- Domain and payload contracts: `src/domain/chat/types.ts`, `src/domain/chat/socketEvents.ts`
+- Message history and socket updates: `src/hooks/chat/useChatMessages.ts`, `src/hooks/chat/useChatSocketListeners.ts`
+- Domain and payload contracts: `src/domain/chat/types.ts`, `src/domain/chat/socketEvents.ts`, `src/domain/chat/groupMessagesByDate.ts`
+- Inbox cache keys: `src/features/chat/inboxQueryKeys.ts`
+- Message normalization and room lifecycle rules: `src/domain/chat/mapRawChatMessage.ts`, `src/domain/chat/mapRawChatReplyPreview.ts`, `src/domain/chat/isChatRoomActive.ts`
 - APIs: `fetchRoomData`, `fetchRoomChat`, `uploadChatImage`, `uploadChatAudio`, temp-delete helpers
+- API module: `src/features/chat/api.ts`
 
 ## Data/API Dependencies
 

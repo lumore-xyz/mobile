@@ -12,6 +12,8 @@ Users can open a games hub, answer This or That questions, view user answers on 
 
 - Routes: `src/app/(subpage)/games`, including `this-or-that` and submit routes
 - Screens: `src/screens/Games.tsx`, `src/screens/ThisOrThat.tsx`, `src/screens/ThisOrThatSubmit.tsx`
+- Games hub benefit rows: `src/components/games/GameBenefitRow.tsx`
+- Feature API: `src/features/this-or-that/api.ts`
 - APIs: `fetchThisOrThatQuestions`, `fetchUserThisOrThatAnswers`, `submitThisOrThatAnswer`, `submitThisOrThatQuestion`
 
 ## Data/API Dependencies

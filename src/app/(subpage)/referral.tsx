@@ -1,4 +1,5 @@
 import ReferralScreen from "@/src/screens/Referral";
+import { referralQueryKeys } from "@/src/features/referrals/queryKeys";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useState } from "react";
 
@@ -10,7 +11,7 @@ const Referral = () => {
     setIsRefreshing(true);
     try {
       await queryClient.invalidateQueries({
-        queryKey: ["referral", "summary"],
+        queryKey: referralQueryKeys.summary,
       });
     } finally {
       setIsRefreshing(false);

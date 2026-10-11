@@ -11,11 +11,11 @@ Profile/settings reflect verified or pending state. Starting verification calls 
 ## Key Files
 
 - Screens: `src/screens/Settings.tsx`, `src/screens/Profile.tsx`
-- API: `startDiditVerification`
+- API: `src/features/identity-verification/api.ts` (`startHaloKycVerification`)
 
 ## Data/API Dependencies
 
-- `POST /didit/create-verification`
+- `POST /halokyc/create-verification`
 - User fields: `isVerified`, `verificationStatus`
 - `expo-web-browser`
 

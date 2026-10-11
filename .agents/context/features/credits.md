@@ -12,6 +12,9 @@ Credits screen fetches balance and paginated history. Users can claim daily cred
 
 - Route: `src/app/(subpage)/credits.tsx`
 - Screen: `src/screens/Credits.tsx`
+- History rows and loading state: `src/components/credits/CreditHistoryCard.tsx`, `src/components/credits/CreditHistorySkeleton.tsx`
+- Summary tiles: `src/components/credits/CreditMiniStat.tsx`
+- Feature API: `src/features/credits/api.ts`
 - APIs: `fetchCreditsBalance`, `fetchCreditsHistory`, `claimDailyCredits`
 - Query key usage in screens and `RealtimeEventsProvider`
 

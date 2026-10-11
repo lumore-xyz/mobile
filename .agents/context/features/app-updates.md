@@ -10,7 +10,8 @@ The app checks backend app-version config, caches config for six hours, compares
 
 ## Key Files
 
-- Component: `src/components/ui/AppUpdatePrompt.tsx`
+- Prompt orchestration: `src/components/ui/AppUpdatePrompt.tsx`
+- Prompt presentation: `src/components/ui/AppUpdateVersionsCard.tsx`, `src/components/ui/AppUpdateChangesCard.tsx`, `src/components/ui/AppUpdateActions.tsx`
 - Hook: `src/hooks/useAppUpdate.ts`
 - Service: `src/service/appUpdate.ts`
 - Helper: `src/utils/version.ts`

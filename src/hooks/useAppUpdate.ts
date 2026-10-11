@@ -9,10 +9,7 @@ import {
   fetchAppVersionConfig,
   getCachedAppVersionKey,
 } from "../service/appUpdate";
-import {
-  compareVersions,
-  isVersionLessThan,
-} from "../utils/version";
+import { compareVersions } from "../utils/version";
 
 type AppUpdateStatus = "idle" | "checking" | "up-to-date" | "optional" | "force";
 
@@ -93,11 +90,14 @@ export const useAppUpdate = (): AppUpdateState => {
   ): AppUpdateStatus => {
     if (!nextConfig) return "up-to-date";
 
-    if (isVersionLessThan(installed, nextConfig.minimumSupportedVersion)) {
+    if (compareVersions(installed, nextConfig.minimumSupportedVersion) < 0) {
       return "force";
     }
 
-    if (nextConfig.forceUpdate && isVersionLessThan(installed, nextConfig.latestVersion)) {
+    if (
+      nextConfig.forceUpdate &&
+      compareVersions(installed, nextConfig.latestVersion) < 0
+    ) {
       return "force";
     }
 

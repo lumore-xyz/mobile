@@ -3,7 +3,7 @@ import {
   goalOptions,
   interestedInOptions,
   languageOptions,
-} from "@/src/libs/options";
+} from "@/src/libs/optionsCatalog";
 import type { Screen } from "./types";
 
 export const onboardingScreens: Screen[] = [

@@ -1,17 +1,13 @@
 "use client";
 
-import { CHAT_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
 import type {
   ChatRoom,
-  ChatReplyPreview,
-  MessageEditedPayload,
   Message,
-  MessageDeliveredPayload,
-  MessageReactionUpdatedPayload,
-  MessageReadPayload,
-  RawChatMessage,
 } from "@/src/domain/chat/types";
-import { fetchRoomChat, fetchRoomData } from "@/src/libs/apis";
+import isChatRoomActive from "@/src/domain/chat/isChatRoomActive";
+import useChatMessages from "@/src/hooks/chat/useChatMessages";
+import invalidateInboxLists from "@/src/features/chat/invalidateInboxLists";
+import { fetchRoomData } from "@/src/features/chat/api";
 import { useUser } from "@/src/hooks/useUser";
 import { useGlobalSearchParams, usePathname, useRouter } from "expo-router";
 import {
@@ -26,7 +22,7 @@ import {
 } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { trackAnalytic } from "../analytics";
-import { socketDebug, socketError, socketWarn } from "../socket-debug";
+import { socketDebug, socketWarn } from "../socket-debug";
 import { getUser } from "../storage";
 import { useSocket } from "./SocketContext";
 
@@ -46,103 +42,6 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
-type Sender = string | { _id?: string; id?: string } | null | undefined;
-
-const getSenderId = (sender: Sender): string => {
-  if (!sender) return "";
-  if (typeof sender === "string") return sender;
-  return sender._id || sender.id || "";
-};
-
-const mapReplyPreview = (replyTo: RawChatMessage | null | undefined) => {
-  if (!replyTo?._id) return null;
-
-  const replyType: "text" | "image" | "audio" = replyTo.messageType || "text";
-  const replyMessage =
-    replyType === "image"
-      ? "Photo"
-      : replyType === "audio"
-        ? "Voice note"
-        : replyTo.message || "Message";
-
-  return {
-    _id: replyTo._id,
-    senderId: getSenderId(replyTo.sender) || replyTo.senderId || "",
-    messageType: replyType,
-    message: replyMessage,
-    imageUrl: replyTo.imageUrl || null,
-    audioUrl: replyTo.audioUrl || null,
-    audioDurationMs: Number(replyTo.audioDurationMs || 0) || null,
-    audioWaveform: Array.isArray(replyTo.audioWaveform)
-      ? replyTo.audioWaveform.map(Number).filter(Number.isFinite)
-      : null,
-  } satisfies ChatReplyPreview;
-};
-
-const sortByTimestamp = (items: Message[]) =>
-  [...items].sort((a, b) => a.timestamp - b.timestamp);
-
-const deriveRoomIsActive = (room: ChatRoom | undefined): boolean => {
-  if (!room) return false;
-
-  if (typeof room.isActive === "boolean") return room.isActive;
-  if (room.endedAt || room.endedBy) return false;
-
-  const rawStatus = String(room.status ?? "")
-    .toLowerCase()
-    .trim();
-  if (!rawStatus) return true;
-  if (
-    ["archive", "archived", "ended", "closed", "inactive"].includes(rawStatus)
-  ) {
-    return false;
-  }
-
-  return true;
-};
-
-const toTimestamp = (value?: string | number | null) => {
-  if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  if (!value) return null;
-  const numericValue = Number(value);
-  if (Number.isFinite(numericValue)) return numericValue;
-  const parsedValue = Date.parse(value);
-  return Number.isFinite(parsedValue) ? parsedValue : null;
-};
-
-const mergeIncomingMessage = (messages: Message[], incoming: Message) => {
-  const next = [...messages];
-
-  if (incoming.clientMessageId) {
-    const optimisticIndex = next.findIndex(
-      (item) => item.clientMessageId === incoming.clientMessageId,
-    );
-    if (optimisticIndex >= 0) {
-      next[optimisticIndex] = {
-        ...next[optimisticIndex],
-        ...incoming,
-        pending: false,
-      };
-      return sortByTimestamp(next);
-    }
-  }
-
-  if (incoming._id) {
-    const existingIndex = next.findIndex((item) => item._id === incoming._id);
-    if (existingIndex >= 0) {
-      next[existingIndex] = {
-        ...next[existingIndex],
-        ...incoming,
-        pending: false,
-      };
-      return sortByTimestamp(next);
-    }
-  }
-
-  next.push(incoming);
-  return sortByTimestamp(next);
-};
-
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const params = useGlobalSearchParams<{ roomId: string }>();
@@ -150,10 +49,10 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const roomId = isChatThreadRoute ? params?.roomId ?? null : null;
   const queryClient = useQueryClient();
   const { socket, revalidateSocket } = useSocket();
+  const [isActive, setIsActive] = useState<boolean>(false);
+  const { messages, setMessages } = useChatMessages(roomId, socket, setIsActive);
   const [userId, setUserId] = useState<string | null>(null);
   const [matchedUserId, setMatchedUserId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isActive, setIsActive] = useState<boolean>(false);
   const router = useRouter();
   const { user } = useUser(userId ?? "");
   const { user: matchedUser, isLoading } = useUser(matchedUserId ?? "");
@@ -192,51 +91,13 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (roomId) return;
     setMatchedUserId(null);
-    setMessages([]);
     setIsActive(false);
   }, [roomId]);
-
-  const mapIncomingMessage = useCallback((rawMessage: RawChatMessage): Message => {
-    const messageType: "text" | "image" | "audio" =
-      rawMessage?.messageType || "text";
-    const text = messageType === "text" ? rawMessage?.message || "" : "";
-    const sender =
-      getSenderId(rawMessage?.sender) || rawMessage?.senderId || "";
-
-    return {
-      _id: rawMessage?._id,
-      clientMessageId: rawMessage?.clientMessageId || undefined,
-      sender,
-      message: text,
-      messageType,
-      imageUrl: rawMessage?.imageUrl || null,
-      imagePublicId: rawMessage?.imagePublicId || null,
-      audioUrl: rawMessage?.audioUrl || null,
-      audioPublicId: rawMessage?.audioPublicId || null,
-      audioDurationMs: Number(rawMessage?.audioDurationMs || 0) || null,
-      audioWaveform: Array.isArray(rawMessage?.audioWaveform)
-        ? rawMessage.audioWaveform.map(Number).filter(Number.isFinite)
-        : null,
-      timestamp:
-        toTimestamp(rawMessage.timestamp) ??
-        toTimestamp(rawMessage.createdAt) ??
-        Date.now(),
-      replyTo: mapReplyPreview(rawMessage?.replyTo),
-      reactions: (rawMessage?.reactions || []).map((reaction) => ({
-        userId: getSenderId(reaction.userId || reaction.user),
-        emoji: reaction.emoji || "\u2764\uFE0F",
-      })),
-      editedAt: toTimestamp(rawMessage?.editedAt),
-      deliveredAt: toTimestamp(rawMessage?.deliveredAt),
-      readAt: toTimestamp(rawMessage?.readAt),
-      pending: false,
-    };
-  }, []);
 
   useEffect(() => {
     if (!roomData || !user?._id) return;
     const other = roomData.participants.find((p) => p._id !== user._id);
-    const nextIsActive = deriveRoomIsActive(roomData);
+    const nextIsActive = isChatRoomActive(roomData);
     socketDebug("ChatContext", "roomData resolved", {
       roomId,
       currentUserId: user?._id,
@@ -249,201 +110,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     setMatchedUserId(other?._id ?? null);
     setIsActive(nextIsActive);
   }, [roomData, roomId, user]);
-
-  useEffect(() => {
-    if (!roomId) return;
-
-    const loadMessages = async () => {
-      socketDebug("ChatContext", "loadMessages started", {
-        roomId,
-      });
-      try {
-        const raw = await fetchRoomChat(roomId);
-        const mapped: Message[] = raw.map(mapIncomingMessage);
-
-        setMessages(mapped);
-        socketDebug("ChatContext", "loadMessages success", {
-          roomId,
-          count: mapped.length,
-        });
-        queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-        queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
-      } catch (e) {
-        socketError("ChatContext", "loadMessages failed", {
-          roomId,
-          error: e,
-        });
-        console.error("[Chat] Failed loading messages", e);
-      }
-    };
-
-    void loadMessages();
-  }, [roomId, queryClient, mapIncomingMessage]);
-
-  const invalidateInboxQueries = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-    queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
-  }, [queryClient]);
-
-  useEffect(() => {
-    if (!socket || !roomId) {
-      socketWarn("ChatContext", "listener attach skipped", {
-        hasSocket: Boolean(socket),
-        roomId: roomId ?? null,
-      });
-      return;
-    }
-
-    socketDebug("ChatContext", "attaching chat listeners", {
-      roomId,
-      socketId: socket.id,
-      events: [
-        CHAT_SOCKET_EVENTS.newMessage,
-        CHAT_SOCKET_EVENTS.messageSent,
-        CHAT_SOCKET_EVENTS.messageEdited,
-        CHAT_SOCKET_EVENTS.messageReactionUpdated,
-        CHAT_SOCKET_EVENTS.messageDelivered,
-        CHAT_SOCKET_EVENTS.messageRead,
-        CHAT_SOCKET_EVENTS.chatEnded,
-      ],
-    });
-
-    const onIncomingMessage = (payload: RawChatMessage) => {
-      socketDebug("ChatContext", "event incoming message", {
-        roomId,
-        messageId: payload?._id || null,
-        clientMessageId: payload?.clientMessageId || null,
-        messageType: payload?.messageType || "text",
-        senderId: getSenderId(payload?.sender) || payload?.senderId || null,
-      });
-      const mapped = mapIncomingMessage(payload);
-      if (!mapped) return;
-      setMessages((prev) => mergeIncomingMessage(prev, mapped));
-      invalidateInboxQueries();
-    };
-
-    const onEdited = (payload: MessageEditedPayload) => {
-      if (!payload?.messageId) return;
-      socketDebug("ChatContext", "event message edited", {
-        roomId,
-        messageId: payload?.messageId,
-      });
-      const nextMessage = payload.message || "";
-
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === payload.messageId
-            ? {
-                ...msg,
-                message: nextMessage || msg.message,
-                editedAt: toTimestamp(payload.editedAt) ?? Date.now(),
-              }
-            : msg,
-        ),
-      );
-      invalidateInboxQueries();
-    };
-
-    const onReactionUpdated = (payload: MessageReactionUpdatedPayload) => {
-      if (!payload?.messageId) return;
-      socketDebug("ChatContext", "event reaction updated", {
-        roomId,
-        messageId: payload.messageId,
-        reactionCount: payload?.reactions?.length || 0,
-      });
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id === payload.messageId
-            ? {
-                ...msg,
-                reactions: (payload.reactions || []).map((reaction) => ({
-                  userId: getSenderId(reaction.userId || reaction.user),
-                  emoji: reaction.emoji || "\u2764\uFE0F",
-                })),
-              }
-            : msg,
-        ),
-      );
-      invalidateInboxQueries();
-    };
-
-    const onDelivered = (payload: MessageDeliveredPayload) => {
-      const messageIds = new Set((payload?.messageIds || []).map(String));
-      const deliveredAt = payload?.deliveredAt
-        ? new Date(payload.deliveredAt).getTime()
-        : Date.now();
-      if (messageIds.size === 0) return;
-      socketDebug("ChatContext", "event message delivered", {
-        roomId,
-        messageCount: messageIds.size,
-      });
-
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id && messageIds.has(msg._id)
-            ? {
-                ...msg,
-                deliveredAt: msg.deliveredAt || deliveredAt,
-              }
-            : msg,
-        ),
-      );
-      invalidateInboxQueries();
-    };
-
-    const onRead = (payload: MessageReadPayload) => {
-      const messageIds = new Set((payload?.messageIds || []).map(String));
-      const readAt = payload?.readAt
-        ? new Date(payload.readAt).getTime()
-        : Date.now();
-      if (messageIds.size === 0) return;
-      socketDebug("ChatContext", "event message read", {
-        roomId,
-        messageCount: messageIds.size,
-      });
-
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg._id && messageIds.has(msg._id)
-            ? {
-                ...msg,
-                deliveredAt: msg.deliveredAt || readAt,
-                readAt: msg.readAt || readAt,
-              }
-            : msg,
-        ),
-      );
-      invalidateInboxQueries();
-    };
-
-    socket.on(CHAT_SOCKET_EVENTS.newMessage, onIncomingMessage);
-    socket.on(CHAT_SOCKET_EVENTS.messageSent, onIncomingMessage);
-    socket.on(CHAT_SOCKET_EVENTS.messageEdited, onEdited);
-    socket.on(CHAT_SOCKET_EVENTS.messageReactionUpdated, onReactionUpdated);
-    socket.on(CHAT_SOCKET_EVENTS.messageDelivered, onDelivered);
-    socket.on(CHAT_SOCKET_EVENTS.messageRead, onRead);
-    socket.on(CHAT_SOCKET_EVENTS.chatEnded, () => {
-      socketWarn("ChatContext", "event chatEnded", {
-        roomId,
-      });
-      setIsActive(false);
-      invalidateInboxQueries();
-    });
-
-    return () => {
-      socketDebug("ChatContext", "detaching chat listeners", {
-        roomId,
-        socketId: socket.id,
-      });
-      socket.off(CHAT_SOCKET_EVENTS.newMessage, onIncomingMessage);
-      socket.off(CHAT_SOCKET_EVENTS.messageSent, onIncomingMessage);
-      socket.off(CHAT_SOCKET_EVENTS.messageEdited, onEdited);
-      socket.off(CHAT_SOCKET_EVENTS.messageReactionUpdated, onReactionUpdated);
-      socket.off(CHAT_SOCKET_EVENTS.messageDelivered, onDelivered);
-      socket.off(CHAT_SOCKET_EVENTS.messageRead, onRead);
-      socket.off(CHAT_SOCKET_EVENTS.chatEnded);
-    };
-  }, [socket, roomId, mapIncomingMessage, invalidateInboxQueries]);
 
   const cancelChat = useCallback(() => {
     if (!socket || !roomId) {
@@ -463,16 +129,20 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       value: roomId,
     });
     socket.emit("endChat", { roomId });
-    queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-    queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
+    invalidateInboxLists(queryClient);
     setIsActive(false);
     router.push("/chat");
   }, [socket, roomId, queryClient, router]);
 
-  const lockProfile = useCallback(
-    (profileId: string) => {
+  const updateProfileLock = useCallback(
+    (
+      event: "lockProfile" | "unlockProfile",
+      activity: "lock_profile" | "unlock_profile",
+      label: string,
+      profileId: string,
+    ) => {
       if (!socket || !roomId || !userId) {
-        socketWarn("ChatContext", "lockProfile blocked", {
+        socketWarn("ChatContext", `${event} blocked`, {
           hasSocket: Boolean(socket),
           roomId: roomId ?? null,
           userId: userId ?? null,
@@ -480,47 +150,27 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         });
         return;
       }
-      socketDebug("ChatContext", "emit lockProfile", {
+      socketDebug("ChatContext", `emit ${event}`, {
         roomId,
         userId,
         profileId,
         socketId: socket.id,
       });
-      trackAnalytic({
-        activity: "lock_profile",
-        label: "Lock Profile",
-        value: roomId,
-      });
-      socket.emit("lockProfile", { roomId, userId, profileId });
+      trackAnalytic({ activity, label, value: roomId });
+      socket.emit(event, { roomId, userId, profileId });
     },
     [socket, roomId, userId],
   );
 
+  const lockProfile = useCallback(
+    (profileId: string) =>
+      updateProfileLock("lockProfile", "lock_profile", "Lock Profile", profileId),
+    [updateProfileLock],
+  );
   const unlockProfile = useCallback(
-    (profileId: string) => {
-      if (!socket || !roomId || !userId) {
-        socketWarn("ChatContext", "unlockProfile blocked", {
-          hasSocket: Boolean(socket),
-          roomId: roomId ?? null,
-          userId: userId ?? null,
-          profileId,
-        });
-        return;
-      }
-      socketDebug("ChatContext", "emit unlockProfile", {
-        roomId,
-        userId,
-        profileId,
-        socketId: socket.id,
-      });
-      trackAnalytic({
-        activity: "unlock_profile",
-        label: "Unlock Profile",
-        value: roomId,
-      });
-      socket.emit("unlockProfile", { roomId, userId, profileId });
-    },
-    [socket, roomId, userId],
+    (profileId: string) =>
+      updateProfileLock("unlockProfile", "unlock_profile", "Unlock Profile", profileId),
+    [updateProfileLock],
   );
 
   const value = useMemo(
@@ -542,6 +192,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       roomData,
       matchedUser,
       messages,
+      setMessages,
       cancelChat,
       lockProfile,
       unlockProfile,

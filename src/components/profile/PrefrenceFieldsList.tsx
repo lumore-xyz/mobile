@@ -1,9 +1,9 @@
 import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
-import Icon from "@/src/libs/Icon";
-import React from "react";
-import { Pressable, Text, View } from "react-native";
-import type { UserPreferences } from "@/src/hooks/useUserPrefrence";
-import { triggerSelectionHaptic } from "@/src/utils/haptics";
+import SectionHeading from "@/src/components/profile/SectionHeading";
+import ProfileField from "@/src/components/profile/ProfileField";
+import React, { useMemo } from "react";
+import { View } from "react-native";
+import type { UserPreferences } from "@/src/domain/profile/types";
 
 interface PrefrenceFieldsListProps {
   preferences?: UserPreferences;
@@ -16,21 +16,22 @@ type PreferenceField = {
   value?: string;
 };
 
+interface PreferenceSection {
+  title: string;
+  description: string;
+  icon: string;
+  fields: PreferenceField[];
+}
+
 const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
   preferences,
   onEdit,
 }) => {
-  const sectionIconByTitle: Record<string, string> = {
-    Core: "Compass",
-    Intent: "Target",
-    Lifestyle: "Sparkles",
-    Compatibility: "Puzzle",
-  };
-
-  const sections: { title: string; description: string; fields: PreferenceField[] }[] = [
+  const sections = useMemo<PreferenceSection[]>(() => [
     {
       title: "Core",
       description: "The basics that shape your matches.",
+      icon: "Compass",
       fields: [
         {
           label: "Interested In",
@@ -61,6 +62,7 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
     {
       title: "Intent",
       description: "Your relationship and goals.",
+      icon: "Target",
       fields: [
         {
           label: "Goals",
@@ -79,6 +81,7 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
     {
       title: "Lifestyle",
       description: "Day-to-day habits and preferences.",
+      icon: "Sparkles",
       fields: [
         {
           label: "Diet Preferences",
@@ -105,6 +108,7 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
     {
       title: "Compatibility",
       description: "Match on values and personality.",
+      icon: "Puzzle",
       fields: [
         {
           label: "Interests",
@@ -133,7 +137,7 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
         },
       ],
     },
-  ];
+  ], [preferences]);
 
   return (
     <>
@@ -142,46 +146,24 @@ const PrefrenceFieldsList: React.FC<PrefrenceFieldsListProps> = ({
           key={section.title}
           className="mt-8"
         >
-          <View className="mb-2 flex-row items-start gap-3">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
-              <Icon name={sectionIconByTitle[section.title] || "SlidersHorizontal"} size={18} />
-            </View>
-            <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-ink">
-                {section.title}
-              </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-slate">
-                {section.description}
-              </Text>
-            </View>
+          <View className="mb-2">
+            <SectionHeading
+              title={section.title}
+              subtitle={section.description}
+              icon={section.icon}
+            />
           </View>
           <View className="mt-2">
             {section.fields.map((field) => (
-              <Pressable
+              <ProfileField
                 key={field.field}
-                onPress={() => {
-                  triggerSelectionHaptic();
-                  onEdit(field.field);
-                }}
-                className="min-h-[68px] flex-row items-center justify-between gap-4 border-b border-ui-parchment py-3 active:opacity-70"
-                accessibilityRole="button"
-                accessibilityLabel={`Edit ${field.label}`}
-              >
-                <View className="flex-1">
-                  <Text className="text-[13px] font-medium text-ui-slate">
-                    {field.label}
-                  </Text>
-                  <Text
-                    className={`mt-1 text-base leading-6 ${field.value ? "text-ui-ink" : "text-ui-forest"}`}
-                    numberOfLines={2}
-                  >
-                    {field.value || "Add a preference"}
-                  </Text>
-                </View>
-                <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-forest/5">
-                  <Icon name="ChevronRight" size={17} />
-                </View>
-              </Pressable>
+                label={field.label}
+                field={field.field}
+                value={field.value}
+                onEdit={onEdit}
+                variant="list"
+                emptyLabel="Add a preference"
+              />
             ))}
           </View>
         </View>

@@ -11,6 +11,7 @@ Image posts support image upload with caption and visibility. Free-text posts su
 ## Key Files
 
 - Routes: `src/app/create-post/image.tsx`, `src/app/create-post/free-text.tsx`
+- Feature API: `src/features/posts/api.ts`
 - APIs: `createImagePost`, `createTextPost`, `updatePost`, `deletePost`, `getPostById`
 - Hook: `src/hooks/useMediaPermision.ts`
 

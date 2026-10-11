@@ -1,47 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef } from "react";
-import apiClient from "../service/api-client";
-import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "../service/query-keys";
+import {
+  fetchUser,
+  updateFieldVisibility,
+  updateUserField,
+} from "@/src/features/profile/api";
 import { clearSession, getUser } from "../service/storage";
-import { getHttpErrorStatus } from "../utils/userFacingError";
-import type { ProfileUser } from "../domain/profile/types";
-
-const fetchUser = async (userId: string) => {
-  const { data } = await apiClient.get<ProfileUser>(`/profile/${userId}`);
-
-  return data;
-};
-
-const updateUserField = async ({
-  userId,
-  field,
-  value,
-}: {
-  userId: string;
-  field: string;
-  value: unknown;
-}) => {
-  const response = await apiClient.patch(`/profile/${userId}`, {
-    [field]: value,
-  });
-  return response.data;
-};
-
-const updateFieldVisibility = async ({
-  userId,
-  field,
-  visibility,
-}: {
-  userId: string;
-  field: string;
-  visibility: string;
-}) => {
-  const response = await apiClient.patch(`/profile/${userId}/visibility`, {
-    fields: { [field]: visibility },
-  });
-  return response.data;
-};
+import getHttpErrorStatus from "../utils/getHttpErrorStatus";
+import { profileQueryKeys } from "@/src/features/profile/queryKeys";
+import invalidateUserProfileQueries from "@/src/features/profile/invalidateUserProfileQueries";
 
 export const useUser = (userId: string) => {
   const queryClient = useQueryClient();
@@ -60,7 +28,7 @@ export const useUser = (userId: string) => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["user", userId],
+    queryKey: profileQueryKeys.user(userId),
     queryFn: () => fetchUser(userId),
     enabled: Boolean(userId),
   });
@@ -80,15 +48,12 @@ export const useUser = (userId: string) => {
     router.replace("/login");
   }, [currentUserId, error, router, userId]);
 
+  const refreshUserData = () => invalidateUserProfileQueries(queryClient, userId);
+
   const updateFieldMutation = useMutation({
     mutationFn: ({ field, value }: { field: string; value: unknown }) =>
       updateUserField({ userId, field, value }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user", userId] });
-      queryClient.invalidateQueries({
-        queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
-      });
-    },
+    onSuccess: refreshUserData,
   });
 
   const updateVisibilityMutation = useMutation({
@@ -99,20 +64,15 @@ export const useUser = (userId: string) => {
       field: string;
       visibility: string;
     }) => updateFieldVisibility({ userId, field, visibility }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user", userId] });
-      queryClient.invalidateQueries({
-        queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
-      });
-    },
+    onSuccess: refreshUserData,
   });
 
   return {
     user,
     isLoading,
     error,
-    updateField: updateFieldMutation.mutate,
-    updateVisibility: updateVisibilityMutation.mutate,
+    updateField: updateFieldMutation.mutateAsync,
+    updateVisibility: updateVisibilityMutation.mutateAsync,
     isUpdating:
       updateFieldMutation.isPending || updateVisibilityMutation.isPending,
   };

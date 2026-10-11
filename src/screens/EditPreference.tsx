@@ -1,13 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
+import React, { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import SubPageBack from "../components/headers/SubPageBack";
 import FieldEditorSheet from "../components/profile/FieldEditorSheet";
+import EditPreferenceSkeleton from "../components/profile/EditPreferenceSkeleton";
 import PrefrenceFieldsList from "../components/profile/PrefrenceFieldsList";
-import Skeleton from "../components/ui/Skeleton";
-import { UserPreferences, useUserPrefrence } from "../hooks/useUserPrefrence";
+import type { UserPreferences } from "../domain/profile/types";
+import getProfileCompletion from "../domain/profile/getProfileCompletion";
+import { useUserPrefrence } from "../hooks/useUserPrefrence";
 import { COLORS } from "../libs/constants/theme";
 import Icon from "../libs/Icon";
-import { updateUserPreferences } from "../libs/apis";
+import { updateUserPreferences } from "@/src/features/profile/api";
+import { profileQueryKeys } from "@/src/features/profile/queryKeys";
 import { queryClient } from "../service/query-client";
 import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "../service/query-keys";
 import { getUser } from "../service/storage";
@@ -41,7 +45,7 @@ const EditPreferenceScreen = () => {
       await updateUserPreferences({ [field]: value });
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["user-profile", userId],
+          queryKey: profileQueryKeys.preferences(userId),
         }),
         queryClient.invalidateQueries({
           queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
@@ -53,41 +57,10 @@ const EditPreferenceScreen = () => {
     }
   };
 
-  const { completionPercent, missingCount } = useMemo(() => {
-    if (!preferences) return { completionPercent: 0, missingCount: 0 };
-    const fields = [
-      preferences?.interestedIn,
-      preferences?.ageRange?.length ? preferences.ageRange : null,
-      preferences?.distance,
-      preferences?.heightRange?.length ? preferences.heightRange : null,
-      preferences?.goal,
-      preferences?.relationshipType,
-      preferences?.interests?.length ? preferences.interests : null,
-      preferences?.languages?.length ? preferences.languages : null,
-      preferences?.zodiacPreference?.length ? preferences.zodiacPreference : null,
-      preferences?.personalityTypePreference?.length
-        ? preferences.personalityTypePreference
-        : null,
-      preferences?.dietPreference?.length ? preferences.dietPreference : null,
-      preferences?.religionPreference?.length
-        ? preferences.religionPreference
-        : null,
-      preferences?.drinkingPreference?.length
-        ? preferences.drinkingPreference
-        : null,
-      preferences?.smokingPreference?.length
-        ? preferences.smokingPreference
-        : null,
-      preferences?.petPreference?.length ? preferences.petPreference : null,
-    ];
-    const filledCount = fields.filter((value) => {
-      if (Array.isArray(value)) return value.length > 0;
-      return value !== undefined && value !== null && value !== "";
-    }).length;
-    const total = fields.length;
-    const percent = total ? Math.round((filledCount / total) * 100) : 0;
-    return { completionPercent: percent, missingCount: total - filledCount };
-  }, [preferences]);
+  const {
+    preferenceCompletion: completionPercent,
+    preferenceMissingCount: missingCount,
+  } = getProfileCompletion(null, preferences);
 
   if (isLoading && !preferences) {
     return (
@@ -121,7 +94,7 @@ const EditPreferenceScreen = () => {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="mb-5 overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text
@@ -139,9 +112,9 @@ const EditPreferenceScreen = () => {
               <Icon name="SlidersHorizontal" size={20} color={COLORS.ink} />
             </View>
           </View>
-        </View>
+        </SurfacePanel>
 
-        <View className="rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
+        <SurfacePanel surface="paper">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text className="text-xl font-bold text-ui-ink">
@@ -168,7 +141,7 @@ const EditPreferenceScreen = () => {
               ? `${missingCount} preference${missingCount === 1 ? "" : "s"} left to complete.`
               : "You’re all set — your preferences are complete."}
           </Text>
-        </View>
+        </SurfacePanel>
 
         <View className="mt-4 flex-row gap-3">
           <Pressable
@@ -199,30 +172,5 @@ const EditPreferenceScreen = () => {
     </View>
   );
 };
-
-const EditPreferenceSkeleton = () => (
-  <View>
-    <Skeleton width="100%" height={132} radius={32} />
-
-    <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
-      <Skeleton width={150} height={14} />
-      <Skeleton width={210} height={11} style={{ marginTop: 10 }} />
-      <Skeleton width="100%" height={8} radius={999} style={{ marginTop: 12 }} />
-      <Skeleton width={120} height={11} style={{ marginTop: 10 }} />
-    </View>
-
-    <View className="mt-5 gap-3">
-      {Array.from({ length: 8 }).map((_, index) => (
-        <View
-          key={`edit-preference-skeleton-${index}`}
-          className="rounded-[22px] bg-ui-paper p-4"
-        >
-          <Skeleton width={index % 2 ? "42%" : "56%"} height={12} />
-          <Skeleton width="82%" height={12} style={{ marginTop: 10 }} />
-        </View>
-      ))}
-    </View>
-  </View>
-);
 
 export default EditPreferenceScreen;

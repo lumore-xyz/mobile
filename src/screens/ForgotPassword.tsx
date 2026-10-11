@@ -1,12 +1,13 @@
 import { emailSchema } from "@/src/lib/validation";
-import { requestPasswordResetEmail } from "@/src/libs/apis";
+import { requestPasswordResetEmail } from "@/src/features/authentication/api";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { AlertCircle, CheckCircle2 } from "lucide-react-native";
+import CheckCircle2 from "lucide-react-native/icons/circle-check";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
+import InlineErrorNotice from "../components/ui/InlineErrorNotice";
 import { TextInput } from "../components/ui/TextInput";
 import { triggerSelectionHaptic } from "../utils/haptics";
 import { toUserFacingError } from "../utils/userFacingError";
@@ -92,17 +93,7 @@ const ForgotPasswordScreen = () => {
           errorText={emailError}
         />
 
-        {apiError ? (
-          <View
-            accessibilityRole="alert"
-            className="flex-row gap-2 rounded-2xl bg-ui-danger/10 p-3"
-          >
-            <AlertCircle size={18} color={THEME.action.destructive} />
-            <Text className="flex-1 text-sm leading-5 text-ui-danger">
-              {apiError}
-            </Text>
-          </View>
-        ) : null}
+        <InlineErrorNotice message={apiError} />
         {successMessage ? (
           <View
             accessibilityRole="alert"

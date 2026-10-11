@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
-import { getHttpErrorStatus } from "../utils/userFacingError";
+import getHttpErrorStatus from "../utils/getHttpErrorStatus";
 
 const shouldRetryQuery = (failureCount: number, error: unknown) => {
   const status = getHttpErrorStatus(error) ?? 0;

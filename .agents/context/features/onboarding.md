@@ -12,8 +12,11 @@ Onboarding is a multi-step flow covering intro details, contact/security, identi
 
 - Route: `src/app/(onboarding)/onboarding.tsx`
 - Screen: `src/screens/Onboarding.tsx`
+- Flow state, validation, persistence, and step submission: `src/features/onboarding/useOnboardingFlow.ts`
 - Feature config/types/helpers: `src/features/onboarding`
+- API field-error mapping: `src/features/onboarding/resolveOnboardingFieldError.ts`
 - UI: `src/features/onboarding/OnboardingFieldRenderer.tsx`
+- Large multi-select option lists (including languages) use the shared searchable chip picker in `src/components/ui/MultiSelectChipInput.tsx`.
 - Schemas/options: `src/schemas/profileSchema.ts`, `src/schemas/preferenceSchema.ts`, `src/libs/options.ts`
 
 ## Data/API Dependencies

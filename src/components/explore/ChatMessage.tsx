@@ -1,5 +1,7 @@
 import type { Message } from "@/src/domain/chat/types";
-import { getExpoAudioModule } from "@/src/libs/audio";
+import getChatMessageTypeLabel from "@/src/domain/chat/getChatMessageTypeLabel";
+import LinkifyText from "@/src/components/explore/LinkifyText";
+import VoiceNotePlayer from "@/src/components/explore/VoiceNotePlayer";
 import {
   triggerLightImpactHaptic,
   triggerSelectionHaptic,
@@ -9,13 +11,11 @@ import { COLORS } from "@/src/libs/constants/theme";
 import { Image } from "expo-image";
 import React, { useMemo, useRef } from "react";
 import {
-  Linking,
   Pressable,
   Text,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { AudioWaveform } from "./AudioWaveform";
 
 interface ChatMessageProps {
   message: Message;
@@ -25,18 +25,11 @@ interface ChatMessageProps {
   onToggleLike: (messageId: string, emoji?: string) => void;
 }
 
-const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
-const URL_TEST_REGEX = /^(https?:\/\/[^\s]+|www\.[^\s]+)$/i;
-
-const formatAudioDuration = (durationMs: number, fallbackSeconds = 0) => {
-  const totalSeconds = Math.max(
-    0,
-    Math.floor(durationMs > 0 ? durationMs / 1000 : fallbackSeconds),
-  );
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-};
+const CHAT_TIME_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true,
+});
 
 export const ChatMessage = React.memo(function ChatMessage({
   message,
@@ -101,11 +94,9 @@ export const ChatMessage = React.memo(function ChatMessage({
                     isOwnMessage ? "text-ui-paper/90" : "text-ui-ink"
                   }`}
                 >
-                  {message.replyTo.messageType === "image"
-                    ? "Photo"
-                    : message.replyTo.messageType === "audio"
-                      ? "Voice note"
-                      : message.replyTo.message || "Message"}
+                  {getChatMessageTypeLabel(message.replyTo.messageType) ||
+                    message.replyTo.message ||
+                    "Message"}
                 </Text>
               </View>
             ) : null}
@@ -184,11 +175,7 @@ export const ChatMessage = React.memo(function ChatMessage({
           className={`mt-1 flex-row items-center ${isOwnMessage ? "justify-end" : "justify-start"}`}
         >
           <Text className="text-xs text-ui-slate">
-            {new Date(message.timestamp).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })}
+            {CHAT_TIME_FORMATTER.format(new Date(message.timestamp))}
             {message.editedAt ? " (edited)" : ""}
           </Text>
           {isOwnMessage ? (
@@ -203,204 +190,5 @@ export const ChatMessage = React.memo(function ChatMessage({
         </View>
       </View>
     </View>
-  );
-});
-
-const VoiceNotePlayer = React.memo(function VoiceNotePlayer({
-  audioUrl,
-  durationMs,
-  waveform,
-  isOwnMessage,
-}: {
-  audioUrl: string;
-  durationMs: number;
-  waveform?: number[] | null;
-  isOwnMessage: boolean;
-}) {
-  const expoAudio = useMemo(() => getExpoAudioModule(), []);
-
-  if (!expoAudio) {
-    return (
-      <View className="w-60">
-        <View className="flex-row items-center gap-3">
-          <View
-            className={`h-10 w-10 items-center justify-center rounded-full ${
-              isOwnMessage ? "bg-ui-paper/20" : "bg-ui-forest/10"
-            }`}
-          >
-            <Icon
-              name="Mic"
-              size={18}
-              color={isOwnMessage ? COLORS.paper : COLORS.forest}
-            />
-          </View>
-          <View className="flex-1">
-            <AudioWaveform
-              samples={waveform}
-              seed={audioUrl}
-              height={34}
-              barCount={28}
-              barWidth={3}
-              gap={4}
-              activeColor={isOwnMessage ? COLORS.paper : COLORS.forest}
-              inactiveColor={
-                isOwnMessage ? `${COLORS.paper}73` : `${COLORS.forest}40`
-              }
-            />
-          </View>
-          <Text
-            className={`text-xs ${
-              isOwnMessage ? "text-ui-paper/80" : "text-ui-ink/70"
-            }`}
-          >
-            {formatAudioDuration(durationMs)}
-          </Text>
-        </View>
-        <Text
-          className={`mt-2 text-xs ${
-            isOwnMessage ? "text-ui-paper/80" : "text-ui-ink/70"
-          }`}
-        >
-          Update app to play
-        </Text>
-      </View>
-    );
-  }
-
-  return (
-    <VoiceNotePlayerWithAudio
-      audioUrl={audioUrl}
-      durationMs={durationMs}
-      waveform={waveform}
-      isOwnMessage={isOwnMessage}
-      expoAudio={expoAudio}
-    />
-  );
-});
-
-const VoiceNotePlayerWithAudio = React.memo(function VoiceNotePlayerWithAudio({
-  audioUrl,
-  durationMs,
-  waveform,
-  isOwnMessage,
-  expoAudio,
-}: {
-  audioUrl: string;
-  durationMs: number;
-  waveform?: number[] | null;
-  isOwnMessage: boolean;
-  expoAudio: NonNullable<ReturnType<typeof getExpoAudioModule>>;
-}) {
-  const player = expoAudio.useAudioPlayer(audioUrl, { updateInterval: 250 });
-  const status = expoAudio.useAudioPlayerStatus(player);
-  const durationSeconds =
-    status.duration > 0 ? status.duration : Math.max(0, durationMs / 1000);
-  const currentSeconds = Math.min(
-    status.currentTime || 0,
-    durationSeconds || status.currentTime || 0,
-  );
-  const progress =
-    durationSeconds > 0
-      ? Math.min(1, Math.max(0, currentSeconds / durationSeconds))
-      : 0;
-
-  const togglePlayback = () => {
-    triggerSelectionHaptic();
-    if (status.playing) {
-      player.pause();
-      return;
-    }
-
-    if (
-      status.didJustFinish ||
-      (durationSeconds > 0 && currentSeconds >= durationSeconds - 0.2)
-    ) {
-      void player
-        .seekTo(0)
-        .then(() => player.play())
-        .catch(() => player.play());
-      return;
-    }
-
-    player.play();
-  };
-
-  return (
-    <View className="w-60 pe-4">
-      <View className="flex-row items-center gap-3">
-        <Pressable
-          onPress={togglePlayback}
-          className={`h-11 w-11 items-center justify-center rounded-full active:opacity-75 ${
-            isOwnMessage ? "bg-ui-paper/20" : "bg-ui-forest"
-          }`}
-          accessibilityRole="button"
-          accessibilityLabel={
-            status.playing ? "Pause voice note" : "Play voice note"
-          }
-        >
-          <Icon
-            name={status.playing ? "Pause" : "Play"}
-            size={18}
-            color="white"
-          />
-        </Pressable>
-
-        <View className="flex-1">
-          <AudioWaveform
-            samples={waveform}
-            progress={progress}
-            seed={audioUrl}
-            height={42}
-            barCount={23}
-            barWidth={3}
-            gap={4}
-            activeColor={isOwnMessage ? COLORS.paper : COLORS.forest}
-            inactiveColor={
-              isOwnMessage ? `${COLORS.paper}6B` : `${COLORS.forest}42`
-            }
-          />
-        </View>
-      </View>
-      <Text
-        className={`mt-2 text-xs ${
-          isOwnMessage ? "text-ui-paper/85" : "text-ui-ink/70"
-        }`}
-      >
-        {formatAudioDuration(durationMs, durationSeconds)}
-      </Text>
-    </View>
-  );
-});
-
-const LinkifyText = React.memo(function LinkifyText({
-  text,
-  isOwnMessage,
-}: {
-  text: string;
-  isOwnMessage: boolean;
-}) {
-  const parts = useMemo(() => text.split(URL_SPLIT_REGEX), [text]);
-
-  return (
-    <Text className={`text-base leading-6 ${isOwnMessage ? "text-ui-paper" : "text-ui-ink"}`}>
-      {parts.map((part, index) => {
-        if (!part) return null;
-        if (URL_TEST_REGEX.test(part)) {
-          const href = part.startsWith("http") ? part : `https://${part}`;
-          return (
-            <Text
-              key={`${part}-${index}`}
-              className={`${isOwnMessage ? "text-ui-paper" : "text-ui-forest"} underline`}
-              onPress={() => {
-                void Linking.openURL(href).catch(() => {});
-              }}
-            >
-              {part}
-            </Text>
-          );
-        }
-        return <Text key={`${part}-${index}`}>{part}</Text>;
-      })}
-    </Text>
   );
 });

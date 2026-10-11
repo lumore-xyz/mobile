@@ -12,7 +12,11 @@ Users can submit chat feedback and reports through inbox/chat flows. A feedback 
 
 - Route: `src/app/(subpage)/feedback.tsx`
 - Screen: `src/screens/Feedback.tsx`
+- Feedback list states and rating summary: `src/components/feedback/FeedbackListHeader.tsx`
+- Feedback row: `src/components/feedback/FeedbackCard.tsx`
+- Loading row: `src/components/feedback/FeedbackSkeletonCard.tsx`
 - Domain validation: `src/domain/chat/validation.ts`
+- Received feedback API: `src/features/feedback/api.ts`
 - APIs: `submitChatFeedback`, `reportChatUser`, `fetchReceivedFeedbacks`
 - Chat header/actions: `src/components/explore/ChatHeader.tsx`
 

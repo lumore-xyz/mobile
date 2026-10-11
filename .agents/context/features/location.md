@@ -11,8 +11,8 @@ The app has a location provider, requests device location, exposes latitude/long
 ## Key Files
 
 - Provider: `src/service/providers/LocationProvider.tsx`
-- Helpers: `src/libs/locationSync.ts`
-- APIs: `getFormattedAddress`, `updateUserLocation`, `findNearbyUsers`, `fetchNearbyRooms`
+- Helpers: `src/libs/locationSync.ts`, `src/features/location/extractFullAddressParts.ts`
+- APIs: `src/features/location/api.ts` (`getFormattedAddress`, `updateUserLocation`); nearby discovery is owned by its feature API.
 
 ## Data/API Dependencies
 

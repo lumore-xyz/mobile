@@ -1,7 +1,12 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import LumoreRefreshControl from "@/src/components/ui/LumoreRefreshControl";
+import CreditHistoryCard from "@/src/components/credits/CreditHistoryCard";
+import CreditHistorySkeleton from "@/src/components/credits/CreditHistorySkeleton";
+import CreditMiniStat from "@/src/components/credits/CreditMiniStat";
 import SubPageBack from "../components/headers/SubPageBack";
 import Button from "../components/ui/Button";
 import Skeleton from "../components/ui/Skeleton";
@@ -9,9 +14,11 @@ import { COLORS } from "../libs/constants/theme";
 import Icon from "../libs/Icon";
 import {
   claimDailyCredits,
-  fetchCreditsBalance,
   fetchCreditsHistory,
-} from "../libs/apis";
+} from "@/src/features/credits/api";
+import useCreditsBalance from "@/src/features/credits/useCreditsBalance";
+import invalidateCreditsQueries from "@/src/features/credits/invalidateCreditsQueries";
+import { creditsQueryKeys } from "@/src/features/credits/queryKeys";
 import { queryClient } from "../service/query-client";
 import { triggerSelectionHaptic } from "../utils/haptics";
 import { CreditHistoryItem } from "../utils/types";
@@ -21,38 +28,23 @@ interface CreditsScreenProps {
   onRefresh?: () => void;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  explore_unlock: "Daily Explore",
-  signup_bonus: "Signup bonus",
-  daily_active: "Daily active reward",
-  conversation_start: "Conversation start",
-  this_or_that_approved: "This-or-That approved",
-  referral_bonus: "Referral bonus",
-  rewarded_ad_watch: "Rewarded ad watch",
-  admin_adjustment: "Admin adjustment",
-};
-
 const CreditsScreen: React.FC<CreditsScreenProps> = ({
   isRefreshing = false,
   onRefresh,
 }) => {
   const [page, setPage] = useState(1);
 
-  const { data: balanceRes, isLoading: isBalanceLoading } = useQuery({
-    queryKey: ["credits", "balance"],
-    queryFn: fetchCreditsBalance,
-  });
+  const { data: balanceRes, isLoading: isBalanceLoading } = useCreditsBalance();
 
   const { data: historyRes, isLoading: isHistoryLoading } = useQuery({
-    queryKey: ["credits", "history", page],
+    queryKey: creditsQueryKeys.historyPage(page),
     queryFn: () => fetchCreditsHistory({ page, limit: 20 }),
   });
 
   const claimMutation = useMutation({
     mutationFn: claimDailyCredits,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["credits", "balance"] });
-      queryClient.invalidateQueries({ queryKey: ["credits", "history"] });
+      void invalidateCreditsQueries(queryClient);
     },
   });
 
@@ -70,16 +62,14 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({
         contentContainerClassName="pb-10 pt-4"
         refreshControl={
           onRefresh ? (
-            <RefreshControl
+            <LumoreRefreshControl
               refreshing={isRefreshing}
               onRefresh={onRefresh}
-              tintColor={COLORS.forest}
-              colors={[COLORS.forest]}
             />
           ) : undefined
         }
       >
-        <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text className="text-sm font-semibold text-ui-paper/60">
@@ -174,17 +164,17 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({
               <Text className="font-semibold text-ui-paper">Earn credits</Text>
             </Pressable>
           </View>
-        </View>
+        </SurfacePanel>
 
         <View className="mt-5 flex-row gap-3">
-          <MiniStat
+          <CreditMiniStat
             icon="CalendarCheck"
             label="Daily"
             value={
               rewardGrantedToday ? "Claimed" : `+${dailyRewardAmount} ready`
             }
           />
-          <MiniStat icon="History" label="Ledger" value={`${items.length} shown`} />
+          <CreditMiniStat icon="History" label="Ledger" value={`${items.length} shown`} />
         </View>
 
         <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-4">
@@ -204,7 +194,7 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({
 
           <View className="mt-3">
             {isHistoryLoading || isBalanceLoading ? (
-              <CreditHistoryListSkeleton />
+              <CreditHistorySkeleton />
             ) : null}
             {!isHistoryLoading && !isBalanceLoading && items.length === 0 ? (
               <View className="rounded-[24px] bg-ui-paper p-5">
@@ -251,84 +241,5 @@ const CreditsScreen: React.FC<CreditsScreenProps> = ({
     </View>
   );
 };
-
-const MiniStat = ({
-  icon,
-  label,
-  value,
-}: {
-  icon: string;
-  label: string;
-  value: string;
-}) => (
-  <View className="flex-1 rounded-[24px] border border-ui-parchment bg-ui-paper p-4">
-    <View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
-      <Icon name={icon} size={18} color={COLORS.forest} />
-    </View>
-    <Text className="text-sm font-semibold text-ui-slate">{label}</Text>
-    <Text className="mt-1 text-base font-bold text-ui-ink">{value}</Text>
-  </View>
-);
-
-const CreditHistoryCard = ({ item }: { item: CreditHistoryItem }) => {
-  const isCredit = item.amount >= 0;
-  return (
-    <View className="mt-3 flex-row items-center justify-between gap-3 rounded-[22px] bg-ui-paper p-4">
-      <View className="flex-1 flex-row items-center gap-3">
-        <View
-          className={`h-11 w-11 items-center justify-center rounded-full ${
-            isCredit ? "bg-ui-forest/10" : "bg-ui-danger/10"
-          }`}
-        >
-          <Icon
-            name={isCredit ? "ArrowDownToLine" : "ArrowUpFromLine"}
-            size={18}
-            color={isCredit ? COLORS.forest : COLORS.danger}
-          />
-        </View>
-        <View className="flex-1">
-          <Text className="font-semibold text-ui-ink">
-            {TYPE_LABELS[item.type] || item.type}
-          </Text>
-          <Text className="mt-1 text-xs leading-4 text-ui-slate">
-            {new Date(item.createdAt).toLocaleString()}
-          </Text>
-        </View>
-      </View>
-      <View className="items-end">
-        <Text
-          className={`text-base font-bold ${
-            isCredit ? "text-ui-forest" : "text-ui-danger"
-          }`}
-        >
-          {isCredit ? `+${item.amount}` : item.amount}
-        </Text>
-        <Text className="mt-1 text-xs text-ui-slate">
-          Balance {item.balanceAfter}
-        </Text>
-      </View>
-    </View>
-  );
-};
-
-const CreditHistoryListSkeleton = () => (
-  <View className="gap-3">
-    {Array.from({ length: 4 }).map((_, index) => (
-      <View
-        key={`credit-history-skeleton-${index}`}
-        className="flex-row items-center justify-between rounded-[22px] bg-ui-paper p-4"
-      >
-        <View className="flex-1 pr-4">
-          <Skeleton width="58%" height={13} />
-          <Skeleton width="44%" height={11} style={{ marginTop: 8 }} />
-        </View>
-        <View className="items-end">
-          <Skeleton width={46} height={13} />
-          <Skeleton width={66} height={11} style={{ marginTop: 8 }} />
-        </View>
-      </View>
-    ))}
-  </View>
-);
 
 export default CreditsScreen;

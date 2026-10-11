@@ -11,7 +11,7 @@ The create-post route lets users choose between prompt posts, image posts, and f
 ## Key Files
 
 - Routes: `src/app/create-post/index.tsx`, `src/app/create-post/_layout.tsx`
-- APIs: post helpers in `src/libs/apis.ts`
+- APIs: post helpers in `src/features/posts/api.ts`
 - Media permission: `src/hooks/useMediaPermision.ts`
 
 ## Data/API Dependencies

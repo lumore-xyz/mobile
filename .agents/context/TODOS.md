@@ -10,6 +10,7 @@ Track planned work here. Move completed items to `CHANGELOGS.md` with a short re
 
 - Review the new palette and typography in Explore/profile, chat, onboarding, edit-profile, and community at device sizes; fix any clipping, text scaling, contrast, or touch-target issues found.
 - Add a lightweight testing strategy for validation helpers, service logic, and navigation-critical flows.
+- Use community tags and member interests to personalize community discovery ranking.
 
 ## Backlog
 

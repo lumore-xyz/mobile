@@ -1,37 +1,34 @@
 import { router, usePathname } from "expo-router";
-import React, { type ReactNode } from "react";
-import { Pressable, Text, View } from "react-native";
-import Icon from "../libs/Icon";
-import { COLORS } from "../libs/constants/theme";
+import React from "react";
+import { View } from "react-native";
+import MobileNavItem from "@/src/components/MobileNavItem";
 import { triggerSelectionHaptic } from "../utils/haptics";
 
 const NAV_ITEMS = [
   {
     label: "Explore",
     path: "/explore",
-    icon: (color: string) => <Icon name="Rocket" size={24} color={color} />,
+    icon: "Rocket",
   },
   {
     label: "Community",
     path: "/community",
-    icon: (color: string) => <Icon name="MapPin" size={24} color={color} />,
+    icon: "MapPin",
   },
   {
     label: "Chats",
     path: "/chat",
-    icon: (color: string) => (
-      <Icon name="MessageCircle" size={24} color={color} />
-    ),
+    icon: "MessageCircle",
   },
   {
     label: "Create",
     path: "/create-post",
-    icon: (color: string) => <Icon name="CirclePlus" size={24} color={color} />,
+    icon: "CirclePlus",
   },
   {
     label: "Profile",
     path: "/profile",
-    icon: (color: string) => <Icon name="UserRound" size={24} color={color} />,
+    icon: "UserRound",
   },
 ] as const;
 
@@ -47,7 +44,7 @@ const MobileNav = () => {
         {NAV_ITEMS.map((item) => {
           const active = isRouteActive(pathname, item.path);
           return (
-            <NavItem
+            <MobileNavItem
               key={item.path}
               label={item.label}
               active={active}
@@ -65,42 +62,5 @@ const MobileNav = () => {
     </View>
   );
 };
-
-function NavItem({
-  label,
-  active,
-  onPress,
-  icon,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  icon: (color: string) => ReactNode;
-}) {
-  const color = active ? COLORS.champagne : COLORS.parchment;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      className={`min-h-14 flex-1 items-center justify-center rounded-2xl py-1 active:opacity-70 ${active ? "bg-ui-paper/10" : ""}`}
-      hitSlop={8}
-      android_ripple={{ color: `${COLORS.paper}14`, borderless: false }}
-      accessibilityRole="tab"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: active }}
-    >
-      {icon(color)}
-      <Text
-        className={`mt-1 text-xs ${
-          active
-          ? "text-[13px] font-semibold text-ui-champagne"
-            : "font-medium text-ui-parchment"
-        }`}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
 
 export default React.memo(MobileNav);

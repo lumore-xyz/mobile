@@ -1,4 +1,4 @@
-import COMMUNITY_COVER from "@/assets/images/community-cover.jpg";
+import COMMUNITY_COVER from "@/assets/images/community-cover.webp";
 import { Image } from "expo-image";
 import React, { useState } from "react";
 import type { ImageStyle, StyleProp } from "react-native";

@@ -1,4 +1,4 @@
-import type { SelectOption } from "@/src/libs/options";
+import type { SelectOption } from "@/src/libs/optionsCatalog";
 
 type FieldType =
   | "text"

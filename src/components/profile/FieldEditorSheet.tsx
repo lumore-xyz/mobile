@@ -18,7 +18,7 @@ import {
   Pressable,
   View,
 } from "react-native";
-import * as z from "zod";
+import { z } from "zod/mini";
 import FieldEditorContent from "./FieldEditorContent";
 
 interface FieldEditorSheetProps {
@@ -71,13 +71,13 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
     setErrorMessage("");
   };
 
-  const getFieldSchema = (schema: z.ZodType, fieldPath: string) => {
-    let currentSchema = schema;
+  const getFieldSchema = (schema: z.ZodMiniObject, fieldPath: string) => {
+    let currentSchema: z.ZodMiniType = schema;
     for (const key of fieldPath.split(".")) {
-      if (!(currentSchema instanceof z.ZodObject)) return undefined;
+      if (!(currentSchema instanceof z.ZodMiniObject)) return undefined;
       const nextSchema = currentSchema.shape[key];
       if (!nextSchema) return undefined;
-      currentSchema = nextSchema;
+      currentSchema = nextSchema as z.ZodMiniType;
     }
     return currentSchema;
   };
@@ -120,7 +120,11 @@ const FieldEditorSheet: React.FC<FieldEditorSheetProps> = ({
       await onUpdate(fieldType, value);
       setIsOpen(false);
     } catch (error) {
-      if (error instanceof z.ZodError) {
+      if (
+        error instanceof Error &&
+        "issues" in error &&
+        Array.isArray(error.issues)
+      ) {
         setErrorMessage(error.issues[0]?.message || "Invalid value");
         return;
       }

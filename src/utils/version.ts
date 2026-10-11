@@ -80,6 +80,3 @@ export const compareVersions = (
 
   return 0;
 };
-
-export const isVersionLessThan = (left: unknown, right: unknown) =>
-  compareVersions(left, right) < 0;

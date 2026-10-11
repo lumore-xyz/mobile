@@ -1,4 +1,6 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import SubPageBack from "../components/headers/SubPageBack";
+import GameBenefitRow from "@/src/components/games/GameBenefitRow";
 import { router } from "expo-router";
 import React from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -11,7 +13,7 @@ const GamesScreen = () => {
     <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Games" />
       <ScrollView className="px-4" contentContainerClassName="pb-10 pt-4">
-        <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text className="text-sm font-semibold text-ui-paper/60">
@@ -32,7 +34,7 @@ const GamesScreen = () => {
               <Icon name="Gamepad2" size={24} color={COLORS.ink} />
             </View>
           </View>
-        </View>
+        </SurfacePanel>
 
         <Pressable
           onPress={() => {
@@ -94,23 +96,14 @@ const GamesScreen = () => {
           </View>
 
           <View className="mt-3 gap-2">
-            <GameBenefit icon="MessageCircleHeart" text="Creates easier openers for matches." />
-            <GameBenefit icon="BadgeCheck" text="Adds personality without overexplaining." />
-            <GameBenefit icon="Sparkles" text="Keeps your profile feeling alive." />
+            <GameBenefitRow icon="MessageCircleHeart" text="Creates easier openers for matches." />
+            <GameBenefitRow icon="BadgeCheck" text="Adds personality without overexplaining." />
+            <GameBenefitRow icon="Sparkles" text="Keeps your profile feeling alive." />
           </View>
         </View>
       </ScrollView>
     </View>
   );
 };
-
-const GameBenefit = ({ icon, text }: { icon: string; text: string }) => (
-  <View className="flex-row items-center gap-3 rounded-2xl bg-ui-paper p-3">
-    <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-forest/10">
-      <Icon name={icon} size={16} color={COLORS.forest} />
-    </View>
-    <Text className="flex-1 text-sm leading-5 text-ui-ink">{text}</Text>
-  </View>
-);
 
 export default GamesScreen;

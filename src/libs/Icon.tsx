@@ -1,30 +1,14 @@
-import * as icons from "lucide-react-native/icons";
 import React from "react";
 import { Image } from "react-native";
-import CAKE_IMAGE from "@/assets/images/cake.png";
-import DISTANCE_IMAGE from "@/assets/images/distance.png";
-import GRADUATION_IMAGE from "@/assets/images/graduation.png";
-import MASK_IMAGE from "@/assets/images/mask.png";
-import RELATIONSHIP_IMAGE from "@/assets/images/relationship.png";
-
-// eslint-disable-next-line @typescript-eslint/array-type
-const ICON_NAMES = Object.keys(icons) as Array<keyof typeof icons>;
-const ICON_NAME_SET = new Set<string>(ICON_NAMES);
-
-type LucideIconName = keyof typeof icons;
+import { getLucideIcon } from "@/src/libs/lucideIcons";
+import GRADUATION_IMAGE from "@/assets/images/graduation.webp";
+import MASK_IMAGE from "@/assets/images/mask.webp";
+import RELATIONSHIP_IMAGE from "@/assets/images/relationship.webp";
 
 const iconImages: Record<string, number> = {
-  "graduation.png": GRADUATION_IMAGE,
-  "relationship.png": RELATIONSHIP_IMAGE,
-  "mask.png": MASK_IMAGE,
-  "distance.png": DISTANCE_IMAGE,
-  "cake.png": CAKE_IMAGE,
-};
-
-const resolveIconName = (name: string): LucideIconName | null => {
-  if (!name) return null;
-  if (ICON_NAME_SET.has(name)) return name as LucideIconName;
-  return null;
+  "graduation.webp": GRADUATION_IMAGE,
+  "relationship.webp": RELATIONSHIP_IMAGE,
+  "mask.webp": MASK_IMAGE,
 };
 
 interface IconProps {
@@ -54,14 +38,9 @@ const Icon = ({
     );
   }
 
-  const resolvedName = resolveIconName(name);
-  if (!resolvedName) return null;
+  const LucideIcon = getLucideIcon(name);
+  if (!LucideIcon) return null;
 
-  // lucide-react-native/icons only exposes a namespace, so the icon has to be
-  // looked up by computed key. The eslint rule can't validate this against the
-  // generated .d.ts.
-  // eslint-disable-next-line import/namespace
-  const LucideIcon = icons[resolvedName];
   return (
     <LucideIcon
       color={color}

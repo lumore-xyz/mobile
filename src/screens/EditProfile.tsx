@@ -1,22 +1,19 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import SubPageBack from "@/src/components/headers/SubPageBack";
-import Skeleton from "@/src/components/ui/Skeleton";
+import EditProfileSkeleton from "@/src/components/profile/EditProfileSkeleton";
 import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
 import { useUser } from "@/src/hooks/useUser";
-import { uploadProfilePicture } from "@/src/libs/apis";
+import { uploadProfilePicture } from "@/src/features/profile/api";
+import { getEditableProfileValue } from "@/src/features/profile/getEditableProfileValue";
+import invalidateUserProfileQueries from "@/src/features/profile/invalidateUserProfileQueries";
+import getProfileCompletion from "@/src/domain/profile/getProfileCompletion";
 import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
 import { toUserFacingError } from "@/src/utils/userFacingError";
-import {
-  ProfileFormValues,
-  createProfileSchema,
-} from "@/src/schemas/profileSchema";
 import { queryClient } from "@/src/service/query-client";
-import { PREFERENCE_MATCH_COUNT_QUERY_KEY } from "@/src/service/query-keys";
 import { getUser } from "@/src/service/storage";
-import { zodResolver } from "@hookform/resolvers/zod";
 import type { ImagePickerAsset } from "expo-image-picker";
-import React, { useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import React, { useRef, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 
 import FieldEditorSheet from "../components/profile/FieldEditorSheet";
@@ -32,73 +29,13 @@ const EditProfileScreen = () => {
   const [isEditFieldOpen, setIsEditFieldOpen] = useState(false);
   const [editFieldType, setEditFieldType] = useState("");
 
-  const formSchema = useMemo(
-    () => createProfileSchema(user?.username),
-    [user?.username],
-  );
-
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: user?.username,
-      nickname: user?.nickname,
-      realName: user?.realName,
-      phoneNumber: user?.phoneNumber,
-      bloodGroup: user?.bloodGroup,
-      interests: user?.interests,
-      bio: user?.bio,
-      gender: user?.gender,
-      religion: user?.religion,
-      dob: user?.dob
-        ? new Date(user.dob).toISOString().split("T")[0]
-        : undefined,
-      height: user?.height == null ? undefined : String(user.height),
-      hometown: user?.hometown,
-      diet: user?.diet,
-      zodiacSign: user?.zodiacSign,
-      lifestyle: user?.lifestyle,
-      work: user?.work,
-      institution: user?.institution,
-      maritalStatus: user?.maritalStatus,
-      languages: user?.languages,
-      personalityType: user?.personalityType,
-    },
-  });
-
   const scrollRef = useRef<ScrollView>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const { pickImageAsync, selectedImage } = useMediaPermisions();
 
-  const { completionPercent, missingCount } = useMemo(() => {
-    if (!user) return { completionPercent: 0, missingCount: 0 };
-    const fields = [
-      user?.profilePicture,
-      user?.bio,
-      user?.gender,
-      user?.dob,
-      user?.interests?.length ? user?.interests : null,
-      user?.height,
-      user?.diet,
-      user?.zodiacSign,
-      user?.lifestyle?.drinking,
-      user?.lifestyle?.smoking,
-      user?.lifestyle?.pets,
-      user?.work,
-      user?.institution,
-      user?.languages?.length ? user?.languages : null,
-      user?.personalityType,
-      user?.religion,
-      user?.hometown,
-    ];
-    const filledCount = fields.filter((value) => {
-      if (Array.isArray(value)) return value.length > 0;
-      return value !== undefined && value !== null && value !== "";
-    }).length;
-    const total = fields.length;
-    const percent = total ? Math.round((filledCount / total) * 100) : 0;
-    return { completionPercent: percent, missingCount: total - filledCount };
-  }, [user]);
+  const { profileCompletion: completionPercent, profileMissingCount: missingCount } =
+    getProfileCompletion(user);
 
   const handleEditField = (field: string) => {
     setEditFieldType(field);
@@ -116,7 +53,6 @@ const EditProfileScreen = () => {
   const handleFieldUpdate = async (field: string, value: unknown) => {
     try {
       await updateField({ field, value });
-      form.setValue(field as keyof ProfileFormValues, value as never);
       setIsEditFieldOpen(false);
     } catch (error) {
       console.error("Error updating field:", error);
@@ -133,12 +69,7 @@ const EditProfileScreen = () => {
           type: asset.mimeType || "image/jpeg",
         });
         setUploadedImage(response?.profilePicture || null);
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["user", userId] }),
-          queryClient.invalidateQueries({
-            queryKey: PREFERENCE_MATCH_COUNT_QUERY_KEY,
-          }),
-        ]);
+        await invalidateUserProfileQueries(queryClient, userId);
       } catch (error: unknown) {
         setUploadedImage(null);
         Alert.alert(
@@ -175,7 +106,7 @@ const EditProfileScreen = () => {
         setIsOpen={setIsEditFieldOpen}
         fieldType={editFieldType}
         onUpdate={handleFieldUpdate}
-        currentValue={form.getValues(editFieldType as keyof ProfileFormValues)}
+        currentValue={getEditableProfileValue(user, editFieldType)}
         schemaType="profile"
         currentUsername={user?.username}
       />
@@ -187,7 +118,7 @@ const EditProfileScreen = () => {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="mb-5 overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text
@@ -205,7 +136,7 @@ const EditProfileScreen = () => {
               <Icon name="Sparkles" size={20} color={COLORS.ink} />
             </View>
           </View>
-        </View>
+        </SurfacePanel>
 
         <ProfileImagePicker
           selectedImage={
@@ -216,7 +147,7 @@ const EditProfileScreen = () => {
           isUploading={isUploadingImage}
         />
 
-        <View className="mt-4 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
+        <SurfacePanel surface="paper" className="mt-4">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text className="text-xl font-bold text-ui-ink">
@@ -247,7 +178,7 @@ const EditProfileScreen = () => {
               Great job! Your profile is complete.
             </Text>
           )}
-        </View>
+        </SurfacePanel>
 
         <View className="mt-4 flex-row gap-3">
           <Pressable
@@ -279,36 +210,5 @@ const EditProfileScreen = () => {
     </View>
   );
 };
-
-const EditProfileSkeleton = () => (
-  <View>
-    <View className="items-center mt-2">
-      <Skeleton width="100%" height={132} radius={32} />
-      <Skeleton width={120} height={120} radius={30} style={{ marginTop: 16 }} />
-      <Skeleton width={170} height={13} style={{ marginTop: 14 }} />
-    </View>
-
-    <View className="mt-6 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
-      <View className="flex-row items-center justify-between">
-        <Skeleton width={140} height={14} />
-        <Skeleton width={42} height={13} />
-      </View>
-      <Skeleton width="100%" height={8} radius={999} style={{ marginTop: 12 }} />
-      <Skeleton width="48%" height={11} style={{ marginTop: 10 }} />
-    </View>
-
-    <View className="mt-5 gap-3">
-      {Array.from({ length: 8 }).map((_, index) => (
-        <View
-          key={`edit-profile-skeleton-${index}`}
-          className="rounded-2xl border border-ui-ink/10 bg-ui-paper p-4"
-        >
-          <Skeleton width={index % 2 ? "38%" : "52%"} height={12} />
-          <Skeleton width="86%" height={12} style={{ marginTop: 10 }} />
-        </View>
-      ))}
-    </View>
-  </View>
-);
 
 export default EditProfileScreen;

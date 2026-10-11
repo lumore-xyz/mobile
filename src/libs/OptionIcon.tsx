@@ -1,7 +1,7 @@
 import React from "react";
 
 import { getLucideOptionIcon } from "./optionIcons";
-import type { SelectOptionIcon } from "./options";
+import type { SelectOptionIcon } from "./optionsCatalog";
 
 interface OptionIconProps {
   icon?: SelectOptionIcon | null;

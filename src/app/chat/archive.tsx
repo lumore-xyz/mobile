@@ -1,30 +1,31 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import MobileNav from "@/src/components/MobileNav";
-import { CHAT_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
-
+import type { InboxFiltersState } from "@/src/domain/chat/inboxTypes";
+import useInboxSocketSync from "@/src/hooks/useInboxSocketSync";
 import { useUser } from "@/src/hooks/useUser";
-import { fetchIboxPage } from "@/src/libs/apis";
-import { useSocket } from "@/src/service/context/SocketContext";
+import { fetchIboxPage } from "@/src/features/chat/api";
+import { inboxQueryKeys } from "@/src/features/chat/inboxQueryKeys";
 import { getUser } from "@/src/service/storage";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import React from "react";
 import { Text, View } from "react-native";
-import { Inbox, InboxTabs, InboxFiltersState } from ".";
+import InboxList from "@/src/components/chat/InboxList";
+import InboxTabs from "@/src/components/chat/InboxTabs";
 
 const ChatInbox = () => {
   const u = getUser();
-  const queryClient = useQueryClient();
   const router = useRouter();
   const [filters, setFilters] = React.useState<InboxFiltersState>({
     search: "",
     unreadOnly: false,
     sort: "recent",
   });
-  const { socket, revalidateSocket } = useSocket();
   const { user, isLoading: gettingUser } = useUser(u?._id);
+  useInboxSocketSync();
 
   const query = useInfiniteQuery({
-    queryKey: ["inbox", "archive", filters],
+    queryKey: inboxQueryKeys.archivedList(filters),
     queryFn: ({ pageParam }) => fetchIboxPage({ status: "archive", ...filters }, pageParam),
     initialPageParam: 1,
     getNextPageParam: (lastPage) =>
@@ -33,35 +34,17 @@ const ChatInbox = () => {
   });
   const rooms = query.data?.pages.flatMap((page) => page.data) || [];
 
-  useEffect(() => {
-    revalidateSocket();
-  }, [revalidateSocket]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    const onInboxUpdated = () => {
-      queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-      queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
-    };
-
-    socket.on(CHAT_SOCKET_EVENTS.inboxUpdated, onInboxUpdated);
-    return () => {
-      socket.off(CHAT_SOCKET_EVENTS.inboxUpdated, onInboxUpdated);
-    };
-  }, [socket, queryClient]);
-
   return (
     <>
       <View className="flex-1 bg-ui-surface-page px-4 pt-5">
-        <View className="mb-5 rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="mb-5">
         <Text className="font-display text-3xl text-ui-paper" accessibilityRole="header">
             Conversations
           </Text>
           <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
             Revisit connections whenever the moment feels right.
           </Text>
-        </View>
+        </SurfacePanel>
 
         <InboxTabs
           activeTab="archive"
@@ -71,7 +54,7 @@ const ChatInbox = () => {
           }}
         />
 
-        <Inbox
+        <InboxList
           key="archive"
           currentUserId={user?._id}
           rooms={rooms}

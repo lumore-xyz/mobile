@@ -1,7 +1,7 @@
-import { fetchPublicOptions } from "@/src/libs/apis";
+import { fetchPublicOptions } from "@/src/features/options/api";
+import parseOptionsResponse from "@/src/features/options/parseOptionsResponse";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  DynamicOptionsPayload,
   applyDynamicOptions,
   getCachedOptionsVersion,
   loadDynamicOptionsFromCache,
@@ -10,52 +10,6 @@ import {
 } from "@/src/libs/options";
 
 const OPTIONS_POLL_INTERVAL = 60_000;
-
-type GenericRecord = Record<string, unknown>;
-
-const asRecord = (value: unknown): GenericRecord =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as GenericRecord)
-    : {};
-
-const pickFirst = <T,>(...values: T[]) =>
-  values.find((value) => value !== undefined && value !== null);
-
-const extractPayload = (responseValue: unknown): DynamicOptionsPayload | null => {
-  const responseData = asRecord(responseValue);
-  const data = asRecord(responseData.data);
-  const container = pickFirst(
-    data.options,
-    responseData.options,
-    responseData.data,
-  );
-
-  if (!container || typeof container !== "object" || Array.isArray(container)) {
-    return null;
-  }
-
-  const payload: DynamicOptionsPayload = {};
-  Object.entries(container).forEach(([key, value]) => {
-    if (Array.isArray(value)) {
-      (payload as GenericRecord)[key] = value;
-    }
-  });
-  return payload;
-};
-
-const extractVersion = (responseValue: unknown): string | null => {
-  const responseData = asRecord(responseValue);
-  const data = asRecord(responseData.data);
-  const version = pickFirst(
-    data.version,
-    responseData.version,
-    data.optionsVersion,
-    responseData.optionsVersion,
-    data.updatedAt,
-    responseData.updatedAt,
-  );
-  return typeof version === "string" && version.trim() ? version : null;
-};
 
 export const OptionsProvider = ({ children }: { children: React.ReactNode }) => {
   const isFetchingRef = useRef(false);
@@ -67,12 +21,12 @@ export const OptionsProvider = ({ children }: { children: React.ReactNode }) => 
     isFetchingRef.current = true;
     try {
       const response = await fetchPublicOptions();
-      const payload = extractPayload(response);
+      const { payload, version: responseVersion } = parseOptionsResponse(response);
       if (!payload) return;
 
       applyDynamicOptions(payload);
 
-      const version = extractVersion(response) || optionsVersionRef.current || undefined;
+      const version = responseVersion || optionsVersionRef.current || undefined;
       saveDynamicOptionsToCache(payload, version);
 
       if (version && version !== optionsVersionRef.current) {

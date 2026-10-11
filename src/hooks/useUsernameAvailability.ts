@@ -1,4 +1,4 @@
-import { checkUsernameAvailability } from "@/src/libs/apis";
+import { checkUsernameAvailability } from "@/src/features/authentication/api";
 import { useEffect, useMemo, useState } from "react";
 
 export type UsernameAvailabilityStatus =

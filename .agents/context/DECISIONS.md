@@ -2,6 +2,38 @@
 
 Record durable technical, product, and design decisions here. Newest entries go first.
 
+## 2026-10-10: Communities Support Local and Topic Types
+
+Decision: Community rooms have a `local` or `topic` type. Local is the default for existing data and clients and requires a location; Topic can omit location.
+
+Reason: Communities should support both place-based groups and interest-based groups while preserving existing rooms.
+
+Impact: Discovery includes Topic rooms without geographic filtering. Location search/pin selection and interest-based recommendation are separate follow-up work; matching eligibility remains unchanged in this phase.
+
+## 2026-10-10: Communities Use Tags as Discovery Metadata
+
+Decision: Communities may have up to five normalized tags, selected from type-specific suggestions or entered by the creator. Tags are returned in community summaries and editable by the creator.
+
+Reason: Shared tags provide durable metadata for later community search and preference-based recommendations without changing current matching eligibility.
+
+Impact: Tags are indexed and visible in discovery/detail UI; ranking by member interests remains future work.
+
+## 2026-10-10: Community Directory Uses Server Pagination and Filters
+
+Decision: Browse public active Local and Topic communities through server-side pages, defaulting to matching-pool size descending. Search checks names, descriptions, and tags; users can filter Local, Topic, or within 25 km and sort by pool size, newest, or nearest.
+
+Reason: Topic communities should be discoverable without device location, and the directory should scale beyond a fixed nearby result list.
+
+Impact: Device location is only required for Nearby and Nearest. Tag-aware personalized ranking remains a separate follow-up.
+
+## 2026-10-10: Pending HaloKYC Sessions Resume In Place
+
+Decision: A Lumore user in `pending` can reopen the saved HaloKYC session. Treat `processing`, `awaiting_credits`, and `manual_review` from HaloKYC as `processing` in Lumore.
+
+Reason: Leaving the verification flow before uploading evidence should not strand the user or create duplicate sessions.
+
+Impact: The mobile Profile and Settings actions remain available for `pending` users and call the existing session endpoint; only `processing` disables the action.
+
 ## 2026-10-04: Lumore Uses a Discreet Curated Matchmaking Direction
 
 Decision: Position Lumore as a premium, high-touch matchmaking experience for accomplished people seeking thoughtful compatibility. Express selectivity through curation, privacy, writing, and hospitality; do not use wealth, social rank, or desirability as visual or product status signals.

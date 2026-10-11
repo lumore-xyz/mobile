@@ -1,3 +1,26 @@
+export interface UserPreferences {
+  interestedIn: string;
+  ageRange: number[];
+  distance: number;
+  goal: {
+    primary: string;
+    secondary: string;
+    tertiary: string;
+  };
+  interests: string[];
+  relationshipType: string;
+  languages: string[];
+  zodiacPreference: string[];
+  institutions: string[];
+  personalityTypePreference: string[];
+  dietPreference: string[];
+  heightRange: number[];
+  religionPreference: string[];
+  drinkingPreference: string[];
+  smokingPreference: string[];
+  petPreference: string[];
+}
+
 export interface ProfileUser {
   _id: string;
   username?: string;

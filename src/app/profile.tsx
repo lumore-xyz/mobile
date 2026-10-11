@@ -1,6 +1,7 @@
 import MobileNav from "@/src/components/MobileNav";
 import ProfileScreen from "@/src/screens/Profile";
 import { getUser } from "@/src/service/storage";
+import invalidateProfileScreenQueries from "@/src/features/profile/invalidateProfileScreenQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useState } from "react";
 import LogoPrefrenceSetting from "../components/headers/LogoPrefrenceSetting";
@@ -14,18 +15,7 @@ const Profile = () => {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["user", currentUserId] }),
-        queryClient.invalidateQueries({
-          queryKey: ["user posts", currentUserId],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["user-profile", currentUserId],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["this-or-that", "answers", currentUserId],
-        }),
-      ]);
+      await invalidateProfileScreenQueries(queryClient, currentUserId || "");
     } finally {
       setIsRefreshing(false);
     }

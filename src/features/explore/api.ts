@@ -1,5 +1,5 @@
 import apiClient from "@/src/service/api-client";
-import { getRetryAfterMs } from "./state";
+import getRetryAfterMs from "./getRetryAfterMs";
 
 export interface ExploreProfile {
   _id: string;

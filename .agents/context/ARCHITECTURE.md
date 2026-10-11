@@ -11,7 +11,7 @@ Lumore Mobile is an Expo Router React Native application for dating, chat, commu
 - Styling: NativeWind/Tailwind tokens from `tailwind.config.js`, plus local constants in `src/libs/constants/theme.ts`.
 - Data fetching: `@tanstack/react-query`, API helpers in `src/service`.
 - Realtime: Socket contexts and chat events in `src/service/context` and `src/domain/chat`.
-- Forms and validation: `react-hook-form`, Zod schemas in `src/schemas` and `src/lib`.
+- Forms and validation: reusable React Native field components and Zod schemas in `src/schemas` and `src/lib`.
 - Native integrations: Google Sign-In, OneSignal, location, image picker/camera, secure storage, ads, haptics, audio.
 
 ## Source Layout
@@ -22,7 +22,7 @@ Lumore Mobile is an Expo Router React Native application for dating, chat, commu
 - `src/components/ui`: shared low-level UI primitives and Gluestack wrappers.
 - `src/service`: API clients, storage, providers, contexts, query setup, analytics, and app-update logic.
 - `src/domain`: domain-specific pure logic and shared types, currently focused on chat.
-- `src/features`: feature bundles, currently onboarding.
+- `src/features`: feature API and workflow bundles for authentication, onboarding, chat, community, discovery, posts, games, credits, referrals, feedback, options, identity verification, location, and profile.
 - `src/hooks`: reusable hooks for user, notifications, ads, media permissions, app updates, and preferences.
 - `src/libs` and `src/lib`: app constants, option/icon helpers, validators, feature flags, and utility libraries.
 - `src/utils`: general helpers, formatting, haptics, audio waveform, and user-facing errors.

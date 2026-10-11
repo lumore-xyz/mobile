@@ -1,61 +1,112 @@
 import MobileNav from "@/src/components/MobileNav";
-import CommunityCoverImage from "@/src/components/community/CommunityCoverImage";
-import Button from "@/src/components/ui/Button";
-import Skeleton from "@/src/components/ui/Skeleton";
+import ActiveFilterChip from "@/src/components/ui/ActiveFilterChip";
+import CommunityDirectoryChip from "@/src/components/community/CommunityDirectoryChip";
+import CommunityDirectorySkeleton from "@/src/components/community/CommunityDirectorySkeleton";
+import CommunityFilterSheet, { COMMUNITY_SORT_OPTIONS, type CommunityFilters } from "@/src/components/community/CommunityFilterSheet";
+import CommunityHero from "@/src/components/community/CommunityHero";
+import EmptyRoomsState from "@/src/components/community/EmptyRoomsState";
+import LumoreRefreshControl from "@/src/components/ui/LumoreRefreshControl";
+import RoomCard from "@/src/components/community/RoomCard";
+import RoomsErrorState from "@/src/components/community/RoomsErrorState";
 import { EXPLORE_SOCKET_EVENTS } from "@/src/domain/chat/socketEvents";
-import { fetchNearbyRooms, type LocationRoomSummary } from "@/src/libs/apis";
+import { fetchNearbyRooms } from "@/src/features/community/api";
+import invalidateCommunityQueries from "@/src/features/community/invalidateCommunityQueries";
+import { communityQueryKeys } from "@/src/features/community/queryKeys";
+import { inboxQueryKeys } from "@/src/features/chat/inboxQueryKeys";
+import type { CommunityRoomSort, CommunityRoomTypeFilter, LocationRoomSummary } from "@/src/features/community/types";
 import { useSocket } from "@/src/service/context/SocketContext";
-import { useLocation } from "@/src/service/providers/LocationProvider";
+import useLocation from "@/src/hooks/useLocation";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import Icon from "@/src/libs/Icon";
 import { COLORS } from "@/src/libs/constants/theme";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
   ListRenderItem,
+  ActivityIndicator,
   Platform,
   Pressable,
-  RefreshControl,
-  StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
-
-const formatCountdown = (seconds?: number) => {
-  const safeSeconds = Math.max(0, Number(seconds || 0));
-  const hours = Math.floor(safeSeconds / 3600);
-  const minutes = Math.floor((safeSeconds % 3600) / 60);
-  if (hours <= 0) return `${minutes}m`;
-  return `${hours}h ${minutes}m`;
-};
-
-const useTick = () => {
-  const [tick, setTick] = useState(Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setTick(Date.now()), 30_000);
-    return () => clearInterval(id);
-  }, []);
-  return tick;
-};
 
 export default function RoomsScreen() {
   const { latitude, longitude, error: locationError } = useLocation();
   const { socket, revalidateSocket } = useSocket();
   const queryClient = useQueryClient();
-  useTick();
+  const createCommunity = useCallback(() => {
+    triggerSelectionHaptic();
+    router.push("/community/create");
+  }, []);
+
+  const [searchText, setSearchText] = useState("");
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<CommunityRoomTypeFilter>("all");
+  const [nearbyOnly, setNearbyOnly] = useState(false);
+  const [sort, setSort] = useState<CommunityRoomSort>("pool_high");
+  const [joinedOnly, setJoinedOnly] = useState(false);
+  const [inPoolOnly, setInPoolOnly] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterDraft, setFilterDraft] = useState<CommunityFilters>({
+    type: "all",
+    nearby: false,
+    sort: "pool_high",
+    joinedOnly: false,
+    inPoolOnly: false,
+  });
+  const hasCurrentLocation = Number.isFinite(latitude) && Number.isFinite(longitude);
+
+  useEffect(() => {
+    if (hasCurrentLocation) return;
+    setNearbyOnly(false);
+    if (sort === "nearest") setSort("pool_high");
+  }, [hasCurrentLocation, sort]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchText.trim()), 450);
+    return () => clearTimeout(timer);
+  }, [searchText]);
 
   const {
-    data: rooms = [],
+    data,
     isLoading,
     isRefetching,
     refetch,
     error,
-  } = useQuery({
-    queryKey: ["rooms", "nearby", latitude, longitude],
-    queryFn: () => fetchNearbyRooms({ latitude, longitude, radiusKm: 25 }),
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: communityQueryKeys.directory({
+      search,
+      type: typeFilter,
+      nearby: nearbyOnly,
+      sort,
+      latitude,
+      longitude,
+      joinedOnly,
+      inPoolOnly,
+    }),
+    queryFn: ({ pageParam }) => fetchNearbyRooms({
+      latitude,
+      longitude,
+      radiusKm: 25,
+      page: pageParam,
+      search,
+      type: typeFilter,
+      nearby: nearbyOnly,
+      sort,
+      joinedOnly,
+      inPoolOnly,
+    }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.page + 1 : undefined,
   });
+  const rooms = data?.pages.flatMap((page) => page.rooms) || [];
+  const roomCount = data?.pages[0]?.totalCount || 0;
 
   useEffect(() => {
     revalidateSocket();
@@ -64,8 +115,8 @@ export default function RoomsScreen() {
   useEffect(() => {
     if (!socket) return;
     const invalidateRooms = () => {
-      queryClient.invalidateQueries({ queryKey: ["rooms"] });
-      queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
+      invalidateCommunityQueries(queryClient);
+      queryClient.invalidateQueries({ queryKey: inboxQueryKeys.active });
     };
     socket.on(EXPLORE_SOCKET_EVENTS.roomPoolUpdated, invalidateRooms);
     socket.on(EXPLORE_SOCKET_EVENTS.roomMatchFound, invalidateRooms);
@@ -83,294 +134,123 @@ export default function RoomsScreen() {
   return (
     <>
       <View className="flex-1 bg-ui-surface-page px-4 pt-6">
-        <CommunityHero roomCount={rooms.length} />
-
-        {locationError ? (
-          <View className="mb-4 flex-row items-start gap-3 rounded-[24px] border border-ui-parchment bg-ui-champagne/20 p-4">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-paper">
-              <Icon name="MapPinOff" size={18} color={COLORS.ink} />
+        <FlatList
+          data={rooms}
+          keyExtractor={(room) => room._id}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 24, flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+          }}
+          onEndReachedThreshold={0.5}
+          ListHeaderComponent={(
+            <View>
+              <CommunityHero roomCount={roomCount} onCreate={createCommunity} />
+              {locationError ? (
+                <View className="mb-4 flex-row items-start gap-3 rounded-[24px] border border-ui-parchment bg-ui-champagne/20 p-4">
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-paper">
+                    <Icon name="MapPinOff" size={18} color={COLORS.ink} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-bold text-ui-ink">Location unavailable</Text>
+                    <Text className="mt-1 text-sm leading-5 text-ui-slate">You can still browse every community. Turn on location to use nearby filters.</Text>
+                  </View>
+                </View>
+              ) : null}
+              <View className="mb-4">
+                <View className="flex-row items-center gap-2">
+                  <View className="h-12 flex-1 flex-row items-center rounded-full border border-ui-parchment bg-ui-paper px-4">
+                    <Icon name="Search" size={18} color={COLORS.slate} />
+                    <TextInput
+                      value={searchText}
+                      onChangeText={setSearchText}
+                      placeholder="Search communities"
+                      placeholderTextColor={COLORS.slate}
+                      className="ml-2 flex-1 text-sm text-ui-ink"
+                      returnKeyType="search"
+                      accessibilityLabel="Search communities by name, topic, or tag"
+                    />
+                    {searchText ? (
+                      <Pressable
+                        onPress={() => {
+                          setSearchText("");
+                          setSearch("");
+                        }}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                        accessibilityRole="button"
+                        accessibilityLabel="Clear community search"
+                      >
+                        <Icon name="X" size={16} color={COLORS.slate} />
+                      </Pressable>
+                    ) : null}
+                  </View>
+                  <Pressable
+                    onPress={() => {
+                      setFilterDraft({ type: typeFilter, nearby: nearbyOnly, sort, joinedOnly, inPoolOnly });
+                      setIsFilterOpen(true);
+                    }}
+                    className="h-12 w-12 items-center justify-center rounded-full border border-ui-parchment bg-ui-paper active:opacity-70"
+                    accessibilityRole="button"
+                    accessibilityLabel="Filter and sort communities"
+                  >
+                    <Icon name="SlidersHorizontal" size={19} color={COLORS.forest} />
+                    {typeFilter !== "all" || nearbyOnly || sort !== "pool_high" || joinedOnly || inPoolOnly ? (
+                      <View className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full border border-ui-paper bg-ui-champagne" />
+                    ) : null}
+                  </Pressable>
+                </View>
+                <View className="mt-2 flex-row flex-wrap gap-2">
+                  <CommunityDirectoryChip label="Joined" selected={joinedOnly} onPress={() => setJoinedOnly((value) => !value)} />
+                  <CommunityDirectoryChip label="In pool" selected={inPoolOnly} onPress={() => setInPoolOnly((value) => !value)} />
+                </View>
+                {typeFilter !== "all" || nearbyOnly || sort !== "pool_high" || joinedOnly || inPoolOnly ? (
+                  <View className="mt-2 flex-row flex-wrap gap-2">
+                    {typeFilter !== "all" ? <ActiveFilterChip label={typeFilter === "local" ? "Local" : "Topic"} /> : null}
+                    {nearbyOnly ? <ActiveFilterChip label="Nearby · 25 km" /> : null}
+                    {sort !== "pool_high" ? <ActiveFilterChip label={COMMUNITY_SORT_OPTIONS.find((option) => option.value === sort)?.label || "Sorted"} /> : null}
+                  </View>
+                ) : null}
+              </View>
+              {isLoading ? <CommunityDirectorySkeleton /> : error ? <RoomsErrorState onRetry={() => void refetch()} /> : null}
             </View>
-            <View className="flex-1">
-              <Text className="font-bold text-ui-ink">Location needs a nudge</Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-slate">{locationError}</Text>
-            </View>
-          </View>
-        ) : null}
-
-        {isLoading ? (
-          <RoomsSkeleton />
-        ) : error ? (
-          <RoomsError onRetry={() => void refetch()} />
-        ) : !rooms.length ? (
-          <EmptyRooms />
-        ) : (
-          <FlatList
-            data={rooms}
-            keyExtractor={(room) => room._id}
-            renderItem={renderItem}
-            contentContainerStyle={{ paddingBottom: 24 }}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefetching}
-                onRefresh={() => {
-                  void refetch();
-                }}
-                tintColor={COLORS.forest}
-                colors={[COLORS.forest]}
-              />
-            }
-            initialNumToRender={8}
-            maxToRenderPerBatch={8}
-            windowSize={7}
-            removeClippedSubviews={Platform.OS === "android"}
-          />
-        )}
+          )}
+          ListEmptyComponent={!isLoading && !error ? <EmptyRoomsState search={search} onCreate={createCommunity} /> : null}
+          ListFooterComponent={isFetchingNextPage ? <ActivityIndicator style={{ marginVertical: 16 }} color={COLORS.forest} /> : null}
+          refreshControl={
+            <LumoreRefreshControl
+              refreshing={isRefetching}
+              onRefresh={() => { void refetch(); }}
+            />
+          }
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          removeClippedSubviews={Platform.OS === "android"}
+        />
       </View>
+      <CommunityFilterSheet
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        draft={filterDraft}
+        setDraft={setFilterDraft}
+        hasCurrentLocation={hasCurrentLocation}
+        onApply={() => {
+          const next = { ...filterDraft };
+          if (next.type === "topic") {
+            next.nearby = false;
+            if (next.sort === "nearest") next.sort = "pool_high";
+          }
+          setTypeFilter(next.type);
+          setNearbyOnly(next.nearby);
+          setSort(next.sort);
+          setJoinedOnly(next.joinedOnly);
+          setInPoolOnly(next.inPoolOnly);
+          setIsFilterOpen(false);
+        }}
+        onReset={() => setFilterDraft({ type: "all", nearby: false, sort: "pool_high", joinedOnly: false, inPoolOnly: false })}
+      />
       <MobileNav />
     </>
-  );
-}
-
-function CommunityHero({ roomCount }: { roomCount: number }) {
-  return (
-    <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
-      <View className="flex-row items-start justify-between gap-4">
-        <View className="flex-1">
-          <Text className="font-display text-3xl text-ui-paper" accessibilityRole="header">
-            Community
-          </Text>
-          <Text className="mt-1 text-sm leading-5 text-ui-paper/70">
-            Local rooms for campus corners, cafe evenings, events, and nearby sparks.
-          </Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Create a community"
-          onPress={() => {
-            triggerSelectionHaptic();
-            router.push("/community/create");
-          }}
-          className="h-11 w-11 items-center justify-center rounded-full bg-ui-champagne active:opacity-75"
-        >
-          <Icon name="Plus" size={22} color={COLORS.ink} />
-        </Pressable>
-      </View>
-
-      <View className="mt-5 flex-row items-end justify-between gap-3">
-        <View>
-          <Text className="text-3xl font-bold text-ui-paper">{roomCount}</Text>
-          <Text className="mt-0.5 text-sm text-ui-paper/70">
-            {roomCount === 1 ? "nearby room" : "nearby rooms"}
-          </Text>
-        </View>
-        <View className="rounded-full bg-ui-paper/10 px-3 py-1.5">
-          <Text className="text-xs font-semibold text-ui-paper">
-            25km radius
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function RoomCard({ room }: { room: LocationRoomSummary }) {
-  const state = room.userState;
-  const isPinned = Boolean(state?.isPinned);
-  const inPool = Boolean(state?.inPool);
-  const canRejoin = isPinned && !inPool;
-  const poolCount = Number(room.poolCount || 0);
-  const pinnedCount = Number(room.pinnedCount || 0);
-  const locationLabel = String(room.location?.formattedAddress || "Nearby").trim();
-  const distanceLabel =
-    typeof room.distanceKm === "number" && Number.isFinite(room.distanceKm)
-      ? `${room.distanceKm.toFixed(room.distanceKm < 10 ? 1 : 0)}km away`
-      : "Near you";
-  const countdown = useMemo(
-    () => formatCountdown(room.secondsUntilNextMatch),
-    [room.secondsUntilNextMatch],
-  );
-
-  const openRoom = () => {
-    triggerSelectionHaptic();
-    router.push(`/community/${room._id}`);
-  };
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`Open ${room.title} community`}
-      className="mb-4 overflow-hidden rounded-[24px] border border-ui-parchment bg-ui-paper active:opacity-90"
-      onPress={openRoom}
-    >
-      <View className="relative h-[148px] w-full justify-between overflow-hidden">
-        <CommunityCoverImage
-          uri={room.imageUrl}
-          className="absolute inset-0 h-full w-full"
-          style={StyleSheet.absoluteFillObject}
-        />
-        <View className="absolute inset-0 bg-ui-ink/30" />
-        <View className="flex-row items-start justify-between p-3">
-          <View className="rounded-full bg-ui-paper/90 px-3 py-1">
-            <Text className="text-xs font-bold text-ui-midnight">
-              {countdown}
-            </Text>
-          </View>
-          {inPool || canRejoin || isPinned ? (
-            <View className="rounded-full bg-ui-champagne px-3 py-1">
-              <Text className="text-xs font-bold text-ui-ink">
-                {inPool ? "In pool" : canRejoin ? "Rejoin ready" : "Pinned"}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      </View>
-      <View className="p-3">
-        <View className="flex-row items-start justify-between gap-3">
-          <View className="flex-1">
-            <Text className="text-xl font-bold text-ui-ink" numberOfLines={1}>
-              {room.title}
-            </Text>
-            {room.description ? (
-              <Text
-                className="mt-1 text-sm leading-5 text-ui-slate"
-                numberOfLines={2}
-              >
-                {room.description}
-              </Text>
-            ) : null}
-          </View>
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
-            <Icon name="ChevronRight" size={20} color={COLORS.forest} />
-          </View>
-        </View>
-
-        <View className="mt-3 flex-row flex-wrap items-center gap-2">
-          <RoomMeta
-            icon="Sparkles"
-            text={`${poolCount} in pool`}
-            isHighlighted={poolCount > 0}
-          />
-          <RoomMeta
-            icon="Users"
-            text={`${pinnedCount} pinned`}
-          />
-          <RoomMeta
-            icon="MapPin"
-            text={locationLabel}
-          />
-          <RoomMeta icon="Navigation" text={distanceLabel} />
-        </View>
-
-        <View className="mt-3 rounded-2xl bg-ui-forest/5 px-3 py-2.5">
-          <Text className="text-sm font-medium text-ui-forest">
-            {inPool
-              ? "You are waiting for this cycle."
-              : canRejoin
-                ? "Matched before. Rejoin when ready."
-                : "Pin to join the matching pool."}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function RoomMeta({
-  icon,
-  text,
-  isHighlighted = false,
-}: {
-  icon: string;
-  text: string;
-  isHighlighted?: boolean;
-}) {
-  return (
-    <View
-      className={`max-w-full flex-row items-center gap-1.5 rounded-full px-3 py-1.5 ${
-        isHighlighted ? "bg-ui-champagne/30" : "bg-ui-ink/5"
-      }`}
-    >
-      <Icon
-        name={icon}
-        size={14}
-        color={isHighlighted ? COLORS.ink : COLORS.slate}
-      />
-      <Text
-        className={`max-w-[210px] text-xs font-semibold ${
-          isHighlighted ? "text-ui-ink" : "text-ui-slate"
-        }`}
-        numberOfLines={1}
-      >
-        {text}
-      </Text>
-    </View>
-  );
-}
-
-function EmptyRooms() {
-  return (
-    <View className="mt-1 items-center rounded-[24px] border border-ui-parchment bg-ui-paper px-6 py-8">
-      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-forest/10">
-        <Icon name="MapPin" size={24} color={COLORS.forest} />
-      </View>
-      <Text className="mt-4 text-center text-xl font-bold text-ui-ink">
-        No communities nearby yet
-      </Text>
-      <Text className="mt-2 text-center text-sm leading-5 text-ui-slate">
-        Start one for your campus, cafe, event, or neighborhood.
-      </Text>
-      <Button
-        text="Create a community"
-        className="mt-5 px-6"
-        onClick={() => {
-          triggerSelectionHaptic();
-          router.push("/community/create");
-        }}
-      />
-    </View>
-  );
-}
-
-function RoomsError({ onRetry }: { onRetry: () => void }) {
-  return (
-    <View
-      className="mt-1 items-center rounded-[24px] border border-ui-parchment bg-ui-paper px-6 py-8"
-      accessibilityLiveRegion="polite"
-    >
-      <View className="h-14 w-14 items-center justify-center rounded-full bg-ui-danger/5">
-        <Icon name="CloudOff" size={24} color={COLORS.danger} />
-      </View>
-      <Text className="mt-4 text-center text-xl font-bold text-ui-ink">
-        Communities are taking a moment
-      </Text>
-      <Text className="mt-2 text-center text-sm leading-5 text-ui-slate">
-        We could not load nearby rooms. Check your connection and try again.
-      </Text>
-      <Button text="Try again" onClick={onRetry} className="mt-5 px-6" />
-    </View>
-  );
-}
-
-function RoomsSkeleton() {
-  return (
-    <View>
-      <View className="mb-4 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
-        <Skeleton width="65%" height={28} />
-        <Skeleton width="92%" height={12} style={{ marginTop: 12 }} />
-        <Skeleton width="48%" height={12} style={{ marginTop: 8 }} />
-      </View>
-      {Array.from({ length: 4 }).map((_, index) => (
-        <View
-          key={`room-skeleton-${index}`}
-          className="mb-4 rounded-[24px] border border-ui-parchment bg-ui-paper p-4"
-        >
-          <Skeleton width="100%" height={130} radius={24} />
-          <Skeleton width="60%" height={18} style={{ marginTop: 14 }} />
-          <Skeleton width="90%" height={12} style={{ marginTop: 12 }} />
-          <Skeleton width="45%" height={12} style={{ marginTop: 18 }} />
-        </View>
-      ))}
-    </View>
   );
 }

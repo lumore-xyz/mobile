@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import { GestureResponderEvent, Pressable, Text, View } from "react-native";
+import formatRelativeTime from "@/src/utils/helpers/formatRelativeTime";
 
 import { COLORS } from "../../libs/constants/theme";
 import Icon from "../../libs/Icon";
@@ -16,23 +17,6 @@ interface NotificationCardProps {
   onDelete?: (notification: NotificationItem) => void;
   isDeleting?: boolean;
 }
-
-const formatRelativeTime = (iso?: string | null) => {
-  if (!iso) return "";
-  const target = new Date(iso).getTime();
-  if (Number.isNaN(target)) return "";
-  const now = Date.now();
-  const diff = Math.max(0, now - target);
-  const seconds = Math.floor(diff / 1000);
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
-};
 
 const NotificationCard: React.FC<NotificationCardProps> = ({
   notification,

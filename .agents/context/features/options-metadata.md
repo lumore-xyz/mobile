@@ -11,6 +11,7 @@ Options are fetched from status/options, cached with version handling, normalize
 ## Key Files
 
 - Provider: `src/service/providers/OptionsProvider.tsx`
+- API: `src/features/options/api.ts`
 - Libraries: `src/libs/options.ts`, `src/libs/optionIcons.ts`, `src/libs/OptionIcon.tsx`
 - Static data: `src/libs/languages.json`
 

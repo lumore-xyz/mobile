@@ -1,20 +1,10 @@
-import {
-  FormControl,
-  FormControlError,
-  FormControlErrorIcon,
-  FormControlErrorText,
-  FormControlHelper,
-  FormControlHelperText,
-  FormControlLabel,
-  FormControlLabelText,
-} from "./form-control";
-import { AlertCircleIcon, EyeIcon, EyeOffIcon } from "./icon";
+import FormField from "./FormField";
+import { EyeIcon, EyeOffIcon } from "./icon";
 import { Input, InputField, InputIcon, InputSlot } from "./input";
 import { useState } from "react";
 import type { TextInputProps as NativeTextInputProps } from "react-native";
-import { Textarea, TextareaInput } from "./textarea";
 
-interface TextInputProps {
+export interface TextInputProps {
   value: string;
   action: (value: string) => void;
   isInvalid?: boolean;
@@ -33,6 +23,8 @@ interface TextInputProps {
   returnKeyType?: NativeTextInputProps["returnKeyType"];
   textContentType?: NativeTextInputProps["textContentType"];
   onSubmitEditing?: NativeTextInputProps["onSubmitEditing"];
+  compact?: boolean;
+  labelTextClassName?: string;
 }
 export const TextInput: React.FC<TextInputProps> = ({
   value,
@@ -53,24 +45,25 @@ export const TextInput: React.FC<TextInputProps> = ({
   returnKeyType,
   textContentType,
   onSubmitEditing,
+  compact,
+  labelTextClassName,
 }) => {
   const isPasswordField = type === "password";
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <FormControl
+    <FormField
+      label={label}
+      helperText={helperText}
+      errorText={errorText}
       isInvalid={isInvalid}
-      size="md"
       isDisabled={isDisabled}
       isReadOnly={isReadOnly}
       isRequired={isRequired}
+      compact={compact}
+      labelTextClassName={labelTextClassName}
     >
-      <FormControlLabel>
-        <FormControlLabelText className="text-base font-semibold text-ui-ink">
-          {label}
-        </FormControlLabelText>
-      </FormControlLabel>
-      <Input className="mt-2 bg-ui-paper" size="lg">
+      <Input className={`${compact ? "mt-0" : "mt-2"} bg-ui-paper`} size="lg">
         <InputField
           type={isPasswordField && showPassword ? "text" : type}
           placeholder={placeholder}
@@ -105,76 +98,6 @@ export const TextInput: React.FC<TextInputProps> = ({
         ) : null}
       </Input>
 
-      {helperText ? (
-        <FormControlHelper>
-          <FormControlHelperText className="text-sm leading-5 text-ui-slate">
-            {helperText}
-          </FormControlHelperText>
-        </FormControlHelper>
-      ) : null}
-
-      {errorText ? (
-        <FormControlError>
-          <FormControlErrorIcon as={AlertCircleIcon} className="text-ui-danger" />
-          <FormControlErrorText className="text-ui-danger">
-            {errorText}
-          </FormControlErrorText>
-        </FormControlError>
-      ) : null}
-    </FormControl>
-  );
-};
-export const TextAreaInput: React.FC<TextInputProps> = ({
-  value,
-  action,
-  isInvalid,
-  isDisabled,
-  isReadOnly,
-  isRequired,
-  label,
-  placeholder,
-  helperText,
-  errorText,
-}) => {
-  return (
-    <FormControl
-      isInvalid={isInvalid}
-      size="md"
-      isDisabled={isDisabled}
-      isReadOnly={isReadOnly}
-      isRequired={isRequired}
-    >
-      <FormControlLabel>
-        <FormControlLabelText className="text-base font-semibold text-ui-ink">
-          {label}
-        </FormControlLabelText>
-      </FormControlLabel>
-      <Textarea size="md" className="mt-2 h-40 w-full bg-ui-paper">
-        <TextareaInput
-          nativeID={label}
-          className="text-ui-ink placeholder:text-ui-slate"
-          onChangeText={(text) => action(text)}
-          value={value}
-          placeholder={placeholder}
-        />
-      </Textarea>
-
-      {helperText ? (
-        <FormControlHelper>
-          <FormControlHelperText className="text-sm leading-5 text-ui-slate">
-            {helperText}
-          </FormControlHelperText>
-        </FormControlHelper>
-      ) : null}
-
-      {errorText ? (
-        <FormControlError>
-          <FormControlErrorIcon as={AlertCircleIcon} className="text-ui-danger" />
-          <FormControlErrorText className="text-ui-danger">
-            {errorText}
-          </FormControlErrorText>
-        </FormControlError>
-      ) : null}
-    </FormControl>
+    </FormField>
   );
 };

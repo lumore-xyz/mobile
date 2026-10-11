@@ -12,6 +12,10 @@ import { trackAnalytic } from "../analytics";
 import { queryClient } from "../query-client";
 import { socketDebug, socketWarn } from "../socket-debug";
 import { useSocket } from "../context/SocketContext";
+import invalidateCreditsQueries from "@/src/features/credits/invalidateCreditsQueries";
+import { profileQueryKeys } from "@/src/features/profile/queryKeys";
+import invalidateCommunityQueries from "@/src/features/community/invalidateCommunityQueries";
+import invalidateInboxLists from "@/src/features/chat/invalidateInboxLists";
 
 export const RealtimeEventsProvider = ({
   children,
@@ -30,8 +34,7 @@ export const RealtimeEventsProvider = ({
       });
       fireSideCannons();
       trackAnalytic({ activity: "match_found", label: "Match Found" });
-      queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-      queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
+      invalidateInboxLists(queryClient);
       router.push(`/chat/${roomId}`);
     },
     [fireSideCannons, router],
@@ -49,9 +52,8 @@ export const RealtimeEventsProvider = ({
         activity: "room_match_found",
         label: "Community Match Found",
       });
-      queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-      queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
-      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      invalidateInboxLists(queryClient);
+      invalidateCommunityQueries(queryClient);
       router.push(`/chat/${roomId}`);
     },
     [fireSideCannons, router],
@@ -68,29 +70,31 @@ export const RealtimeEventsProvider = ({
 
     const onRoomPoolUpdated = () => {
       socketDebug("RealtimeEventsProvider", "event roomPoolUpdated");
-      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+      invalidateCommunityQueries(queryClient);
     };
     const onCreditsUpdated = () => {
       socketDebug("RealtimeEventsProvider", "event creditsUpdated");
-      queryClient.invalidateQueries({ queryKey: ["credits", "balance"] });
-      queryClient.invalidateQueries({ queryKey: ["credits", "history"] });
+      void invalidateCreditsQueries(queryClient);
     };
     const onProfileLocked = ({ lockedBy }: ProfileLockPayload) => {
       socketDebug("RealtimeEventsProvider", "event profileLocked", {
         lockedBy,
       });
-      queryClient.invalidateQueries({ queryKey: ["user", lockedBy] });
+      queryClient.invalidateQueries({
+        queryKey: profileQueryKeys.user(lockedBy),
+      });
     };
     const onProfileUnlocked = ({ unlockedBy }: ProfileLockPayload) => {
       socketDebug("RealtimeEventsProvider", "event profileUnlocked", {
         unlockedBy,
       });
-      queryClient.invalidateQueries({ queryKey: ["user", unlockedBy] });
+      queryClient.invalidateQueries({
+        queryKey: profileQueryKeys.user(unlockedBy),
+      });
     };
     const onChatEnded = () => {
       socketDebug("RealtimeEventsProvider", "event chatEnded");
-      queryClient.invalidateQueries({ queryKey: ["inbox", "active"] });
-      queryClient.invalidateQueries({ queryKey: ["inbox", "archive"] });
+      invalidateInboxLists(queryClient);
     };
 
     socketDebug("RealtimeEventsProvider", "attaching socket listeners");

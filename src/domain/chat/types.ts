@@ -24,6 +24,13 @@ export interface ChatRoom {
   createdAt?: string | null;
 }
 
+export interface PendingChatImage {
+  previewUrl: string;
+  imageUrl: string | null;
+  imagePublicId: string | null;
+  uploading: boolean;
+}
+
 interface RawChatReaction {
   userId?: string | { _id?: string };
   user?: string | { _id?: string };

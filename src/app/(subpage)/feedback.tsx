@@ -1,4 +1,5 @@
 import FeedbackScreen from "@/src/screens/Feedback";
+import { feedbackQueryKeys } from "@/src/features/feedback/queryKeys";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useState } from "react";
 
@@ -10,7 +11,7 @@ const Feedback = () => {
     setIsRefreshing(true);
     try {
       await queryClient.invalidateQueries({
-        queryKey: ["feedback", "received"],
+        queryKey: feedbackQueryKeys.received,
       });
     } finally {
       setIsRefreshing(false);

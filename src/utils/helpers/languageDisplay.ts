@@ -1,4 +1,4 @@
-import { languageOptions } from "@/src/libs/options";
+import { languageOptions } from "@/src/libs/optionsCatalog";
 
 export const languageDisplay = (value: string[]) => {
   return (

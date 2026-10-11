@@ -1,29 +1,15 @@
 import DateInput from "@/src/components/ui/DateInput";
-import MultiSelectChipInput from "@/src/components/ui/MultiSelectChipInput";
-import { TextAreaInput, TextInput } from "@/src/components/ui/TextInput";
+import HeightInput from "@/src/components/profile/HeightInput";
+import SingleSelectFieldGroup from "@/src/components/profile/SingleSelectFieldGroup";
+import ProfileOptionField from "@/src/components/profile/ProfileOptionField";
+import TextAreaInput from "@/src/components/ui/TextAreaInput";
+import { TextInput } from "@/src/components/ui/TextInput";
+import UsernameAvailabilityFeedback from "@/src/components/profile/UsernameAvailabilityFeedback";
 import type { UsernameAvailabilityStatus } from "@/src/hooks/useUsernameAvailability";
-import { triggerSelectionHaptic } from "@/src/utils/haptics";
-import {
-  bloodTypeOptions,
-  dietOptions,
-  drinkingOptions,
-  genderOptions,
-  goalOptions,
-  interestedInOptions,
-  interestOptions,
-  languageOptions,
-  maritalStatusOptions,
-  personalityTypeOptions,
-  petOptions,
-  relationshipTypeOptions,
-  religionOptions,
-  smokingOptions,
-  zodiacOptions,
-} from "@/src/libs/options";
-import Icon from "@/src/libs/Icon";
-import { COLORS } from "@/src/libs/constants/theme";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { drinkingOptions, goalOptions, petOptions, smokingOptions } from "@/src/libs/optionsCatalog";
+import isRecord from "@/src/utils/isRecord";
+import React from "react";
+import { View } from "react-native";
 import RangeInput from "../ui/RangeInput";
 import SingleSlider from "../ui/SliderInput";
 
@@ -38,255 +24,58 @@ interface FieldEditorContentProps {
   };
 }
 
-const usernameStatusStyles: Record<
-  UsernameAvailabilityStatus,
+const TEXT_FIELD_CONFIG: Record<string, { label: string; placeholder: string }> = {
+  nickname: { label: "Nickname", placeholder: "Enter your nickname" },
+  realName: { label: "Real Name", placeholder: "Enter your real name" },
+  phoneNumber: {
+    label: "Phone Number",
+    placeholder: "Enter your phone number (e.g., +917021245436)",
+  },
+  email: { label: "Email", placeholder: "Enter your email" },
+  web3Wallet: { label: "Wallet Address", placeholder: "Enter your wallet address" },
+  work: { label: "Work", placeholder: "What do you do?" },
+  institution: { label: "Institution", placeholder: "Where did you study?" },
+};
+
+const LIFESTYLE_FIELDS = [
   {
-    color: string;
-    icon?: string;
-  }
-> = {
-  idle: { color: COLORS.slate, icon: "Info" },
-  invalid: { color: COLORS.danger, icon: "CircleAlert" },
-  current: { color: COLORS.slate, icon: "CircleUserRound" },
-  checking: { color: COLORS.forest },
-  available: { color: COLORS.forest, icon: "CircleCheck" },
-  taken: { color: COLORS.danger, icon: "CircleX" },
-  error: { color: COLORS.aubergine, icon: "TriangleAlert" },
-};
+    key: "drinking",
+    label: "Drinking Habit",
+    placeholder: "How often do you drink?",
+    options: drinkingOptions,
+  },
+  {
+    key: "smoking",
+    label: "Smoking Habit",
+    placeholder: "How often do you smoke?",
+    options: smokingOptions,
+  },
+  { key: "pets", label: "Pets", placeholder: "Do you have a pet?", options: petOptions },
+];
 
-type HeightUnit = "cm" | "ft";
-
-const getStringValue = (value: unknown) =>
-  typeof value === "string" ? value : "";
-
-const getStringList = (value: unknown) =>
-  Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
-
-const getNumberValue = (value: unknown, fallback: number) =>
-  typeof value === "number" && Number.isFinite(value) ? value : fallback;
-
-const getNumberList = (value: unknown, fallback: number[]) =>
-  Array.isArray(value) &&
-  value.every((item): item is number => typeof item === "number")
-    ? value
-    : fallback;
-
-const getStringRecord = (value: unknown): Record<string, string> =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-    ? Object.fromEntries(
-        Object.entries(value).filter(
-          (entry): entry is [string, string] => typeof entry[1] === "string",
-        ),
-      )
-    : {};
-
-const CM_PER_INCH = 2.54;
-const INCHES_PER_FOOT = 12;
-
-const digitsOnly = (text: string) => text.replace(/\D/g, "");
-
-const cmToFeetParts = (cmValue: string | number | null | undefined) => {
-  const cm = Number.parseInt(String(cmValue || ""), 10);
-  if (!Number.isFinite(cm) || cm <= 0) {
-    return { feet: "", inches: "" };
-  }
-
-  const totalInches = Math.round(cm / CM_PER_INCH);
-  return {
-    feet: String(Math.floor(totalInches / INCHES_PER_FOOT)),
-    inches: String(totalInches % INCHES_PER_FOOT),
-  };
-};
-
-const cmToFeetLabel = (cmValue: string | number | null | undefined) => {
-  const { feet, inches } = cmToFeetParts(cmValue);
-  if (!feet) return "";
-  return `${feet} ft ${inches || "0"} in`;
-};
-
-const feetPartsToCm = (feet: string, inches: string) => {
-  if (!feet) return "";
-
-  const parsedFeet = Number.parseInt(feet, 10);
-  const parsedInches = Number.parseInt(inches || "0", 10);
-  if (!Number.isFinite(parsedFeet) || parsedFeet <= 0) return "";
-
-  const totalInches = parsedFeet * INCHES_PER_FOOT + (parsedInches || 0);
-  return String(Math.round(totalInches * CM_PER_INCH));
-};
-
-const UsernameAvailabilityFeedback = ({
-  status,
-  message,
-  isChecking,
-}: {
-  status: UsernameAvailabilityStatus;
-  message: string;
-  isChecking: boolean;
-}) => {
-  if (!message) return null;
-
-  const style = usernameStatusStyles[status];
-
-  return (
-    <View className="mt-2 flex-row items-center gap-2">
-      {isChecking ? (
-        <ActivityIndicator size="small" color={style.color} />
-      ) : style.icon ? (
-        <Icon name={style.icon} size={16} color={style.color} />
-      ) : null}
-      <Text className="text-sm" style={{ color: style.color }}>
-        {message}
-      </Text>
-    </View>
-  );
-};
-
-const HeightInput = ({
-  value,
-  setValue,
-}: {
-  value: string | number | null | undefined;
-  setValue: (value: string) => void;
-}) => {
-  const cmValue = String(value || "");
-  const [unit, setUnit] = useState<HeightUnit>("cm");
-  const initialFeetPartsRef = useRef(cmToFeetParts(cmValue));
-  const [feet, setFeet] = useState(initialFeetPartsRef.current.feet);
-  const [inches, setInches] = useState(initialFeetPartsRef.current.inches);
-
-  const feetLabel = useMemo(() => cmToFeetLabel(cmValue), [cmValue]);
-
-  useEffect(() => {
-    if (unit !== "ft") return;
-    if (feetPartsToCm(feet, inches) === cmValue) return;
-
-    const nextParts = cmToFeetParts(cmValue);
-    setFeet(nextParts.feet);
-    setInches(nextParts.inches);
-  }, [cmValue, feet, inches, unit]);
-
-  const selectUnit = (nextUnit: HeightUnit) => {
-    if (nextUnit !== unit) {
-      triggerSelectionHaptic();
-    }
-    setUnit(nextUnit);
-    if (nextUnit === "ft") {
-      const nextParts = cmToFeetParts(cmValue);
-      setFeet(nextParts.feet);
-      setInches(nextParts.inches);
-    }
-  };
-
-  const updateCm = (text: string) => {
-    setValue(digitsOnly(text));
-  };
-
-  const updateFeet = (text: string) => {
-    const nextFeet = digitsOnly(text).slice(0, 1);
-    setFeet(nextFeet);
-    setValue(feetPartsToCm(nextFeet, inches));
-  };
-
-  const updateInches = (text: string) => {
-    const digits = digitsOnly(text).slice(0, 2);
-    const nextInches = digits
-      ? String(Math.min(Number.parseInt(digits, 10), 11))
-      : "";
-    setInches(nextInches);
-    setValue(feetPartsToCm(feet, nextInches));
-  };
-
-  return (
-    <View>
-      <Text className="mb-2 text-base font-bold text-ui-ink">
-        Choose height unit
-      </Text>
-      <View className="mb-4 flex-row rounded-full bg-ui-surface-page p-1">
-        <Pressable
-          onPress={() => selectUnit("cm")}
-          className={`min-h-11 flex-1 justify-center rounded-full py-2 ${
-            unit === "cm" ? "bg-ui-paper" : ""
-          }`}
-          accessibilityRole="button"
-          accessibilityState={{ selected: unit === "cm" }}
-        >
-          <Text
-            className={`text-center text-sm font-medium ${
-              unit === "cm" ? "text-ui-forest" : "text-ui-ink"
-            }`}
-          >
-            Centimeters
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => selectUnit("ft")}
-          className={`min-h-11 flex-1 justify-center rounded-full py-2 ${
-            unit === "ft" ? "bg-ui-paper" : ""
-          }`}
-          accessibilityRole="button"
-          accessibilityState={{ selected: unit === "ft" }}
-        >
-          <Text
-            className={`text-center text-sm font-medium ${
-              unit === "ft" ? "text-ui-forest" : "text-ui-ink"
-            }`}
-          >
-            Feet
-          </Text>
-        </Pressable>
-      </View>
-
-      {unit === "cm" ? (
-        <TextInput
-          value={cmValue}
-          action={updateCm}
-          label="Height in cm"
-          type="text"
-          placeholder="Enter your height"
-          keyboardType="number-pad"
-          helperText={
-            cmValue
-              ? `Saved as ${cmValue} cm${feetLabel ? ` (${feetLabel})` : ""}.`
-              : "Enter height between 100cm and 250cm."
-          }
-        />
-      ) : (
-        <View>
-          <View className="flex-row gap-3">
-            <View className="flex-1">
-              <TextInput
-                value={feet}
-                action={updateFeet}
-                label="Feet"
-                type="text"
-                placeholder="5"
-                keyboardType="number-pad"
-              />
-            </View>
-            <View className="flex-1">
-              <TextInput
-                value={inches}
-                action={updateInches}
-                label="Inches"
-                type="text"
-                placeholder="9"
-                keyboardType="number-pad"
-              />
-            </View>
-          </View>
-          <Text className="mt-2 text-sm leading-5 text-ui-slate">
-            {cmValue
-              ? `Saved as ${cmValue} cm. Inches should be 0-11.`
-              : "Enter feet and inches; we'll save it in centimeters."}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-};
+const GOAL_FIELDS = [
+  {
+    key: "primary",
+    label: "What's Your Primary Goal?",
+    placeholder: "My goal is...",
+    helperText:
+      "This helps us match you with like-minded people. (And won't be shown on your profile)",
+  },
+  {
+    key: "secondary",
+    label: "What's your next priority?",
+    placeholder: "My backup is...",
+    helperText:
+      "If not your primary goal, what else matters to you? (Also won't be shown on your profile)",
+  },
+  {
+    key: "tertiary",
+    label: "Any other goals or intentions?",
+    placeholder: "My backup of backup is...",
+    helperText:
+      "What's another reason you're here? (Also won't be shown on your profile)",
+  },
+];
 
 const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
   fieldType,
@@ -294,9 +83,33 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
   setValue,
   usernameAvailability,
 }) => {
-  const stringValue = getStringValue(value);
-  const stringList = getStringList(value);
-  const stringRecord = getStringRecord(value);
+  const stringValue = typeof value === "string" ? value : "";
+  const stringRecord: Record<string, string> =
+    isRecord(value)
+      ? Object.fromEntries(
+          Object.entries(value).filter(
+            (entry): entry is [string, string] => typeof entry[1] === "string",
+          ),
+        )
+      : {};
+  const textFieldConfig = TEXT_FIELD_CONFIG[fieldType];
+
+  if (textFieldConfig) {
+    const { label, placeholder } = textFieldConfig;
+    return (
+      <TextInput
+        value={stringValue}
+        action={(text) =>
+          setValue(
+            fieldType === "phoneNumber" ? text.replace(/\s+/g, "") : text,
+          )
+        }
+        label={label}
+        type="text"
+        placeholder={placeholder}
+      />
+    );
+  }
 
   switch (fieldType) {
     case "username":
@@ -327,88 +140,6 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
         </View>
       );
 
-    case "nickname":
-      return (
-        <TextInput
-          value={stringValue}
-          action={(text: string) => setValue(text)}
-          label="Nickname"
-          type="text"
-          placeholder="Enter your nickname"
-        />
-      );
-
-    case "realName":
-      return (
-        <TextInput
-          label="Real Name"
-          value={stringValue}
-          type="text"
-          action={(text: string) => setValue(text)}
-          placeholder="Enter your real name"
-        />
-      );
-
-    case "phoneNumber":
-      return (
-        <TextInput
-          label="Phone Number"
-          value={stringValue}
-          type="text"
-          action={(text: string) => {
-            const formattedValue = text.replace(/\s+/g, "");
-            setValue(formattedValue);
-          }}
-          placeholder="Enter your phone number (e.g., +917021245436)"
-        />
-      );
-    case "email":
-      return (
-        <TextInput
-          label="Email"
-          value={stringValue}
-          type="text"
-          action={(text: string) => setValue(text)}
-          placeholder="Enter your email"
-        />
-      );
-    case "web3Wallet":
-      return (
-        <TextInput
-          label="Wallet Address"
-          value={stringValue}
-          type="text"
-          action={(text: string) => setValue(text)}
-          placeholder="Enter your wallet address"
-        />
-      );
-
-    case "bloodGroup":
-      return (
-        <MultiSelectChipInput
-          label="Blood Group"
-          options={bloodTypeOptions}
-          placeholder="Select your blood group"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
-        />
-      );
-
-    case "interests":
-      return (
-        <MultiSelectChipInput
-          label="Interests"
-          options={interestOptions}
-          value={stringList}
-          max={5}
-          onChange={(options) => setValue(options)}
-          multiple
-          placeholder="What excites you the most?"
-          helperText="What excites you the most?"
-        />
-      );
-
     case "bio":
       return (
         <TextAreaInput
@@ -418,18 +149,6 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           action={(text: string) => setValue(text)}
           placeholder="A short line that sounds like you."
           helperText="Specific details beat generic bios. Give someone an easy opener."
-        />
-      );
-
-    case "gender":
-      return (
-        <MultiSelectChipInput
-          label="Gender"
-          options={genderOptions}
-          placeholder="Select your gender"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
         />
       );
 
@@ -452,147 +171,26 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
         />
       );
 
-    case "diet":
-      return (
-        <MultiSelectChipInput
-          label="Diet"
-          options={dietOptions}
-          placeholder="Select your diet"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
-        />
-      );
-
-    case "zodiacSign":
-      return (
-        <MultiSelectChipInput
-          label="Zodiac Sign"
-          options={zodiacOptions}
-          placeholder="Select your zodiac sign"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
-        />
-      );
-
     case "lifestyle":
       return (
-        <View className="gap-4">
-          <MultiSelectChipInput
-            label="Drinking Habit"
-            options={drinkingOptions}
-            placeholder="How often do you drink?"
-            value={stringRecord.drinking || ""}
-            onChange={(option) => setValue({ ...stringRecord, drinking: option })}
-            multiple={false}
-          />
-          <MultiSelectChipInput
-            label="Smoking Habit"
-            options={smokingOptions}
-            placeholder="How often do you smoke?"
-            value={stringRecord.smoking || ""}
-            onChange={(option) => setValue({ ...stringRecord, smoking: option })}
-            multiple={false}
-          />
-          <MultiSelectChipInput
-            label="Pets"
-            options={petOptions}
-            placeholder="Do you have a pet?"
-            value={stringRecord.pets || ""}
-            onChange={(option) => setValue({ ...stringRecord, pets: option })}
-            multiple={false}
-          />
-        </View>
-      );
-
-    case "work":
-      return (
-        <TextInput
-          value={stringValue}
-          action={(text: string) => setValue(text)}
-          label="Work"
-          type="text"
-          placeholder="What do you do?"
+        <SingleSelectFieldGroup
+          fields={LIFESTYLE_FIELDS}
+          options={drinkingOptions}
+          values={stringRecord}
+          onChange={(key, option) => setValue({ ...stringRecord, [key]: option })}
         />
       );
 
-    case "institution":
-      return (
-        <TextInput
-          value={stringValue}
-          action={(text: string) => setValue(text)}
-          label="Institution"
-          type="text"
-          placeholder="Where did you study?"
-        />
-      );
-
-    case "maritalStatus":
-      return (
-        <MultiSelectChipInput
-          label="Marital Status"
-          options={maritalStatusOptions}
-          placeholder="What is your marital status?"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
-        />
-      );
-
-    case "languages":
-      return (
-        <MultiSelectChipInput
-          label="Languages"
-          options={languageOptions}
-          max={5}
-          maxHeight={500}
-          value={stringList}
-          onChange={(selectedValues) => setValue(selectedValues)}
-          multiple
-          placeholder="What languages do you speak?"
-        />
-      );
-
-    case "personalityType":
-      return (
-        <MultiSelectChipInput
-          label="Personality Type"
-          options={personalityTypeOptions}
-          placeholder="What is your personality type?"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
-        />
-      );
-
-    case "religion":
-      return (
-        <MultiSelectChipInput
-          label="Religion"
-          options={religionOptions}
-          placeholder="What is your religion?"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
-        />
-      );
-    case "interestedIn":
-      return (
-        <MultiSelectChipInput
-          label="Interested In"
-          options={interestedInOptions}
-          placeholder="Select gender preferences"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
-        />
-      );
     case "ageRange":
       return (
         <RangeInput
           label="Age Range"
-          value={getNumberList(value, [18, 99])}
+          value={
+            Array.isArray(value) &&
+            value.every((item): item is number => typeof item === "number")
+              ? value
+              : [18, 99]
+          }
           onChange={(range) => setValue(range)}
           min={18}
           max={100}
@@ -608,65 +206,25 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           min={1}
           max={100}
           step={1}
-          value={getNumberValue(value, 10)}
+          value={
+            typeof value === "number" && Number.isFinite(value) ? value : 10
+          }
           unit="km"
           onChange={(val) => setValue(val)}
           helperText={"How far are you willing to go?"}
           // errorText={errors[field.name]}
         />
       );
-    case "relationshipType":
-      return (
-        <MultiSelectChipInput
-          label="Relationship Type"
-          options={relationshipTypeOptions}
-          placeholder="Select relationship type"
-          value={stringValue}
-          onChange={(option) => setValue(option)}
-          multiple={false}
-        />
-      );
-    case "zodiacPreference":
-      return (
-        <MultiSelectChipInput
-          label="Zodiac Preferences"
-          options={zodiacOptions}
-          max={5}
-          value={stringList}
-          onChange={(selectedValues) => setValue(selectedValues)}
-          multiple
-          placeholder="Select zodiac preferences"
-        />
-      );
-    case "personalityTypePreference":
-      return (
-        <MultiSelectChipInput
-          label="Personality Type Preferences"
-          options={personalityTypeOptions}
-          max={5}
-          value={stringList}
-          onChange={(selectedValues) => setValue(selectedValues)}
-          multiple
-          placeholder="Select personality type preferences"
-        />
-      );
-    case "dietPreference":
-      return (
-        <MultiSelectChipInput
-          label="Diet Preferences"
-          options={dietOptions}
-          max={5}
-          value={stringList}
-          onChange={(selectedValues) => setValue(selectedValues)}
-          multiple
-          placeholder="Select diet preferences"
-        />
-      );
     case "heightRange":
       return (
         <RangeInput
           label="Height Range (cm)"
-          value={getNumberList(value, [150, 200])}
+          value={
+            Array.isArray(value) &&
+            value.every((item): item is number => typeof item === "number")
+              ? value
+              : [150, 200]
+          }
           onChange={(range) => setValue(range)}
           min={140}
           max={220}
@@ -675,89 +233,25 @@ const FieldEditorContent: React.FC<FieldEditorContentProps> = ({
           helperText={"Select the height range you prefer."}
         />
       );
-    case "religionPreference":
-      return (
-        <MultiSelectChipInput
-          label="Religion Preferences"
-          options={religionOptions}
-          max={5}
-          value={stringList}
-          onChange={(selectedValues) => setValue(selectedValues)}
-          multiple
-          placeholder="Select religion preferences"
-        />
-      );
-    case "drinkingPreference":
-      return (
-        <MultiSelectChipInput
-          label="Drinking Preferences"
-          options={drinkingOptions}
-          max={5}
-          value={stringList}
-          onChange={(selectedValues) => setValue(selectedValues)}
-          multiple
-          placeholder="Select drinking preferences"
-        />
-      );
-    case "smokingPreference":
-      return (
-        <MultiSelectChipInput
-          label="Smoking Preferences"
-          options={smokingOptions}
-          max={5}
-          value={stringList}
-          onChange={(selectedValues) => setValue(selectedValues)}
-          multiple
-          placeholder="Select smoking preferences"
-        />
-      );
-    case "petPreference":
-      return (
-        <MultiSelectChipInput
-          label="Pet Preferences"
-          options={petOptions}
-          max={5}
-          value={stringList}
-          onChange={(selectedValues) => setValue(selectedValues)}
-          multiple
-          placeholder="Select pet preferences"
-        />
-      );
     case "goal":
       return (
-        <View className="mt-2 gap-4">
-          <MultiSelectChipInput
-            label="What's Your Primary Goal?"
-            options={goalOptions}
-            placeholder="My goal is..."
-            value={stringRecord.primary || ""}
-            onChange={(option) => setValue({ ...stringRecord, primary: option })}
-            multiple={false}
-            helperText="This helps us match you with like-minded people. (And won't be shown on your profile)"
-          />
-          <MultiSelectChipInput
-            label="What's your next priority?"
-            options={goalOptions}
-            placeholder="My backup is..."
-            value={stringRecord.secondary || ""}
-            onChange={(option) => setValue({ ...stringRecord, secondary: option })}
-            multiple={false}
-            helperText="If not your primary goal, what else matters to you? (Also won't be shown on your profile)"
-          />
-          <MultiSelectChipInput
-            label="Any other goals or intentions?"
-            options={goalOptions}
-            placeholder="My backup of backup is..."
-            value={stringRecord.tertiary || ""}
-            onChange={(option) => setValue({ ...stringRecord, tertiary: option })}
-            multiple={false}
-            helperText="What's another reason you're here? (Also won't be shown on your profile)"
-          />
-        </View>
+        <SingleSelectFieldGroup
+          className="mt-2 gap-4"
+          fields={GOAL_FIELDS}
+          options={goalOptions}
+          values={stringRecord}
+          onChange={(key, option) => setValue({ ...stringRecord, [key]: option })}
+        />
       );
 
     default:
-      return null;
+      return (
+        <ProfileOptionField
+          fieldType={fieldType}
+          value={value}
+          setValue={setValue}
+        />
+      );
   }
 };
 

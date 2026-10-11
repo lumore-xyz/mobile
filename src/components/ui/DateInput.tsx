@@ -1,4 +1,7 @@
-import { formatDate } from "@/src/utils";
+import formatDate from "@/src/utils/helpers/formatDate";
+import getDateFromAge from "@/src/utils/helpers/getDateFromAge";
+import isDateWithinAgeRange from "@/src/utils/helpers/isDateWithinAgeRange";
+import parseTypedDate from "@/src/utils/helpers/parseTypedDate";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useEffect, useMemo, useState } from "react";
 import { Platform, Pressable, Text, TextInput as RNTextInput, View } from "react-native";
@@ -16,47 +19,6 @@ interface DateInputProps {
 }
 
 const DATE_PLACEHOLDER = "DD/MM/YYYY";
-
-const parseTypedDate = (value: string): Date | null => {
-  const trimmedValue = value.trim();
-  const separatedDateMatch = trimmedValue.match(
-    /^([0-9]{1,2})[\/.-]([0-9]{1,2})[\/.-]([0-9]{4})$/,
-  );
-  const compactDateMatch = trimmedValue.match(
-    /^([0-9]{2})([0-9]{2})([0-9]{4})$/,
-  );
-  const dateMatch = separatedDateMatch || compactDateMatch;
-
-  if (!dateMatch) return null;
-
-  const day = Number(dateMatch[1]);
-  const month = Number(dateMatch[2]);
-  const year = Number(dateMatch[3]);
-  const parsedDate = new Date(year, month - 1, day);
-
-  const isValidDate =
-    parsedDate.getFullYear() === year &&
-    parsedDate.getMonth() === month - 1 &&
-    parsedDate.getDate() === day;
-
-  return isValidDate ? parsedDate : null;
-};
-
-const getDateFromAge = (age: number): Date => {
-  const today = new Date();
-  return new Date(
-    today.getFullYear() - age,
-    today.getMonth(),
-    today.getDate(),
-  );
-};
-
-const isDateWithinAgeRange = (value: Date, min: number, max: number) => {
-  const youngestAllowedDate = getDateFromAge(min);
-  const oldestAllowedDate = getDateFromAge(max);
-
-  return value <= youngestAllowedDate && value >= oldestAllowedDate;
-};
 
 const DateInput: React.FC<DateInputProps> = ({
   date = getDateFromAge(18),

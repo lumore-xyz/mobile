@@ -1,6 +1,6 @@
 import React from "react";
 import { ActivityIndicator, Image, Pressable, Text } from "react-native";
-import GOOGLE_LOGO from "@/assets/images/google.png";
+import GOOGLE_LOGO from "@/assets/images/google.webp";
 import { THEME } from "@/src/libs/constants/theme";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 

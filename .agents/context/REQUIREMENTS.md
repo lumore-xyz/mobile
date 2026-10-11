@@ -11,6 +11,9 @@ Lumore is a premium, curated matchmaking app for accomplished people seeking tho
 - Users can unlock daily Explore suggestions for one credit, view ranked profiles and match notes, and start a conversation without another charge.
 - Users can chat with matches, including media/audio-oriented chat UI.
 - Users can create posts and participate in community/location room flows.
+- Users can create Local communities with a location or Topic communities without one; both types appear in community discovery and detail views.
+- Community creators can add up to five descriptive tags from suggestions or custom labels; tags are stored and shown on community cards/details for search and future preference-based discovery.
+- Community browsing loads all public active Local and Topic communities in pages, defaults to the largest matching pool, and supports combined name/description/tag search, Local/Topic/Nearby filters, and newest/nearest/pool-size sorting.
 - Users can receive and open notifications.
 - Users can view and earn credits, including ad-backed credit flows.
 - Users can access settings, feedback, referral, games, and app-update flows.

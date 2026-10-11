@@ -11,7 +11,7 @@ Inbox has active/archive tabs, realtime invalidation on inbox updates, unread co
 ## Key Files
 
 - Routes: `src/app/chat/index.tsx`, `src/app/chat/archive.tsx`
-- Components: `Inbox`, `InboxTabs`, `UserChat`, `src/components/ui/Tabs.tsx`
+- Components: `InboxList`, `InboxSearchToolbar`, `InboxFilterSheet`, `InboxState`, `InboxSkeleton`, `ActiveFilterChip`, `UserChat`, `src/components/ui/Tabs.tsx`
 - APIs: `fetchIbox`
 
 ## Data/API Dependencies

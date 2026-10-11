@@ -11,8 +11,11 @@ Users can browse prompt categories, fetch prompts by selected categories, and cr
 ## Key Files
 
 - Route: `src/app/create-post/prompts.tsx`
+- Feature API: `src/features/posts/api.ts`
 - APIs: `fetchPromptCategories`, `fetchPromptsByCategories`, `createPromptPost`
 - Types: `src/domain/posts/types.ts`
+- Virtualized prompt list: `src/components/posts/PromptPostList.tsx`
+- Prompt row and answer composer: `src/components/posts/PromptRow.tsx`, `src/components/posts/PromptPostEditorSheet.tsx`
 
 ## Data/API Dependencies
 

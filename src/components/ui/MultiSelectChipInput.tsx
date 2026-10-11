@@ -1,12 +1,14 @@
-import React, { useCallback, useMemo } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import OptionIcon from "@/src/libs/OptionIcon";
-import type { SelectOption } from "@/src/libs/options";
+import type { SelectOption } from "@/src/libs/optionsCatalog";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
 import Icon from "@/src/libs/Icon";
 import { COLORS } from "@/src/libs/constants/theme";
 
 type MultiSelectChipOption = SelectOption;
+const MAX_SEARCH_RESULTS = 40;
+const SEARCHABLE_OPTIONS_THRESHOLD = 30;
 
 interface MultiSelectChipInputProps {
   label: string;
@@ -33,6 +35,7 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
   helperText,
   errorText,
 }) => {
+  const [searchText, setSearchText] = useState("");
   const selectedValues: string[] = useMemo(() => {
     if (multiple) {
       return Array.isArray(value) ? value : [];
@@ -45,6 +48,35 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
     () => new Set(selectedValues),
     [selectedValues],
   );
+  const isSearchable = options.length > SEARCHABLE_OPTIONS_THRESHOLD;
+  const normalizedSearch = searchText.trim().toLocaleLowerCase();
+  const selectedOptions = useMemo(
+    () => options.filter((option) => selectedValueSet.has(option.value)),
+    [options, selectedValueSet],
+  );
+  const matchingOptions = useMemo(
+    () =>
+      normalizedSearch
+        ? options.filter(
+            (option) =>
+              option.label.toLocaleLowerCase().includes(normalizedSearch) ||
+              option.value.toLocaleLowerCase().includes(normalizedSearch),
+          )
+        : [],
+    [normalizedSearch, options],
+  );
+  const visibleOptions = useMemo(() => {
+    if (!isSearchable) return options;
+    if (!normalizedSearch) return selectedOptions;
+
+    const selectedOptionValues = new Set(selectedOptions.map(({ value }) => value));
+    return [
+      ...selectedOptions,
+      ...matchingOptions
+        .filter((option) => !selectedOptionValues.has(option.value))
+        .slice(0, MAX_SEARCH_RESULTS),
+    ];
+  }, [isSearchable, matchingOptions, normalizedSearch, options, selectedOptions]);
 
   const toggleOption = useCallback(
     (optionValue: string) => {
@@ -87,8 +119,33 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
         ) : null}
       </View>
 
+      {isSearchable ? (
+        <View className="mt-3 h-11 flex-row items-center rounded-2xl border border-ui-parchment bg-ui-paper px-3">
+          <Icon name="Search" size={17} color={COLORS.slate} />
+          <TextInput
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholder="Search options"
+            placeholderTextColor={COLORS.slate}
+            className="ml-2 min-w-0 flex-1 text-sm text-ui-ink"
+            returnKeyType="search"
+            accessibilityLabel={`Search ${label.toLowerCase()} options`}
+          />
+          {searchText ? (
+            <Pressable
+              onPress={() => setSearchText("")}
+              className="h-8 w-8 items-center justify-center rounded-full"
+              accessibilityRole="button"
+              accessibilityLabel="Clear option search"
+            >
+              <Icon name="X" size={15} color={COLORS.slate} />
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+
       <ScrollView
-        className="mt-3"
+        className={isSearchable ? "mt-2" : "mt-3"}
         style={{ maxHeight }}
         nestedScrollEnabled
         scrollEnabled={options.length > 0}
@@ -96,8 +153,8 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
         keyboardShouldPersistTaps="handled"
       >
         <View className="flex-row flex-wrap gap-2">
-          {options.length ? (
-            options.map((option) => {
+          {options.length && visibleOptions.length ? (
+            visibleOptions.map((option) => {
               const isSelected = selectedValueSet.has(option.value);
               const isDisabled = Boolean(multiple && !isSelected && maxReached);
               return (
@@ -130,11 +187,22 @@ const MultiSelectChipInput: React.FC<MultiSelectChipInputProps> = ({
                 </Pressable>
               );
             })
+          ) : options.length ? (
+            <Text className="text-sm text-ui-slate">
+              {normalizedSearch
+                ? "No matching options. Try another search."
+                : "Search above to find an option."}
+            </Text>
           ) : (
             <Text className="text-sm text-ui-slate">{placeholder}</Text>
           )}
         </View>
       </ScrollView>
+      {normalizedSearch && matchingOptions.length > MAX_SEARCH_RESULTS ? (
+        <Text className="mt-2 text-xs text-ui-slate">
+          Showing the first {MAX_SEARCH_RESULTS} matches. Refine your search to see more.
+        </Text>
+      ) : null}
 
       {helperText && !errorText ? (
         <Text className="mt-3 text-sm leading-5 text-ui-slate">{helperText}</Text>

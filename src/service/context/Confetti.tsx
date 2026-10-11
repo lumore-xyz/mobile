@@ -2,6 +2,7 @@ import React, {
   createContext,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -42,6 +43,7 @@ export function ConfettiProvider({ children }: { children: React.ReactNode }) {
     setBursts([createBurst("left"), createBurst("right")]);
     timerRef.current = setTimeout(() => setBursts([]), duration);
   }, [createBurst]);
+  const contextValue = useMemo(() => ({ fireSideCannons }), [fireSideCannons]);
 
   useEffect(
     () => () => {
@@ -51,7 +53,7 @@ export function ConfettiProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <ConfettiContext.Provider value={{ fireSideCannons }}>
+    <ConfettiContext.Provider value={contextValue}>
       {children}
 
       {bursts.map((burst) => {

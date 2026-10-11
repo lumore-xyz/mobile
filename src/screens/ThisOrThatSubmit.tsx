@@ -1,11 +1,12 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import * as ImagePicker from 'expo-image-picker';
-import React, { useMemo, useState } from 'react';
-import { Image } from 'expo-image';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
+import ThisOrThatImagePickerCard from '../components/this-or-that/ThisOrThatImagePickerCard';
 import SubPageBack from '../components/headers/SubPageBack';
 import Button from '../components/ui/Button';
 import { TextInput } from '../components/ui/TextInput';
-import { submitThisOrThatQuestion } from '../libs/apis';
+import { submitThisOrThatQuestion } from '../features/this-or-that/api';
 import { COLORS } from '../libs/constants/theme';
 import Icon from '../libs/Icon';
 import {
@@ -24,16 +25,12 @@ const ThisOrThatSubmitScreen = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isSuccess = statusMessage.startsWith('Submitted');
-  const canSubmit = useMemo(
-    () =>
-      Boolean(
-        leftOption.trim() &&
-          rightOption.trim() &&
-          leftImageUri &&
-          rightImageUri &&
-          !isSubmitting,
-      ),
-    [isSubmitting, leftImageUri, leftOption, rightImageUri, rightOption],
+  const canSubmit = Boolean(
+    leftOption.trim() &&
+      rightOption.trim() &&
+      leftImageUri &&
+      rightImageUri &&
+      !isSubmitting,
   );
 
   const pickImage = async (setter: (uri: string) => void) => {
@@ -103,7 +100,7 @@ const ThisOrThatSubmitScreen = () => {
     <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="Submit Question" />
       <ScrollView className="px-4" contentContainerClassName="pb-10 pt-4">
-        <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <View className="mb-3 self-start rounded-full bg-ui-champagne px-3 py-1">
@@ -126,7 +123,7 @@ const ThisOrThatSubmitScreen = () => {
               <Icon name="GitCompareArrows" size={23} color={COLORS.paper} />
             </View>
           </View>
-        </View>
+        </SurfacePanel>
 
         <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-4">
           <View className="flex-row items-start gap-3">
@@ -199,13 +196,13 @@ const ThisOrThatSubmitScreen = () => {
           </View>
 
           <View className="gap-4 p-4">
-            <ImagePickerCard
+            <ThisOrThatImagePickerCard
               imageUri={leftImageUri}
               label="This image"
               tone="highlight"
               onPick={() => pickImage((uri) => setLeftImageUri(uri))}
             />
-            <ImagePickerCard
+            <ThisOrThatImagePickerCard
               imageUri={rightImageUri}
               label="That image"
               tone="accent"
@@ -257,81 +254,6 @@ const ThisOrThatSubmitScreen = () => {
           ) : null}
         </View>
       </ScrollView>
-    </View>
-  );
-};
-
-type ImagePickerCardProps = {
-  imageUri: string | null;
-  label: string;
-  tone: 'accent' | 'highlight';
-  onPick: () => void;
-};
-
-const ImagePickerCard = ({
-  imageUri,
-  label,
-  tone,
-  onPick,
-}: ImagePickerCardProps) => {
-  const isRose = tone === 'accent';
-  const toneColor = isRose ? COLORS.aubergine : COLORS.forest;
-
-  return (
-    <View className="overflow-hidden rounded-[26px] border border-ui-parchment bg-ui-surface-page">
-      <View className="flex-row items-center justify-between gap-3 p-4">
-        <View className="flex-row items-center gap-3">
-          <View
-            className={`h-10 w-10 items-center justify-center rounded-full ${
-              isRose ? 'bg-ui-aubergine/10' : 'bg-ui-forest/10'
-            }`}
-          >
-            <Icon name="ImagePlus" size={17} color={toneColor} />
-          </View>
-          <View>
-            <Text className="text-base font-semibold text-ui-ink">{label}</Text>
-            <Text className="mt-0.5 text-xs text-ui-slate">
-              {imageUri ? 'Tap to replace image' : 'Required image'}
-            </Text>
-          </View>
-        </View>
-        {imageUri ? (
-          <View className="rounded-full bg-ui-champagne px-3 py-1">
-            <Text className="text-xs font-bold text-ui-ink">Added</Text>
-          </View>
-        ) : null}
-      </View>
-
-      <Pressable
-        onPress={onPick}
-        className="mx-4 mb-4 overflow-hidden rounded-[22px] active:opacity-85"
-        accessibilityRole="button"
-        accessibilityLabel={`Select ${label.toLowerCase()}`}
-      >
-        {imageUri ? (
-          <Image
-            source={{ uri: imageUri }}
-            className="h-48 w-full"
-            contentFit="cover"
-          />
-        ) : (
-          <View className="h-44 items-center justify-center rounded-[22px] border border-dashed border-ui-slate/40 bg-ui-paper">
-            <View
-              className={`h-12 w-12 items-center justify-center rounded-full ${
-                isRose ? 'bg-ui-aubergine/10' : 'bg-ui-forest/10'
-              }`}
-            >
-              <Icon name="Upload" size={20} color={toneColor} />
-            </View>
-            <Text className="mt-3 text-sm font-bold text-ui-ink">
-              Tap to choose image
-            </Text>
-            <Text className="mt-1 text-center text-xs leading-4 text-ui-slate">
-              Square or portrait photos work best.
-            </Text>
-          </View>
-        )}
-      </Pressable>
     </View>
   );
 };

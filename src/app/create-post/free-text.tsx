@@ -1,11 +1,11 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import VisibilityToggle from "@/src/components/VisibilityToggle";
 import Button from "@/src/components/ui/Button";
-import { TextAreaInput } from "@/src/components/ui/TextInput";
-import { createTextPost } from "@/src/libs/apis";
+import TextAreaInput from "@/src/components/ui/TextAreaInput";
+import { createTextPost } from "@/src/features/posts/api";
+import invalidateCurrentUserPosts from "@/src/features/posts/invalidateCurrentUserPosts";
 import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
-import { queryClient } from "@/src/service/query-client";
-import { getUser } from "@/src/service/storage";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -30,12 +30,7 @@ const CreateFreeTextPost = () => {
         text: trimmedText,
         visibility,
       });
-      const currentUser = getUser();
-      if (currentUser?._id) {
-        await queryClient.invalidateQueries({
-          queryKey: ["user posts", currentUser._id],
-        });
-      }
+      await invalidateCurrentUserPosts();
       router.push("/profile");
     } catch {
       setError("Post failed. Please try again.");
@@ -52,7 +47,7 @@ const CreateFreeTextPost = () => {
         contentContainerClassName="pb-10 pt-3"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="mb-5 overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text className="text-2xl font-bold text-ui-paper">
@@ -67,9 +62,9 @@ const CreateFreeTextPost = () => {
               <Icon name="PencilLine" size={20} color={COLORS.ink} />
             </View>
           </View>
-        </View>
+        </SurfacePanel>
 
-        <View className="gap-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
+        <SurfacePanel surface="paper" className="gap-5">
           <TextAreaInput
             label="Your words"
             value={text}
@@ -106,7 +101,7 @@ const CreateFreeTextPost = () => {
             onClick={handleSubmit}
             className="rounded-full"
           />
-        </View>
+        </SurfacePanel>
       </ScrollView>
     </View>
   );

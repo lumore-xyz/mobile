@@ -1,4 +1,4 @@
-import type { LocationWritePayload } from "./apis";
+import type { LocationWritePayload } from "@/src/features/location/types";
 
 const EARTH_RADIUS_METERS = 6371000;
 const MIN_SIGNIFICANT_MOVEMENT_METERS = 100;

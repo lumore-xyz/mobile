@@ -13,6 +13,7 @@ Lumore supports email/password login, email/password signup, Google Sign-In, for
 - Routes: `src/app/login.tsx`, `src/app/signup.tsx`, `src/app/forgot-password.tsx`, `src/app/reset-password.tsx`, `src/app/set-new-password.tsx`, `src/app/guest-login.tsx`
 - Screens: `src/screens/Login.tsx`, `src/screens/Signup.tsx`, `src/screens/ForgotPassword.tsx`, `src/screens/ResetPassword.tsx`, `src/screens/SetNewPassword.tsx`
 - Services: `src/service/requests/auth.ts`, `src/service/auth-session.ts`, `src/service/google-signin.ts`, `src/service/storage.ts`, `src/service/api-client.ts`
+- Account recovery and username checks: `src/features/authentication/api.ts`
 - Components: `src/components/auth/GoogleAuthButton.tsx`, `src/components/auth/LegalAgreementText.tsx`, `src/components/VisibilityToggle.tsx`
 
 ## Data/API Dependencies

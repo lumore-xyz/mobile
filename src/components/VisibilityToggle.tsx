@@ -8,7 +8,7 @@ import {
   ActionsheetDragIndicatorWrapper,
   ActionsheetItem,
 } from "./ui/actionsheet";
-import { visibilityOptions } from "../libs/options";
+import { visibilityOptions } from "../libs/optionsCatalog";
 import { COLORS } from "../libs/constants/theme";
 import Icon from "../libs/Icon";
 import { triggerSelectionHaptic } from "../utils/haptics";

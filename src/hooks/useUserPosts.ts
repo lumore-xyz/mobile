@@ -1,11 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import apiClient from "../service/api-client";
-import type { ProfilePost } from "../domain/profile/types";
-
-const fetchUserPosts = async (userId: string) => {
-  const { data } = await apiClient.get<ProfilePost[]>(`/post/${userId}`);
-  return data;
-};
+import { fetchUserPosts } from "@/src/features/profile/api";
+import { profileQueryKeys } from "@/src/features/profile/queryKeys";
 
 export const useUserPosts = (userId: string) => {
   const {
@@ -13,7 +8,7 @@ export const useUserPosts = (userId: string) => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["user posts", userId],
+    queryKey: profileQueryKeys.posts(userId),
     queryFn: () => fetchUserPosts(userId),
     enabled: Boolean(userId),
   });

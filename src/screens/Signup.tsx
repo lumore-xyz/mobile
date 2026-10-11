@@ -1,28 +1,25 @@
 import { emailSchema, passwordSchema } from "@/src/lib/validation";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { AlertCircle } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import useGoogleAuth from "@/src/features/authentication/useGoogleAuth";
+import useCompleteAuthentication from "@/src/features/authentication/useCompleteAuthentication";
 import { GoogleAuthButton } from "../components/auth/GoogleAuthButton";
+import AuthMethodDivider from "../components/auth/AuthMethodDivider";
 import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
+import InlineErrorNotice from "../components/ui/InlineErrorNotice";
 import { TextInput } from "../components/ui/TextInput";
-import {
-  getGoogleIdToken,
-  getGoogleSignInErrorMessage,
-} from "../service/google-signin";
-import { useOneSignal } from "../service/providers/OneSignalProvider";
 import useAuth from "../service/requests/auth";
-import { getIsOnboarded, getUser } from "../service/storage";
-import { THEME } from "../libs/constants/theme";
+import { getUser } from "../service/storage";
 import { triggerSelectionHaptic } from "../utils/haptics";
 import { toUserFacingError } from "../utils/userFacingError";
 
 const SignupScreen = () => {
   const router = useRouter();
-  const { loginWithGoogle, signupWithCredentials } = useAuth();
-  const { checkNotificationPermission } = useOneSignal();
+  const { signupWithCredentials } = useAuth();
+  const completeAuthentication = useCompleteAuthentication();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,10 +30,8 @@ const SignupScreen = () => {
   const signupMutation = useMutation({
     mutationFn: signupWithCredentials,
     onSuccess: async () => {
-      await checkNotificationPermission(true);
       const user = getUser();
-      const isOnboarded = Boolean(getIsOnboarded(user?._id || ""));
-      router.replace(isOnboarded ? "/explore" : "/(onboarding)/onboarding");
+      await completeAuthentication(user?._id || "");
     },
     onError: (error: unknown) => {
       const message = toUserFacingError(
@@ -47,25 +42,7 @@ const SignupScreen = () => {
     },
   });
 
-  const googleSignupMutation = useMutation({
-    mutationFn: async () => {
-      const idToken = await getGoogleIdToken();
-      if (!idToken) return null;
-      return loginWithGoogle(idToken);
-    },
-    onSuccess: async (user) => {
-      if (!user) return;
-      await checkNotificationPermission(true);
-      const isOnboarded = Boolean(getIsOnboarded(user?._id || user?.id || ""));
-      router.replace(isOnboarded ? "/explore" : "/(onboarding)/onboarding");
-    },
-    onError: (error: unknown) => {
-      const message = getGoogleSignInErrorMessage(error);
-      if (message) {
-        setApiError(message);
-      }
-    },
-  });
+  const googleSignupMutation = useGoogleAuth(setApiError);
 
   const validate = () => {
     setEmailError("");
@@ -159,17 +136,7 @@ const SignupScreen = () => {
           errorText={passwordError}
         />
 
-        {apiError ? (
-          <View
-            accessibilityRole="alert"
-            className="flex-row gap-2 rounded-2xl bg-ui-danger/10 p-3"
-          >
-            <AlertCircle size={18} color={THEME.action.destructive} />
-            <Text className="flex-1 text-sm leading-5 text-ui-danger">
-              {apiError}
-            </Text>
-          </View>
-        ) : null}
+        <InlineErrorNotice message={apiError} />
 
         <Button
           text={isSubmitting ? "Creating..." : "Create Account"}
@@ -177,11 +144,7 @@ const SignupScreen = () => {
           disabled={isSubmitting}
         />
 
-        <View className="flex-row items-center gap-3">
-          <View className="h-px flex-1 bg-ui-ink/10" />
-          <Text className="text-xs text-ui-ink/60">or</Text>
-          <View className="h-px flex-1 bg-ui-ink/10" />
-        </View>
+        <AuthMethodDivider />
 
         <GoogleAuthButton
           text="Sign up with Google"

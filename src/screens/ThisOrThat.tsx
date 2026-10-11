@@ -1,11 +1,14 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import ThisOrThatChoiceCard from '../components/this-or-that/ThisOrThatChoiceCard';
+import ThisOrThatLoadingSkeleton from '../components/this-or-that/ThisOrThatLoadingSkeleton';
 import SubPageBack from '../components/headers/SubPageBack';
 import Button from '../components/ui/Button';
-import Skeleton from '../components/ui/Skeleton';
-import { fetchThisOrThatQuestions, submitThisOrThatAnswer } from '../libs/apis';
+import { fetchThisOrThatQuestions, submitThisOrThatAnswer } from '../features/this-or-that/api';
+import { thisOrThatQueryKeys } from '../features/this-or-that/queryKeys';
 import { COLORS } from '../libs/constants/theme';
 import Icon from '../libs/Icon';
 import { triggerLightImpactHaptic, triggerSelectionHaptic } from '../utils/haptics';
@@ -16,7 +19,7 @@ const ThisOrThatScreen = () => {
   const [localTotal, setLocalTotal] = useState(0);
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['this-or-that', 'questions'],
+    queryKey: thisOrThatQueryKeys.questions,
     queryFn: () => fetchThisOrThatQuestions(20),
   });
 
@@ -34,10 +37,9 @@ const ThisOrThatScreen = () => {
     setLocalTotal(0);
   }, [data]);
 
-  const progress = useMemo(() => {
-    if (!total) return 0;
-    return Math.min(Math.round(((index + 1) / total) * 100), 100);
-  }, [index, total]);
+  const progress = total
+    ? Math.min(Math.round(((index + 1) / total) * 100), 100)
+    : 0;
 
   const handleChoice = async (selection: 'left' | 'right') => {
     if (!current || isPending) return;
@@ -61,7 +63,7 @@ const ThisOrThatScreen = () => {
     <View className="flex-1 bg-ui-surface-page">
       <SubPageBack title="This Or That" />
       <ScrollView className="px-4" contentContainerClassName="pb-10 pt-4">
-        <View className="overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <View className="mb-3 self-start rounded-full bg-ui-champagne px-3 py-1">
@@ -105,7 +107,7 @@ const ThisOrThatScreen = () => {
               <Icon name="Plus" size={16} color={COLORS.ink} />
             </Pressable>
           </View>
-        </View>
+        </SurfacePanel>
 
         <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-4">
           <View className="flex-row items-center justify-between gap-3">
@@ -201,7 +203,7 @@ const ThisOrThatScreen = () => {
             </View>
 
             <View className="gap-3 p-4">
-              <ChoiceCard
+              <ThisOrThatChoiceCard
                 accent="highlight"
                 disabled={isPending}
                 imageUrl={current.leftImageUrl}
@@ -210,7 +212,7 @@ const ThisOrThatScreen = () => {
                 onPress={() => handleChoice('left')}
               />
 
-              <ChoiceCard
+              <ThisOrThatChoiceCard
                 accent="accent"
                 disabled={isPending}
                 imageUrl={current.rightImageUrl}
@@ -245,112 +247,5 @@ const ThisOrThatScreen = () => {
     </View>
   );
 };
-
-type ChoiceCardProps = {
-  accent: 'accent' | 'highlight';
-  disabled: boolean;
-  imageUrl?: string;
-  label: string;
-  sideLabel: string;
-  onPress: () => void;
-};
-
-const ChoiceCard = ({
-  accent,
-  disabled,
-  imageUrl,
-  label,
-  sideLabel,
-  onPress,
-}: ChoiceCardProps) => {
-  const isRose = accent === 'accent';
-  const iconColor = isRose ? COLORS.aubergine : COLORS.forest;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      className="min-h-[104px] overflow-hidden rounded-[26px] border border-ui-parchment bg-ui-surface-page active:opacity-85 disabled:opacity-60"
-      accessibilityRole="button"
-      accessibilityLabel={`Choose ${label}`}
-      accessibilityState={{ disabled }}
-    >
-      {imageUrl ? (
-        <Image
-          source={{ uri: imageUrl }}
-          className="h-44 w-full"
-          resizeMode="cover"
-        />
-      ) : null}
-      <View className="p-4">
-        <View className="flex-row items-start justify-between gap-3">
-          <View
-            className={`rounded-full px-3 py-1 ${
-              isRose ? 'bg-ui-aubergine/10' : 'bg-ui-forest/10'
-            }`}
-          >
-            <Text
-              className={`text-xs font-semibold ${
-                isRose ? 'text-ui-aubergine' : 'text-ui-forest'
-              }`}
-            >
-              {sideLabel}
-            </Text>
-          </View>
-          <View
-            className={`h-10 w-10 items-center justify-center rounded-full ${
-              isRose ? 'bg-ui-aubergine/10' : 'bg-ui-forest/10'
-            }`}
-          >
-            <Icon name="Heart" size={17} color={iconColor} />
-          </View>
-        </View>
-        <Text className="mt-4 text-xl font-semibold leading-7 text-ui-ink">
-          {label}
-        </Text>
-        <View className="mt-4 flex-row items-center gap-2">
-          <Text
-            className={`text-sm font-bold ${
-              isRose ? 'text-ui-aubergine' : 'text-ui-forest'
-            }`}
-          >
-            Choose this
-          </Text>
-          <Icon name="ArrowRight" size={16} color={iconColor} />
-        </View>
-      </View>
-    </Pressable>
-  );
-};
-
-const ThisOrThatLoadingSkeleton = () => (
-  <View className="mt-5 overflow-hidden rounded-[24px] bg-ui-paper">
-    <View className="bg-ui-forest/10 p-5">
-      <View className="flex-row items-center justify-between">
-        <Skeleton width={96} height={28} radius={999} />
-        <Skeleton width={58} height={12} />
-      </View>
-      <Skeleton width="55%" height={12} style={{ marginTop: 22 }} />
-      <Skeleton width="90%" height={24} style={{ marginTop: 8 }} />
-    </View>
-
-    <View className="gap-3 p-4">
-      <View className="rounded-[26px] border border-ui-parchment bg-ui-surface-page p-4">
-        <Skeleton width={74} height={24} radius={999} />
-        <Skeleton width="78%" height={22} style={{ marginTop: 20 }} />
-        <Skeleton width={96} height={16} style={{ marginTop: 18 }} />
-      </View>
-      <View className="rounded-[26px] border border-ui-parchment bg-ui-surface-page p-4">
-        <Skeleton width={74} height={24} radius={999} />
-        <Skeleton width="74%" height={22} style={{ marginTop: 20 }} />
-        <Skeleton width={96} height={16} style={{ marginTop: 18 }} />
-      </View>
-    </View>
-
-    <View className="border-t border-ui-parchment/70 px-4 py-4">
-      <Skeleton width="100%" height={48} radius={999} />
-    </View>
-  </View>
-);
 
 export default ThisOrThatScreen;

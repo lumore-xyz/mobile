@@ -12,6 +12,7 @@ Users can view referral summary, apply a referral code, generate/share referral 
 
 - Route: `src/app/(subpage)/referral.tsx`
 - Screen: `src/screens/Referral.tsx`
+- Feature API: `src/features/referrals/api.ts`
 - Service: `src/service/referralAttribution.ts`
 - Provider: `src/service/providers/ReferralAttributionProvider.tsx`
 - Storage: pending referral helpers in `src/service/storage.ts`

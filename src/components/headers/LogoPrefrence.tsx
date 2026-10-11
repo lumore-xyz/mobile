@@ -4,7 +4,7 @@ import { Image, Pressable, View } from "react-native";
 
 import Icon from "@/src/libs/Icon";
 import NotificationBell from "../notifications/NotificationBell";
-import LUMORE_WORDMARK from "@/assets/images/lumore-hr.png";
+import LUMORE_WORDMARK from "@/assets/images/lumore-hr.webp";
 
 const LogoPrefrence = () => {
   return (

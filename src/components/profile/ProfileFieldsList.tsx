@@ -1,7 +1,8 @@
-import Icon from "@/src/libs/Icon";
 import { languageDisplay } from "@/src/utils/helpers/languageDisplay";
-import React from "react";
+import React, { useMemo } from "react";
 import { Text, View } from "react-native";
+import SectionHeading from "./SectionHeading";
+import LifestyleChip from "./LifestyleChip";
 import ProfileField from "./ProfileField";
 import type { ProfileUser } from "@/src/domain/profile/types";
 
@@ -26,30 +27,23 @@ interface Section {
   fields: SectionField[];
 }
 
-const sectionIconByTitle: Record<string, string> = {
-  Basics: "UserRound",
-  About: "MessageCircleHeart",
-  Details: "BadgeInfo",
-  Lifestyle: "Sparkles",
-  Background: "BriefcaseBusiness",
-};
-
 const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
   user,
   onEdit,
   onVisibilityChange,
 }) => {
-  const interests = user?.interests?.join(", ");
-  const languages =
-    Array.isArray(user?.languages) && user?.languages?.length
-      ? languageDisplay(user.languages)?.join(", ")
-      : undefined;
+  const sections = useMemo<Section[]>(() => {
+    const interests = user?.interests?.join(", ");
+    const languages =
+      Array.isArray(user?.languages) && user.languages.length
+        ? languageDisplay(user.languages)?.join(", ")
+        : undefined;
 
-  const sections: Section[] = [
+    return [
     {
       title: "Basics",
       description: "Help people recognize you quickly.",
-      icon: sectionIconByTitle.Basics,
+      icon: "UserRound",
       fields: [
         { label: "Username", field: "username", value: user?.username },
         { label: "Nickname", field: "nickname", value: user?.nickname },
@@ -59,7 +53,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "About",
       description: "Share a little about yourself.",
-      icon: sectionIconByTitle.About,
+      icon: "MessageCircleHeart",
       fields: [
         { label: "Bio", field: "bio", value: user?.bio },
         { label: "Interests", field: "interests", value: interests },
@@ -68,7 +62,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "Details",
       description: "Personal details you can control visibility for.",
-      icon: sectionIconByTitle.Details,
+      icon: "BadgeInfo",
       fields: [
         { label: "Gender", field: "gender", value: user?.gender },
         {
@@ -107,7 +101,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "Lifestyle",
       description: "Lifestyle helps build better matches.",
-      icon: sectionIconByTitle.Lifestyle,
+      icon: "Sparkles",
       fields: [
         {
           label: "Diet",
@@ -132,7 +126,7 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
     {
       title: "Background",
       description: "Education, work, and languages.",
-      icon: sectionIconByTitle.Background,
+      icon: "BriefcaseBusiness",
       fields: [
         {
           label: "Work",
@@ -160,7 +154,8 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
         },
       ],
     },
-  ];
+    ];
+  }, [user]);
 
   return (
     <>
@@ -169,29 +164,24 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
           key={section.title}
           className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-4"
         >
-          <View className="mb-1 flex-row items-start gap-3">
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
-              <Icon name={section.icon} size={18} />
-            </View>
-            <View className="flex-1">
-              <Text className="text-xl font-bold text-ui-ink">
-                {section.title}
-              </Text>
-              <Text className="mt-1 text-sm leading-5 text-ui-slate">
-                {section.description}
-              </Text>
-            </View>
+          <View className="mb-1">
+            <SectionHeading
+              title={section.title}
+              subtitle={section.description}
+              icon={section.icon}
+            />
           </View>
-          {section.fields.map((field) =>
-            field.custom ? (
-              <ProfileField
-                key={field.field}
-                label={field.label}
-                field={field.field}
-                onEdit={onEdit}
-                visibility={field.visibility}
-                onVisibilityChange={onVisibilityChange}
-              >
+          {section.fields.map((field) => (
+            <ProfileField
+              key={field.field}
+              label={field.label}
+              field={field.field}
+              value={field.custom ? undefined : field.value}
+              onEdit={onEdit}
+              visibility={field.visibility}
+              onVisibilityChange={onVisibilityChange}
+            >
+              {field.custom ? (
                 <View className="mt-1 flex-row flex-wrap gap-2">
                   {user?.lifestyle?.drinking ? (
                     <LifestyleChip icon="Beer" label={user.lifestyle.drinking} />
@@ -211,30 +201,13 @@ const ProfileFieldsList: React.FC<ProfileFieldsListProps> = ({
                     <Text className="text-base text-ui-slate">Not set yet</Text>
                   ) : null}
                 </View>
-              </ProfileField>
-            ) : (
-              <ProfileField
-                key={field.field}
-                label={field.label}
-                field={field.field}
-                value={field.value}
-                onEdit={onEdit}
-                visibility={field.visibility}
-                onVisibilityChange={onVisibilityChange}
-              />
-            )
-          )}
+              ) : null}
+            </ProfileField>
+          ))}
         </View>
       ))}
     </>
   );
 };
-
-const LifestyleChip = ({ icon, label }: { icon: string; label: string }) => (
-  <View className="flex-row items-center gap-1.5 rounded-full bg-ui-forest/10 px-3 py-1.5">
-    <Icon name={icon} size={14} />
-    <Text className="text-sm font-medium text-ui-ink">{label}</Text>
-  </View>
-);
 
 export default ProfileFieldsList;

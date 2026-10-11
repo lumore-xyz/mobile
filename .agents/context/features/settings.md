@@ -12,6 +12,8 @@ Settings groups links for edit profile, edit preferences, user settings, credits
 
 - Route: `src/app/(subpage)/settings.tsx`
 - Screen: `src/screens/Settings.tsx`
+- Account detail screen: `src/screens/EditUserSettings.tsx`
+- Account setting rows and shared section/navigation components: `src/components/settings/AccountSettingRow.tsx`, `src/components/settings/SettingsSection.tsx`, `src/components/settings/SettingsNavigationItem.tsx`
 - Component: `src/components/headers/SubPageBack.tsx`
 - Auth logout support: `src/service/requests/auth.ts`
 

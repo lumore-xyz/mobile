@@ -1,12 +1,12 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import VisibilityToggle from "@/src/components/VisibilityToggle";
 import Button from "@/src/components/ui/Button";
-import { TextAreaInput } from "@/src/components/ui/TextInput";
+import TextAreaInput from "@/src/components/ui/TextAreaInput";
 import { useMediaPermisions } from "@/src/hooks/useMediaPermision";
-import { createImagePost } from "@/src/libs/apis";
+import { createImagePost } from "@/src/features/posts/api";
+import invalidateCurrentUserPosts from "@/src/features/posts/invalidateCurrentUserPosts";
 import { COLORS } from "@/src/libs/constants/theme";
 import Icon from "@/src/libs/Icon";
-import { queryClient } from "@/src/service/query-client";
-import { getUser } from "@/src/service/storage";
 import { toUserFacingError } from "@/src/utils/userFacingError";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -35,12 +35,7 @@ const CreateImagePost = () => {
         caption: trimmedCaption,
         visibility,
       });
-      const currentUser = getUser();
-      if (currentUser?._id) {
-        await queryClient.invalidateQueries({
-          queryKey: ["user posts", currentUser._id],
-        });
-      }
+      await invalidateCurrentUserPosts();
       router.push("/profile");
     } catch (err: unknown) {
       setError(
@@ -62,7 +57,7 @@ const CreateImagePost = () => {
         contentContainerClassName="pb-10 pt-3"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="mb-5 overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text className="text-2xl font-bold text-ui-paper">
@@ -77,9 +72,9 @@ const CreateImagePost = () => {
               <Icon name="ImagePlus" size={20} color={COLORS.ink} />
             </View>
           </View>
-        </View>
+        </SurfacePanel>
 
-        <View className="gap-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
+        <SurfacePanel surface="paper" className="gap-5">
           <View className="rounded-[24px] border border-ui-parchment bg-ui-ink/5 p-4">
             <View className="flex-row items-center justify-between gap-3">
               <View className="flex-1">
@@ -166,7 +161,7 @@ const CreateImagePost = () => {
             onClick={handleSubmit}
             className="rounded-full"
           />
-        </View>
+        </SurfacePanel>
       </ScrollView>
     </View>
   );

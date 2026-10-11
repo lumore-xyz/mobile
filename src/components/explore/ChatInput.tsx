@@ -1,5 +1,16 @@
+import type {
+  ChatReplyPreview,
+  ChatRoom,
+  PendingChatImage,
+} from "@/src/domain/chat/types";
+import getChatMessageTypeLabel from "@/src/domain/chat/getChatMessageTypeLabel";
+import { COLORS } from "@/src/libs/constants/theme";
+import Icon from "@/src/libs/Icon";
+import {
+  triggerLightImpactHaptic,
+  triggerSelectionHaptic,
+} from "@/src/utils/haptics";
 import React from "react";
-import { Image } from "expo-image";
 import {
   ActivityIndicator,
   Pressable,
@@ -7,30 +18,10 @@ import {
   TextInput,
   View,
 } from "react-native";
-import {
-  triggerLightImpactHaptic,
-  triggerSelectionHaptic,
-} from "@/src/utils/haptics";
-import Icon from "@/src/libs/Icon";
-import { COLORS } from "@/src/libs/constants/theme";
-import type { ChatRoom } from "@/src/domain/chat/types";
-import { AudioWaveform } from "./AudioWaveform";
-
-interface ReplyingToPreview {
-  _id: string;
-  senderId: string;
-  messageType: "text" | "image" | "audio";
-  message: string;
-  imageUrl?: string | null;
-  audioUrl?: string | null;
-  audioDurationMs?: number | null;
-}
-
-interface PendingImage {
-  previewUrl: string;
-  imagePublicId: string | null;
-  uploading: boolean;
-}
+import ChatComposerNotice from "./ChatComposerNotice";
+import ChatUploadErrorNotice from "./ChatUploadErrorNotice";
+import PendingChatImagePreview from "./PendingChatImagePreview";
+import VoiceRecordingControls from "./VoiceRecordingControls";
 
 interface ChatInputProps {
   value: string;
@@ -48,24 +39,17 @@ interface ChatInputProps {
   isRecordingVoice: boolean;
   recordingDurationMs: number;
   recordingWaveform: number[];
-  replyingTo: ReplyingToPreview | null;
+  replyingTo: ChatReplyPreview | null;
   onCancelReply: () => void;
   isEditing: boolean;
   onCancelEdit: () => void;
-  pendingImage: PendingImage | null;
+  pendingImage: PendingChatImage | null;
   uploadError?: string | null;
   onDismissUploadError: () => void;
   onStartVoiceRecording: () => void;
   onStopVoiceRecording: () => void;
   onCancelVoiceRecording: () => void;
 }
-
-const formatVoiceDuration = (durationMs: number) => {
-  const totalSeconds = Math.max(0, Math.floor(durationMs / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-};
 
 const ChatInput = React.memo(function ChatInput({
   value,
@@ -152,88 +136,39 @@ const ChatInput = React.memo(function ChatInput({
   return (
     <View className="w-full border-t border-ui-parchment bg-ui-paper px-3 pb-3 pt-2">
       {replyingTo ? (
-        <View className="mb-2 flex-row items-center justify-between rounded-2xl bg-ui-forest/5 px-3 py-2">
-          <Text className="flex-1 text-xs leading-4 text-ui-ink" numberOfLines={2}>
-            Replying:{" "}
-            {replyingTo.messageType === "image"
-              ? "Photo"
-              : replyingTo.messageType === "audio"
-                ? "Voice note"
-              : replyingTo.message || "Message"}
-          </Text>
-          <Pressable
-            onPress={() => {
-              triggerSelectionHaptic();
-              onCancelReply();
-            }}
-            className="min-h-11 justify-center rounded-full px-2 active:opacity-70"
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Cancel reply"
-          >
-            <Text className="text-xs font-medium text-ui-slate">Cancel</Text>
-          </Pressable>
-        </View>
+        <ChatComposerNotice
+          message={`Replying: ${
+            getChatMessageTypeLabel(replyingTo.messageType) ||
+            replyingTo.message ||
+            "Message"
+          }`}
+          cancelLabel="Cancel"
+          accessibilityLabel="Cancel reply"
+          onCancel={onCancelReply}
+        />
       ) : null}
 
       {isEditing ? (
-        <View className="mb-2 flex-row items-center justify-between rounded-2xl bg-ui-forest/5 px-3 py-2">
-          <Text className="text-xs text-ui-ink">Editing message</Text>
-          <Pressable
-            onPress={() => {
-              triggerSelectionHaptic();
-              onCancelEdit();
-            }}
-            className="min-h-11 justify-center rounded-full px-2 active:opacity-70"
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Cancel message editing"
-          >
-            <Text className="text-xs font-medium text-ui-slate">Cancel</Text>
-          </Pressable>
-        </View>
+        <ChatComposerNotice
+          message="Editing message"
+          cancelLabel="Cancel"
+          accessibilityLabel="Cancel message editing"
+          onCancel={onCancelEdit}
+        />
       ) : null}
 
       {isRecordingVoice ? (
-        <View className="mb-2 flex-row items-center gap-3 rounded-2xl bg-ui-forest px-3 py-2">
-          <Pressable
-            onPress={() => {
-              triggerSelectionHaptic();
-              onCancelVoiceRecording();
-            }}
-            className="min-h-11 justify-center"
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Cancel voice recording"
-          >
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-paper">
-              <Icon name="Trash" size={20} color={COLORS.forest} />
-            </View>
-          </Pressable>
-          <View className="flex-1">
-            <AudioWaveform
-              samples={recordingWaveform}
-              seed={`recording-${recordingDurationMs}`}
-              barCount={42}
-              height={38}
-              barWidth={3}
-              gap={4}
-              activeColor={COLORS.paper}
-              inactiveColor={`${COLORS.paper}E6`}
-            />
-          </View>
-          <Text className="w-12 text-right text-base text-ui-paper">
-            {formatVoiceDuration(recordingDurationMs)}
-          </Text>
-        </View>
+        <VoiceRecordingControls
+          durationMs={recordingDurationMs}
+          waveform={recordingWaveform}
+          onCancel={onCancelVoiceRecording}
+        />
       ) : null}
 
       {isUploadingVoice ? (
         <View className="mb-2 flex-row items-center gap-2 rounded-xl bg-ui-forest/5 px-3 py-2">
           <ActivityIndicator size="small" color={COLORS.forest} />
-          <Text className="text-xs text-ui-ink">
-            Uploading voice note...
-          </Text>
+          <Text className="text-xs text-ui-ink">Uploading voice note...</Text>
         </View>
       ) : null}
 
@@ -276,9 +211,7 @@ const ChatInput = React.memo(function ChatInput({
           editable={isActive && !isRecordingVoice && !isUploadingVoice}
           returnKeyType="send"
           blurOnSubmit={false}
-          onSubmitEditing={() => {
-            handleSend();
-          }}
+          onSubmitEditing={handleSend}
           accessibilityLabel="Message input"
         />
 
@@ -297,7 +230,7 @@ const ChatInput = React.memo(function ChatInput({
             }}
           >
             <View
-              className={`h-11 w-11 rounded-full items-center justify-center ${
+              className={`h-11 w-11 items-center justify-center rounded-full ${
                 isRecordingVoice ? "bg-ui-danger" : "bg-ui-forest/10"
               }`}
             >
@@ -316,9 +249,7 @@ const ChatInput = React.memo(function ChatInput({
           disabled={!canSend}
           hitSlop={4}
           accessibilityRole="button"
-          accessibilityLabel={
-            isEditing ? "Save edited message" : "Send message"
-          }
+          accessibilityLabel={isEditing ? "Save edited message" : "Send message"}
           accessibilityState={{ disabled: !canSend }}
         >
           <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest">
@@ -328,59 +259,17 @@ const ChatInput = React.memo(function ChatInput({
       </View>
 
       {pendingImage ? (
-        <View className="mt-2 rounded-[24px] border border-ui-parchment bg-ui-surface-page p-3">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-xs text-ui-ink">
-              {pendingImage.uploading ? "Uploading..." : ""}
-            </Text>
-            <Pressable
-              onPress={() => {
-                triggerSelectionHaptic();
-                onDiscardSelectedImage();
-              }}
-              className="min-h-11 justify-center rounded-full px-2 active:opacity-70"
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="Remove selected image"
-            >
-              <Text className="text-xs font-medium text-ui-slate">Remove</Text>
-            </Pressable>
-          </View>
-
-          <View className="relative w-36 h-36">
-            <Image
-              source={{ uri: pendingImage.previewUrl }}
-              className="h-36 w-36 rounded-2xl"
-              contentFit="cover"
-            />
-            {pendingImage.uploading ? (
-              <View className="absolute inset-0 items-center justify-center rounded-2xl bg-ui-ink/40">
-                <ActivityIndicator size="small" color={COLORS.paper} />
-              </View>
-            ) : null}
-          </View>
-        </View>
+        <PendingChatImagePreview
+          image={pendingImage}
+          onRemove={onDiscardSelectedImage}
+        />
       ) : null}
 
       {uploadError ? (
-        <View className="mt-2 flex-row items-center gap-3 rounded-2xl bg-ui-danger/5 px-3 py-2" accessibilityLiveRegion="assertive">
-          <Icon name="CircleAlert" size={18} color={COLORS.danger} />
-          <Text className="flex-1 text-xs leading-4 text-ui-danger">
-            {uploadError}
-          </Text>
-          <Pressable
-            onPress={() => {
-              triggerSelectionHaptic();
-              onDismissUploadError();
-            }}
-            className="min-h-11 justify-center rounded-full px-2 active:opacity-70"
-            hitSlop={8}
-          >
-            <Text className="text-xs font-medium text-ui-ink/70">
-              Dismiss
-            </Text>
-          </Pressable>
-        </View>
+        <ChatUploadErrorNotice
+          message={uploadError}
+          onDismiss={onDismissUploadError}
+        />
       ) : null}
     </View>
   );

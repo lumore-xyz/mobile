@@ -3,7 +3,7 @@ import React from "react";
 import { Image, Pressable, View } from "react-native";
 import Icon from "@/src/libs/Icon";
 import { triggerSelectionHaptic } from "@/src/utils/haptics";
-import LUMORE_WORDMARK from "@/assets/images/lumore-hr.png";
+import LUMORE_WORDMARK from "@/assets/images/lumore-hr.webp";
 
 const LogoPrefrenceSetting = () => {
   return (

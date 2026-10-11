@@ -1,10 +1,13 @@
+import SurfacePanel from "@/src/components/ui/SurfacePanel";
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, ScrollView, Text, View } from "react-native";
+import AccountSettingRow from "@/src/components/settings/AccountSettingRow";
+import SettingsSection from "@/src/components/settings/SettingsSection";
 import SubPageBack from "../components/headers/SubPageBack";
 import FieldEditorSheet from "../components/profile/FieldEditorSheet";
 import Button from "../components/ui/Button";
 import { useUser } from "../hooks/useUser";
-import { deleteAccount, updateUserData } from "../libs/apis";
+import { deleteAccount, updateUserData } from "@/src/features/profile/api";
 import { COLORS } from "../libs/constants/theme";
 import Icon from "../libs/Icon";
 import useAuth from "../service/requests/auth";
@@ -142,7 +145,7 @@ const EditUserSettingsScreen = () => {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <View className="mb-5 overflow-hidden rounded-[24px] bg-ui-midnight p-5">
+        <SurfacePanel surface="midnight" className="mb-5 overflow-hidden">
           <View className="flex-row items-start justify-between gap-4">
             <View className="flex-1">
               <Text
@@ -159,9 +162,9 @@ const EditUserSettingsScreen = () => {
               <Icon name="ShieldCheck" size={20} color={COLORS.ink} />
             </View>
           </View>
-        </View>
+        </SurfacePanel>
 
-        <SettingsPanel
+        <SettingsSection
           title="Contact"
           description="These details help secure your account and keep you reachable."
           icon="AtSign"
@@ -176,9 +179,9 @@ const EditUserSettingsScreen = () => {
             value={user?.phoneNumber}
             onEdit={() => handleEditField("phoneNumber")}
           />
-        </SettingsPanel>
+        </SettingsSection>
 
-        <SettingsPanel
+        <SettingsSection
           title="Wallet"
           description="Connect a wallet if you want to use Web3-linked rewards later."
           icon="Wallet"
@@ -188,9 +191,9 @@ const EditUserSettingsScreen = () => {
             value={settings.web3Wallet.addresses[0]}
             onEdit={() => handleEditField("web3Wallet")}
           />
-        </SettingsPanel>
+        </SettingsSection>
 
-        <View className="mt-5 rounded-[24px] border border-ui-parchment bg-ui-paper p-5">
+        <SurfacePanel surface="paper" className="mt-5">
           <View className="flex-row items-start gap-3">
             <View className="h-11 w-11 items-center justify-center rounded-full bg-ui-forest/10">
               <Icon name="LogOut" size={19} color={COLORS.forest} />
@@ -213,7 +216,7 @@ const EditUserSettingsScreen = () => {
             }}
             className="mt-4"
           />
-        </View>
+        </SurfacePanel>
 
         <View className="mt-5 rounded-[24px] border border-ui-danger/25 bg-ui-danger/5 p-5">
           <View className="flex-row items-start gap-3">
@@ -240,64 +243,5 @@ const EditUserSettingsScreen = () => {
     </View>
   );
 };
-
-const SettingsPanel = ({
-  title,
-  description,
-  icon,
-  children,
-}: {
-  title: string;
-  description: string;
-  icon: string;
-  children: React.ReactNode;
-}) => (
-  <View className="mt-8">
-    <View className="mb-2 flex-row items-start gap-3">
-      <View className="h-10 w-10 items-center justify-center rounded-full bg-ui-forest/10">
-        <Icon name={icon} size={18} color={COLORS.forest} />
-      </View>
-      <View className="flex-1">
-        <Text className="text-xl font-bold text-ui-ink">{title}</Text>
-        <Text className="mt-1 text-sm leading-5 text-ui-slate">
-          {description}
-        </Text>
-      </View>
-    </View>
-    {children}
-  </View>
-);
-
-const AccountSettingRow = ({
-  label,
-  value,
-  onEdit,
-}: {
-  label: string;
-  value?: string;
-  onEdit: () => void;
-}) => (
-  <View className="border-b border-ui-parchment">
-    <Pressable
-      onPress={onEdit}
-      className="min-h-[68px] flex-row items-center justify-between gap-4 py-3 active:opacity-70"
-      accessibilityRole="button"
-      accessibilityLabel={`Edit ${label}`}
-    >
-      <View className="flex-1">
-        <Text className="text-[13px] font-medium text-ui-slate">{label}</Text>
-        <Text
-          className={`mt-1 text-base leading-6 ${value ? "text-ui-ink" : "text-ui-forest"}`}
-          numberOfLines={1}
-        >
-          {value || `Add ${label.toLowerCase()}`}
-        </Text>
-      </View>
-      <View className="h-9 w-9 items-center justify-center rounded-full bg-ui-forest/5">
-        <Icon name="ChevronRight" size={17} />
-      </View>
-    </Pressable>
-  </View>
-);
 
 export default EditUserSettingsScreen;

@@ -11,8 +11,11 @@ Users can edit profile fields, update profile image, change visibility per field
 ## Key Files
 
 - Screens: `src/screens/EditProfile.tsx`, `src/screens/EditUserSettings.tsx`
+- Loading states: `src/components/profile/EditProfileSkeleton.tsx`, `src/components/profile/EditPreferenceSkeleton.tsx`
 - Components: `src/components/profile/ProfileImagePicker.tsx`, `src/components/profile/FieldEditorSheet.tsx`, `src/components/profile/FieldEditorContent.tsx`, `src/components/profile/ProfileFieldsList.tsx`, `src/components/profile/ProfileField.tsx`
+- Shared multi-select fields use `src/components/ui/MultiSelectChipInput.tsx`; large option sets are searchable and render a bounded result list.
 - Hooks: `src/hooks/useUsernameAvailability.ts`, `src/hooks/useUser.ts`
+- API: `src/features/profile/api.ts`
 - APIs: `updateUserData`, `uploadProfilePicture`, `updateFieldVisibility`, `deleteAccount`
 
 ## Data/API Dependencies

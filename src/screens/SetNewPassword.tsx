@@ -1,14 +1,13 @@
 import { passwordSchema } from "@/src/lib/validation";
-import { setNewPassword } from "@/src/libs/apis";
+import { setNewPassword } from "@/src/features/authentication/api";
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { AlertCircle } from "lucide-react-native";
 import React, { useState } from "react";
 import { Text, View } from "react-native";
 import { AuthScreenLayout } from "../components/layout/AuthScreenLayout";
 import Button from "../components/ui/Button";
+import InlineErrorNotice from "../components/ui/InlineErrorNotice";
 import { TextInput } from "../components/ui/TextInput";
-import { THEME } from "../libs/constants/theme";
 import { toUserFacingError } from "../utils/userFacingError";
 
 const SetNewPasswordScreen = () => {
@@ -108,17 +107,7 @@ const SetNewPasswordScreen = () => {
           isInvalid={Boolean(confirmPasswordError)}
           errorText={confirmPasswordError}
         />
-        {apiError ? (
-          <View
-            accessibilityRole="alert"
-            className="flex-row gap-2 rounded-2xl bg-ui-danger/10 p-3"
-          >
-            <AlertCircle size={18} color={THEME.action.destructive} />
-            <Text className="flex-1 text-sm leading-5 text-ui-danger">
-              {apiError}
-            </Text>
-          </View>
-        ) : null}
+        <InlineErrorNotice message={apiError} />
         <Button
           text={mutation.isPending ? "Updating..." : "Set Password"}
           onClick={onSubmit}

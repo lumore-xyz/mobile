@@ -11,7 +11,7 @@ Expo Router file-based routes drive navigation. Top-level bottom nav has five ta
 ## Key Files
 
 - Routes: `src/app`
-- Bottom nav: `src/components/MobileNav.tsx`
+- Bottom nav and tab item: `src/components/MobileNav.tsx`, `src/components/MobileNavItem.tsx`
 - Back header: `src/components/headers/SubPageBack.tsx`
 
 ## Data/API Dependencies

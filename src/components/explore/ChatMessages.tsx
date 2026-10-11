@@ -1,4 +1,5 @@
 import type { Message } from "@/src/domain/chat/types";
+import groupMessagesByDate from "@/src/domain/chat/groupMessagesByDate";
 import React, { useEffect, useMemo, useRef } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { MatchNoteBanner } from "./MatchNoteBanner";
@@ -35,40 +36,7 @@ export const ChatMessages = React.memo(function ChatMessages({
     return () => clearTimeout(timeout);
   }, [isPartnerTyping, messages]);
 
-  const { groupedMessages, sortedDates } = useMemo(() => {
-    const nextGroups = messages.reduce(
-      (
-        groups: Record<
-          string,
-          {
-            messages: Message[];
-            timestamp: number;
-          }
-        >,
-        message: Message,
-      ) => {
-        const date = new Date(message.timestamp).toLocaleDateString();
-        if (!groups[date]) {
-          groups[date] = {
-            messages: [],
-            timestamp: message.timestamp,
-          };
-        }
-        groups[date].messages.push(message);
-        return groups;
-      },
-      {} as Record<string, { messages: Message[]; timestamp: number }>,
-    );
-
-    const nextSortedDates = Object.keys(nextGroups).sort(
-      (a, b) => nextGroups[a].timestamp - nextGroups[b].timestamp,
-    );
-
-    return {
-      groupedMessages: nextGroups,
-      sortedDates: nextSortedDates,
-    };
-  }, [messages]);
+  const messageGroups = useMemo(() => groupMessagesByDate(messages), [messages]);
 
   return (
     <ScrollView
@@ -81,11 +49,11 @@ export const ChatMessages = React.memo(function ChatMessages({
     >
       <View className="gap-4">
         <MatchNoteBanner note={matchNote || ""} createdAt={matchCreatedAt} />
-        {sortedDates.map((date) => (
+        {messageGroups.map(({ date, timestamp, messages: groupMessages }) => (
           <MessageGroup
             key={date}
-            date={date}
-            messages={groupedMessages[date].messages}
+            timestamp={timestamp}
+            messages={groupMessages}
             currentUserId={currentUserId}
             onReply={onReply}
             onStartEdit={onStartEdit}

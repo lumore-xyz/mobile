@@ -1,4 +1,5 @@
 import { createMMKV } from "react-native-mmkv";
+import isRecord from "@/src/utils/isRecord";
 
 export interface StoredUser {
   _id?: string;
@@ -39,9 +40,6 @@ const removeRefreshToken = () => {
 const setUser = (user: StoredUser) => {
   storage.set(USER_KEY, JSON.stringify(user));
 };
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 export const getUser = (): StoredUser => {
   try {

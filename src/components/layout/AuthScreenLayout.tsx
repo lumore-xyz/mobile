@@ -2,10 +2,8 @@ import React from "react";
 import { Image, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AUTH_BACKGROUND from "@/assets/images/login-screen.webp";
-import AUTH_LOGO from "@/assets/images/lumore-hr-white.png";
-
-const joinClassNames = (...classNames: (string | undefined)[]) =>
-  classNames.filter(Boolean).join(" ");
+import AUTH_LOGO from "@/assets/images/lumore-hr-white.webp";
+import clsxLib from "clsx";
 
 interface AuthScreenLayoutProps {
   children: React.ReactNode;
@@ -57,7 +55,7 @@ export const AuthScreenLayout: React.FC<AuthScreenLayoutProps> = ({
           </View>
 
           <View
-            className={joinClassNames(
+            className={clsxLib(
               "w-full rounded-t-[24px] border-t border-ui-paper/60 bg-ui-surface-raised px-6 pt-6",
               cardClassName,
             )}

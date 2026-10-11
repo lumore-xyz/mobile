@@ -1,6 +1,7 @@
 import SubPageBack from "@/src/components/headers/SubPageBack";
 import { useUser } from "@/src/hooks/useUser";
 import ProfileScreen from "@/src/screens/Profile";
+import invalidateProfileScreenQueries from "@/src/features/profile/invalidateProfileScreenQueries";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -17,18 +18,7 @@ const UserProfile = () => {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["user", targetUserId] }),
-        queryClient.invalidateQueries({
-          queryKey: ["user posts", targetUserId],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["user-profile", targetUserId],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ["this-or-that", "answers", targetUserId],
-        }),
-      ]);
+      await invalidateProfileScreenQueries(queryClient, targetUserId || "");
     } finally {
       setIsRefreshing(false);
     }

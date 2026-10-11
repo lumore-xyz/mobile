@@ -12,7 +12,11 @@ The profile experience displays user fields, profile picture, posts, This or Tha
 
 - Routes: `src/app/profile.tsx`, `src/app/(subpage)/profile/[userId].tsx`
 - Screen: `src/screens/Profile.tsx`
+- Completion calculation: `src/domain/profile/getProfileCompletion.ts`
+- Profile and preference data contracts: `src/domain/profile/types.ts`
+- Owner completion and public compatibility cards: `src/components/profile/ProfileCompletionCard.tsx`, `src/components/profile/ProfileCompatibilityCard.tsx`
 - Components: `src/components/profile`
+- Reusable lifestyle chip: `src/components/profile/LifestyleChip.tsx`
 - Hooks: `src/hooks/useUser.ts`, `src/hooks/useUserPosts.ts`, `src/hooks/useUserPrefrence.ts`
 - Helpers: `src/utils/helpers/calculateAge.ts`, `src/utils/helpers/distanceDisplay.ts`, `src/utils/helpers/languageDisplay.ts`
 
