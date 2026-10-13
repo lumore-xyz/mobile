@@ -2,6 +2,42 @@
 
 Record every meaningful repository change here after it is made. Keep entries newest first.
 
+## 2026-10-13: Extend action sheets to the screen bottom
+
+- Keep the overlay provider at full-screen size and apply safe-area padding only to the app content, so shared action sheets can draw behind Android's bottom navigation inset.
+- Verification: `npm run lint` and `npm run typecheck`.
+
+## 2026-10-13: Fix chat options sheet content sizing
+
+- Remove the unconstrained flex wrapper that collapsed the chat options sheet and clipped its menu.
+- Verification: `npm run lint` and `npm run typecheck`.
+
+## 2026-10-13: Keep the chat composer above Android keyboard
+
+- Apply keyboard height avoidance only while the keyboard is open in the internal chat, accounting for its safe-area top offset and clearing the adjustment on hide.
+- Verification: `npm run lint` and `npm run typecheck`.
+
+## 2026-10-13: Use native Android keyboard resizing
+
+- Remove the app-wide Android `KeyboardAvoidingView` height adjustment because the Android window already uses `adjustResize`; native resize now restores layout when the keyboard closes.
+- Keep the existing iOS keyboard avoidance behavior.
+- Verification: `npm run lint` and `npm run typecheck`.
+
+## 2026-10-13: Reduce onboarding footer bottom spacing
+
+- Remove the footer's extra bottom padding; the shared safe-area inset still keeps actions clear of Android navigation.
+- Verification: `npm run lint` and `npm run typecheck`.
+
+## 2026-10-13: Give onboarding languages a dedicated step
+
+- Move language selection out of the identity step into its own focused onboarding screen with short guidance.
+- Verification: `npm run lint` and `npm run typecheck`.
+
+## 2026-10-13: Keep onboarding actions clear of system navigation
+
+- Restore the shared bottom safe-area padding so screen actions, including onboarding Continue, remain above Android system navigation.
+- Verification: `npm run lint` and `npm run typecheck`.
+
 ## 2026-10-11: Consolidate panel surface primitives
 
 - Replaced separate paper and midnight wrapper components with one `SurfacePanel` using explicit `paper` and `midnight` variants, and removed both redundant wrapper files.
@@ -1465,4 +1501,9 @@ Use this structure:
 
 - Extracted the shared interest lookup, icon, label, and chip rendering for profile summary and Explore cards, retaining their two existing visual variants.
 
+
+# 2026-10-13: Explain Google sign-in age restriction
+
+- Preserve friendly API error messages in the Google auth flow and give the under-18 response a clear explanation and support path. The backend continues to enforce its 18+ requirement.
+- Verification: `npm run lint` and `npm run typecheck` passed.
 

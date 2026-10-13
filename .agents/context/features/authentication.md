@@ -29,7 +29,7 @@ Lumore supports email/password login, email/password signup, Google Sign-In, for
 
 ## UX Requirements
 
-Use persistent labels, visible validation errors, password visibility toggles, loading states during auth calls, and clear recovery paths. Keep screens warm and premium per `DESIGN_SYSTEM.md`.
+Use persistent labels, visible validation errors, password visibility toggles, loading states during auth calls, and clear recovery paths. Explain Google sign-in age restrictions clearly, including the support path when a saved birthday is incorrect. Keep screens warm and premium per `DESIGN_SYSTEM.md`.
 
 ## Open Questions
 

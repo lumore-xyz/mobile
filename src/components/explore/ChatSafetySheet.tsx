@@ -122,12 +122,12 @@ const ChatSafetySheet = ({
         <ActionsheetDragIndicatorWrapper>
           <ActionsheetDragIndicator />
         </ActionsheetDragIndicatorWrapper>
-        <View className="w-full flex-1">
-          <ScrollView
-            className="w-full"
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          >
+        <ScrollView
+          className="w-full"
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
             {mode === "menu" ? (
               <View className="w-full px-4 pb-4">
                 <Text className="mb-3 text-lg font-semibold">Chat options</Text>
@@ -248,8 +248,7 @@ const ChatSafetySheet = ({
                 </Pressable>
               </View>
             )}
-          </ScrollView>
-        </View>
+        </ScrollView>
       </ActionsheetContent>
     </Actionsheet>
   );

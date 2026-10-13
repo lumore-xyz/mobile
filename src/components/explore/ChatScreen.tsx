@@ -13,7 +13,13 @@ import { useSocket } from "@/src/service/context/SocketContext";
 import { getUser } from "@/src/service/storage";
 import { socketDebug, socketWarn } from "@/src/service/socket-debug";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View } from "react-native";
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ChatHeader from "./ChatHeader";
 import ChatInput from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
@@ -22,9 +28,27 @@ import ChatScreenSkeleton from "./ChatScreenSkeleton";
 const DEFAULT_HEART_EMOJI = "\u2764\uFE0F";
 
 export const ChatScreen = () => {
+  const insets = useSafeAreaInsets();
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(Keyboard.isVisible());
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+
+    const showSubscription = Keyboard.addListener("keyboardDidShow", () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () =>
+      setIsKeyboardVisible(false),
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
   const userId = useMemo(() => {
     try {
       return getUser()?._id || "";
@@ -186,49 +210,55 @@ export const ChatScreen = () => {
   }
 
   return (
-    <View className="bg-ui-surface-page" style={{ flex: 1 }}>
-      <ChatHeader
-        user={matchedUser}
-        onEndChat={cancelChat}
-        currentUserId={userId}
-      />
-      <ChatMessages
-        messages={messages}
-        currentUserId={userId}
-        matchNote={matchNoteText}
-        matchCreatedAt={roomData?.createdAt || null}
-        isPartnerTyping={isPartnerTyping}
-        onReply={handleReply}
-        onStartEdit={handleStartEdit}
-        onToggleLike={handleToggleLike}
-      />
-      <ChatInput
-        value={newMessage}
-        onChangeText={setNewMessage}
-        onSend={sendMessage}
-        onImageSelect={handleImageSelect}
-        onDiscardSelectedImage={handleDiscardSelectedImage}
-        canShareImages={canShareImages}
-        isConnected={isConnected}
-        isActive={isActive}
-        roomData={roomData}
-        userId={userId}
-        isUploadingImage={isUploadingImage}
-        isUploadingVoice={isUploadingVoice}
-        isRecordingVoice={isRecordingVoice}
-        recordingDurationMs={recordingDurationMs}
-        recordingWaveform={recordingWaveform}
-        replyingTo={replyingToPreview}
-        onCancelReply={cancelReply}
-        isEditing={Boolean(editingMessageId)}
-        onCancelEdit={cancelEdit}
-        pendingImage={pendingImage}
-        uploadError={uploadError}
-        onDismissUploadError={dismissUploadError}
-        onStartVoiceRecording={handleStartVoiceRecording}
-        onStopVoiceRecording={handleStopVoiceRecording}
-        onCancelVoiceRecording={handleCancelVoiceRecording}
-      />
-    </View>
+    <KeyboardAvoidingView
+      behavior={isKeyboardVisible ? "height" : undefined}
+      keyboardVerticalOffset={Platform.OS === "android" ? insets.top : 0}
+      style={{ flex: 1 }}
+    >
+      <View className="bg-ui-surface-page" style={{ flex: 1 }}>
+        <ChatHeader
+          user={matchedUser}
+          onEndChat={cancelChat}
+          currentUserId={userId}
+        />
+        <ChatMessages
+          messages={messages}
+          currentUserId={userId}
+          matchNote={matchNoteText}
+          matchCreatedAt={roomData?.createdAt || null}
+          isPartnerTyping={isPartnerTyping}
+          onReply={handleReply}
+          onStartEdit={handleStartEdit}
+          onToggleLike={handleToggleLike}
+        />
+        <ChatInput
+          value={newMessage}
+          onChangeText={setNewMessage}
+          onSend={sendMessage}
+          onImageSelect={handleImageSelect}
+          onDiscardSelectedImage={handleDiscardSelectedImage}
+          canShareImages={canShareImages}
+          isConnected={isConnected}
+          isActive={isActive}
+          roomData={roomData}
+          userId={userId}
+          isUploadingImage={isUploadingImage}
+          isUploadingVoice={isUploadingVoice}
+          isRecordingVoice={isRecordingVoice}
+          recordingDurationMs={recordingDurationMs}
+          recordingWaveform={recordingWaveform}
+          replyingTo={replyingToPreview}
+          onCancelReply={cancelReply}
+          isEditing={Boolean(editingMessageId)}
+          onCancelEdit={cancelEdit}
+          pendingImage={pendingImage}
+          uploadError={uploadError}
+          onDismissUploadError={dismissUploadError}
+          onStartVoiceRecording={handleStartVoiceRecording}
+          onStopVoiceRecording={handleStopVoiceRecording}
+          onCancelVoiceRecording={handleCancelVoiceRecording}
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 };

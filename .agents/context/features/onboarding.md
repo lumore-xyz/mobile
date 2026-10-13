@@ -6,7 +6,7 @@ Collect the minimum profile and preference data needed to make Lumore useful for
 
 ## Current Behavior
 
-Onboarding is a multi-step flow covering intro details, contact/security, identity, preference tuning, and relationship intentions. It collects nickname, real name, birthday, phone, email, referral code, gender, interested-in, languages, preferred age range, distance, and primary/secondary/tertiary goals.
+Onboarding is a multi-step flow covering intro details, contact/security, identity, languages, preference tuning, and relationship intentions. It collects nickname, real name, birthday, phone, email, referral code, gender, interested-in, spoken languages on a dedicated step, preferred age range, distance, and primary/secondary/tertiary goals.
 
 ## Key Files
 

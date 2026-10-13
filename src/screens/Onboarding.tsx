@@ -88,7 +88,7 @@ const OnboardingScreen = ({
         </View>
       </ScrollView>
 
-      <View className="border-t border-ui-parchment bg-ui-paper px-5 pb-4 pt-4">
+      <View className="border-t border-ui-parchment bg-ui-paper px-5 pt-4">
         {submitError ? (
           <View
             className="mb-3 flex-row items-center gap-2 rounded-2xl bg-ui-danger/10 px-4 py-3"

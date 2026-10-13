@@ -101,6 +101,13 @@ export const onboardingScreens: Screen[] = [
         helperText: "Who would you like to meet?",
         errorText: "Please pick a gender to continue",
       },
+    ],
+  },
+  {
+    id: "languages",
+    required: true,
+    title: "What languages do you speak?",
+    fields: [
       {
         type: "multiselect",
         place: "user",

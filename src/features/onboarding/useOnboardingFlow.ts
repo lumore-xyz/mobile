@@ -28,6 +28,7 @@ const ONBOARDING_DESCRIPTIONS: Record<string, string> = {
   intro: "A few details help your profile feel like you.",
   contact: "Your contact details stay private and keep your account secure.",
   identity: "Tell us who you are and who you would like to meet.",
+  languages: "Choose the languages you're comfortable speaking.",
   tuning: "Set the age range and distance that feel right for you.",
   intentions: "Shared intentions make it easier to find a real connection.",
 };

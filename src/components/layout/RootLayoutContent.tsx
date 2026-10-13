@@ -17,24 +17,26 @@ const RootLayoutContent = () => {
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      className="flex-1 bg-ui-porcelain"
-      style={{
-        paddingTop: insets.top,
-        paddingRight: insets.right,
-        paddingBottom: insets.bottom,
-        paddingLeft: insets.left,
-      }}
-    >
-      <KeyboardDodgingView>
-        <GluestackUIProvider mode="light">
-          <Provider>
-            <Stack screenOptions={screenOptions} />
-          </Provider>
+    <View className="flex-1 bg-ui-porcelain">
+      <GluestackUIProvider mode="light">
+        <View
+          className="flex-1"
+          style={{
+            paddingTop: insets.top,
+            paddingRight: insets.right,
+            paddingBottom: insets.bottom,
+            paddingLeft: insets.left,
+          }}
+        >
+          <KeyboardDodgingView>
+            <Provider>
+              <Stack screenOptions={screenOptions} />
+            </Provider>
+          </KeyboardDodgingView>
           <AppUpdatePrompt />
           <StatusBar style="dark" backgroundColor={COLORS.porcelain} />
-        </GluestackUIProvider>
-      </KeyboardDodgingView>
+        </View>
+      </GluestackUIProvider>
     </View>
   );
 };
